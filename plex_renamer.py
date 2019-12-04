@@ -17,7 +17,7 @@ tvdb.KEYS.API_KEY = '20503FE8-5959-4849-88CC-2A0B8E9E8B2A'
 
 
 def main():
-    naruto_box_to_season()
+    mandalorian()
 
 
 def naruto_box_to_season():
@@ -118,7 +118,6 @@ def mandalorian():
     show = tvdb.Series(search.series[0]['id'])
     response = show.info()
     episodes = show.Episodes.all()
-    print(episodes)
 
     original_files = os.listdir(path)
     for file in original_files:
@@ -128,6 +127,7 @@ def mandalorian():
         name = file_name_format(show.seriesName, season, episode, episode_name, extension)
         source = path + file
         dest = path + name
+        print()
         print(source)
         print(dest)
         shutil.move(source, dest)
