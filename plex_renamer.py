@@ -124,6 +124,7 @@ def mandalorian():
         extension = get_extension(file)
         season, episode = get_sxxexx(file)
         episode_name = next(ep['episodeName'] for ep in episodes if ep['airedEpisodeNumber'] == episode)
+        print(episode_name)
         name = file_name_format(show.seriesName, season, episode, episode_name, extension)
         source = path + file
         dest = path + name
