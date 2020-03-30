@@ -11,13 +11,14 @@ Created as Misc/BubsVoter.py
 from time import sleep
 from selenium import webdriver
 import datetime as dt
+import platform
 
 
 class BubsVoter:
     # Attributes
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument('disable-infobars')
-    exe_path = '/home/dylan/Software/Web_Driver/chromedriver_linux64/chromedriver'
+    exe_path = ''
     page_url = 'https://www.cincinnatimagazine.com/pizzamadness/'
     imp_wait_time = 5
     name_pre = 'gary'
@@ -28,6 +29,10 @@ class BubsVoter:
         self.mins_id = gen_id()
         if path != '':
             self.exe_path = path
+        if platform.system().lower() == 'windows':
+            self.exe_path = '.\\chromedriver\\chromedriver.exe'
+        elif platform.system().lower() == 'linux':
+            self.exe_path = './chromedriver/chromedriver'
 
     def vote(self):
         self.start_driver()
@@ -111,6 +116,6 @@ class BubsVoter:
 def gen_id():
     epoch = dt.datetime(2020, 3, 29, 23, 59, 59)
     now = dt.datetime.now()
-    minutes = int((epoch - now).total_seconds()/60)
+    minutes = int((now - epoch).total_seconds()/60)
 
     return minutes
