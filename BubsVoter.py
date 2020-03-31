@@ -20,7 +20,7 @@ class BubsVoter:
     chrome_options.add_argument('disable-infobars')
     exe_path = ''
     page_url = 'https://www.cincinnatimagazine.com/pizzamadness/'
-    imp_wait_time = 5
+    imp_wait_time = 10
     name_pre = 'gary'
     email_suf = '@gmail.com'
     driver = None
@@ -47,7 +47,7 @@ class BubsVoter:
         self.driver.implicitly_wait(self.imp_wait_time)
 
     def close_driver(self):
-        sleep(10)
+        sleep(self.imp_wait_time)
         self.driver.quit()
 
     def get_page(self):
@@ -116,6 +116,7 @@ class BubsVoter:
 def gen_id():
     epoch = dt.datetime(2020, 3, 29, 23, 59, 59)
     now = dt.datetime.now()
-    minutes = int((now - epoch).total_seconds()/60)
+    seconds = (now - epoch).total_seconds()
+    unique_id = int(seconds/60)*100 + int(seconds) % 60
 
-    return minutes
+    return unique_id
