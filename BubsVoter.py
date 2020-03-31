@@ -32,7 +32,7 @@ class BubsVoter:
         if platform.system().lower() == 'windows':
             self.exe_path = '.\\chromedriver\\chromedriver.exe'
         elif platform.system().lower() == 'linux':
-            self.exe_path = './chromedriver/chromedriver'
+            self.exe_path = 'chromedriver/chromedriver_lin'
 
     def vote(self):
         self.start_driver()
