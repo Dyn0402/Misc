@@ -1,0 +1,3 @@
+linux: pyinstaller /home/dylan/PycharmProjects/Misc/bubs_voter_sel.py --onefile --add-binary /home/dylan/PycharmProjects/Misc/chromedriver/chromedriver_lin:./chromedriver
+
+windows:
