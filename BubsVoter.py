@@ -12,6 +12,8 @@ from time import sleep
 from selenium import webdriver
 import datetime as dt
 import platform
+import os
+import sys
 
 
 class BubsVoter:
@@ -21,6 +23,7 @@ class BubsVoter:
     exe_path = ''
     page_url = 'https://www.cincinnatimagazine.com/pizzamadness/'
     imp_wait_time = 10
+    close_time = 5
     name_pre = 'gary'
     email_suf = '@gmail.com'
     driver = None
@@ -30,9 +33,9 @@ class BubsVoter:
         if path != '':
             self.exe_path = path
         if platform.system().lower() == 'windows':
-            self.exe_path = 'chromedriver/chromedriver_win.exe'
+            self.exe_path = '.\\chromedriver\\chromedriver_win.exe'
         elif platform.system().lower() == 'linux':
-            self.exe_path = 'chromedriver/chromedriver_lin'
+            self.exe_path = './chromedriver/chromedriver_lin'
 
     def vote(self):
         self.start_driver()
@@ -43,11 +46,11 @@ class BubsVoter:
         self.close_driver()
 
     def start_driver(self):
-        self.driver = webdriver.Chrome(self.exe_path)
+        self.driver = webdriver.Chrome(resource_path(self.exe_path))
         self.driver.implicitly_wait(self.imp_wait_time)
 
     def close_driver(self):
-        sleep(self.imp_wait_time)
+        sleep(self.close_time)
         self.driver.quit()
 
     def get_page(self):
@@ -120,3 +123,11 @@ def gen_id():
     unique_id = int(seconds/60)*100 + int(seconds) % 60
 
     return unique_id
+
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.dirname(__file__)
+    return os.path.join(base_path, relative_path)
