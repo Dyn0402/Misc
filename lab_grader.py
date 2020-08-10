@@ -17,13 +17,16 @@ def main():
     
     
 def initialize():
-    # submissions = [29, 29, 28]  #Number of submissions
-    submissions = [10, 12, 9]
+    submissions = [32, 30, 31]  # Number of submissions
+    # submissions = [32, 30, 32]
     tabs = 3  # Number of lab sections and therefore browser tabs.
     # questions = [['1','2','3','4','5'],
     #             ['1','2','3','4','5']] #Key stokes for each question
     # questions = [['1', '4']]
     questions = [['1'],
+                 ['1']]
+    questions = [['2'],
+                 ['1'],
                  ['1'],
                  ['1'],
                  ['1'],
@@ -31,21 +34,12 @@ def initialize():
                  ['1'],
                  ['1'],
                  ['1']]
-    # questions = [['3'],
-    #             ['3'],
-    #             ['1'],
-    #             ['1'],
-    #             ['1'],
-    #             ['1'],
-    #             ['1'],
-    #             ['1'],
-    #             ['1']]
-    wait_time = 2.5  # seconds to delay for next question/submission to load
+    wait_time = 1.5  # seconds to delay for next question/submission to load
     next_sub = 'z'  # Hotkey for next ungraded exam
     next_q = '.'  # Hotkey for next question
     tab_hot_key = ['ctrl', 'tab']  # Hotkey for next browser tab.
-    x = 300  # Initilizing click x position
-    y = 200  # Initilizing click y position
+    x = -200  # Initilizing click x position
+    y = 150  # Initilizing click y position
     
     pars = {'Submissions': submissions, 'Questions': questions,
             'WaitTime': wait_time, 'NextSub': next_sub, 'Tabs': tabs,

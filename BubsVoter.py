@@ -43,6 +43,7 @@ class BubsVoter:
         self.switch_to_iframe()
         self.vote_bubs()
         self.make_account()
+        self.vote_bubs()
         self.close_driver()
 
     def start_driver(self):
@@ -55,6 +56,7 @@ class BubsVoter:
 
     def get_page(self):
         self.driver.get(self.page_url)
+        sleep(10)
 
     def switch_to_iframe(self):
         iframe_xpath = "//iframe[@id='iFrameResizer0']"
