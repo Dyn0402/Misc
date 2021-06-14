@@ -17,27 +17,27 @@ def main():
     
     
 def initialize():
-    submissions = [33, 29, 29]  # Number of submissions
+    submissions = [32, 28, 29]  # Number of submissions
     # submissions = [32, 30, 32]
     tabs = 3  # Number of lab sections and therefore browser tabs.
     # questions = [['1','2','3','4','5'],
     #             ['1','2','3','4','5']] #Key stokes for each question
     # questions = [['1', '4']]
-    questions = [['1']]
-    # questions = [['1'],
-    #              ['1'],
-    #              ['1'],
-    #              ['1'],
-    #              ['1'],
-    #              ['1'],
-    #              ['1'],
-    #              ['1'],
-    #              ['1']]
-    wait_time = 0.4  # seconds to delay for next question/submission to load
+    # questions = [['1']]
+    questions = [['1'],
+                 ['1'],
+                 ['1'],
+                 ['1'],
+                 ['1'],
+                 ['1'],
+                 ['1'],
+                 ['1'],
+                 ['1']]
+    wait_time = 0.6  # seconds to delay for next question/submission to load
     next_sub = 'z'  # Hotkey for next ungraded exam
     next_q = '.'  # Hotkey for next question
     tab_hot_key = ['ctrl', 'tab']  # Hotkey for next browser tab.
-    x = -200  # Initilizing click x positionz1
+    x = 600  # -200  # Initilizing click x position
     y = 250  # Initilizing click y position
     ask_for_next_q = False
     
