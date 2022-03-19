@@ -13,7 +13,6 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from time import sleep
-from winsound import Beep
 from datetime import datetime as dt
 from pydub import AudioSegment
 from pydub.playback import play, _play_with_simpleaudio
@@ -22,7 +21,7 @@ from pydub.playback import play, _play_with_simpleaudio
 def main():
     min_run_time = 60  # s If run not this old, don't check dead time yet
     run_stop_messages = 10  # Number of messages to check from most recent for a run stop
-    run_end_window = 90  # s Consider run stopped if message no more than this old
+    run_end_window = 60  # s Consider run stopped if message no more than this old
     dead_chime = True  # If True play chime immediately after any detector goes dead, else just alarm for extended dead
 
     refresh_sleep = 1  # s How long to sleep at end of loop before refreshing page and checking again
@@ -30,10 +29,11 @@ def main():
 
     beep_freq, beep_dur = 1000, 5000  # frequency (Hz) and length (ms) of beep if the script crashes
     repeat_num = 1000  # To repeat notify sound for alarm, audio buffer fails if too large, 1000 still good
-    chimes = AudioSegment.from_file('C:/Windows/Media/chimes.wav')
-    notify = AudioSegment.from_file('C:/Windows/Media/notify.wav') * repeat_num
+    chimes = AudioSegment.from_file('chimes.wav')
+    notify = AudioSegment.from_file('notify.wav') * repeat_num
+    failure = AudioSegment.from_file('chord.wav') * 20
     run_stop_text = 'Got the run stop request for run'
-    chrome_driver_path = './chromedriver/chromedriver_win.exe'
+    chrome_driver_path = '../chromedriver/chromedriver_win.exe'
 
     ser = Service(chrome_driver_path)
     op = webdriver.ChromeOptions()
@@ -96,7 +96,7 @@ def main():
             sleep(refresh_sleep)
     except Exception as e:
         print(f'Some failure!\n{e}')
-        Beep(beep_freq, beep_dur)
+        play(failure)
     sleep(2)
     driver.close()
     print('donzo')
