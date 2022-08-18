@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 
 def main():
     old_data_path = 'E:\\Transfer\\Old_Gym_Data.txt'
-    exercise_map = define_exercise_map()
+    exercise_map, category_map = define_maps()
     with open(old_data_path, 'r', encoding='utf-8-sig') as file:
         lines = file.readlines()
         # print(lines[:10])
@@ -24,6 +24,7 @@ def main():
         line_index = 0
         exercises = []
         unmatched_exercises = []
+        fit_notes_out = []
         while line_index < len(lines):
             line_date = lines[line_index].strip().split()
             # print(f'{line_index}  {line_date}')
@@ -43,66 +44,24 @@ def main():
                             break
                         line_text = lines[line_index].strip('\n').lower()
                         while '   * ' in line_text:
-                            first_digit = re.search(r'\d', line_text)
-                            if first_digit:
-                                exercise = line_text[:first_digit.start()].strip(' *-')
-                                matched = False
-                                for exercise_name, name_list in exercise_map.items():
-                                    if exercise in name_list:
-                                        matched = True
-                                        line_tail = line_text[first_digit.start():]
-                                        # print(f'{exercise_name} {exercise}')
-                                        # print(line_tail.split(', '))
-                                        for ele in line_tail.split(', '):
-                                            if '-' in ele:
-                                                ele = ele.split('-')
-                                                rep_ints = []
-                                                if len(ele) == 2:
-                                                    reps = ele[0].strip()
-                                                    reps = reps.split(',')
-                                                    for rep in reps:
-                                                        if 'x' in rep:
-                                                            rep_x = rep.split('x')
-                                                            if len(rep_x) == 2:
-                                                                try:
-                                                                    int(rep_x[1])
-                                                                except ValueError:
-                                                                    print(line_text)
-                                                                for i in range(int(rep_x[1])):
-                                                                    try:
-                                                                        rep_ints.append(int(rep_x[0]))
-                                                                    except ValueError:
-                                                                        print(f'Bad comma rep read: {line_text}')
-                                                        else:
-                                                            try:
-                                                                rep_ints.append(int(rep))
-                                                            except ValueError:
-                                                                print(f'bad solo rep read: {line_text}')
-                                                    # print(rep_ints)
-
-                                                    weight = ele[1].strip()
-                                                    angle = None
-                                                    if '@' in weight:
-                                                        weight, angle = weight.split('@')
-                                                        weight = weight.strip()
-                                                        angle = angle.strip()
-                                                    if '/side' in weight:
-                                                        weight = 2 * float(weight.strip('/side'))
-                                                    elif '/handle' in weight:
-                                                        weight = 2 * float(weight.strip('/handle'))
-                                                    elif '+' in weight:
-                                                        weight = weight.split('+')
-                                                        if len(weight) == 2:
-                                                            weight = float(weight[0]) + float(weight[1])
-                                                    else:
-                                                        weight = float(weight)
-                                                print(rep_ints, weight)
-                                        break
-                                if not matched:
-                                    unmatched_exercises.append(exercise)
+                            exercise, exercise_fitnotes, weight, reps, notes, bad_read = \
+                                read_exercise_line(line_text, exercise_map)
+                            if bad_read:
+                                print(f'Bad read: {line_text}')
+                                print(exercise, exercise_fitnotes, weight, reps, notes)
+                                print()
                             else:
-                                print(f'No Digit Found!  {line_text}')
-                            # print(line_text)
+                                if exercise_fitnotes is None:
+                                    unmatched_exercises.append(exercise)
+                                else:
+                                    category = category_map[exercise_fitnotes]
+                                    notes = ', '.join(notes)
+                                    for rep in reps:
+                                        distance, distance_unit, time = '', '', ''
+                                        if weight is None:
+                                            weight = ''
+                                        print('\t'.join([date.strftime('%m/%d/%Y'), exercise_fitnotes, category,
+                                                         str(weight), str(rep), distance, distance_unit, time, notes]))
                             line_index += 1
                             if line_index >= len(lines):
                                 break
@@ -129,7 +88,114 @@ def read_date(line):
     return date
 
 
-def define_exercise_map():
+def read_exercise_line(line_text, exercise_map):
+    exercise, exercise_fitnotes, weight, reps, notes, bad_read = None, None, None, [], [], False
+    first_digit = re.search(r'\d', line_text)
+    if not first_digit:
+        print(f'No digits found in line! {line_text}')
+        bad_read = True
+    else:
+        exercise = line_text[:first_digit.start()].strip(' *-')
+        for exercise_name, name_list in exercise_map.items():
+            if exercise in name_list:
+                exercise_fitnotes = exercise_name
+        if exercise_fitnotes is not None:
+            line_tail = line_text[first_digit.start():]
+            for ele in line_tail.split(', '):
+                if '-' in ele:
+                    weight, reps, angle, rep_bad_read = read_rep_weight(ele)
+                    bad_read = bad_read or rep_bad_read
+                    if angle is not None:
+                        notes.append(angle)
+                # elif 'x' in ele:
+                elif is_weightless_rep(ele):
+                    reps, rep_bad_read = read_reps(ele)
+                    bad_read = bad_read or rep_bad_read
+                else:
+                    notes.append(ele)
+
+    return exercise, exercise_fitnotes, weight, reps, notes, bad_read
+
+
+def read_rep_weight(rep_weight_string):
+    angle, weight, rep_ints, bad_read = None, None, [], False
+    rep_weights = rep_weight_string.split('-')
+    if len(rep_weights) != 2:
+        print(f'Double "-" in line! {rep_weight_string}')
+        bad_read = True
+    else:
+        weight_string = rep_weights[1].strip()
+        weight, angle = read_weight(weight_string)
+
+        reps_string = rep_weights[0].strip()
+        rep_ints, rep_bad_read = read_reps(reps_string)
+        bad_read = bad_read or rep_bad_read
+
+    return weight, rep_ints, angle, bad_read
+
+
+def read_weight(weight_string):
+    weight, angle = None, None
+    if '@' in weight_string:
+        weight_string, angle = weight_string.split('@')
+        weight_string = weight_string.strip()
+        angle = angle.strip()
+    if '/side' in weight_string:
+        weight = 2 * float(weight_string.strip('/side'))
+    elif '/handle' in weight_string:
+        weight = 2 * float(weight_string.strip('/handle'))
+    elif '+' in weight_string:
+        weight_string = weight_string.split('+')
+        if len(weight_string) == 2:
+            weight = float(weight_string[0]) + float(weight_string[1])
+    else:
+        weight = float(weight_string)
+
+    return weight, angle
+
+
+def read_reps(reps_string):
+    rep_ints, bad_read = [], False
+    reps = reps_string.split(',')
+    for rep in reps:
+        if 'x' in rep:
+            rep_x = rep.split('x')
+            if len(rep_x) != 2:
+                print(f'Too many "x"s rep split! {reps_string}')
+                bad_read = True
+            try:
+                sets = int(rep_x[1])
+                reps = int(rep_x[0])
+                for i in range(sets):
+                    rep_ints.append(reps)
+            except ValueError:
+                print(f'Bad "x" rep/set read! {reps_string}')
+                bad_read = True
+        else:
+            try:
+                rep_ints.append(int(rep))
+            except ValueError:
+                print(f'bad solo rep read: {reps_string}')
+                bad_read = True
+
+    return rep_ints, bad_read
+
+
+def is_weightless_rep(rep_string):
+    is_res = False
+    if 'x' in rep_string:
+        rep_string = rep_string.split('x')
+        try:
+            reps = int(rep_string[0])
+            sets = int(rep_string[1])
+            is_res = True
+        except ValueError:
+            pass
+
+    return is_res
+
+
+def define_maps():
     exercise_map = {
         'Flat Barbell Bench Press': ['bench'],
         'Overhead Press': [],
@@ -175,10 +241,55 @@ def define_exercise_map():
         # '': [],
     }
 
+    category_map = {
+        'Flat Barbell Bench Press': 'Chest',
+        'Overhead Press': 'Shoulders',
+        'Seated Machine Fly': 'Chest',
+        'Lying Triceps Extension': 'Triceps',
+        'EZ-Bar Curl': 'Biceps',
+        'Deadlift': 'Back',
+        'Back Extension': 'Back',
+        'Barbell Row': 'Back',
+        'Seated Row Machine Overhand': 'Back',
+        'Seated Row Machine Underhand': 'Back',
+        'Rear Deltoid Machine': 'Back',
+        'Dumbbell Shrug': 'Back',
+        'Leg Press': 'Legs',
+        'Linear Leg Press': 'Legs',
+        'Lateral Dumbbell Raise': 'Shoulders',
+        'Seated Leg Curl Machine': 'Legs',
+        'Hanging Knee Raise': 'Abs',
+        'Hanging Leg Raise': 'Abs',
+        'Captain\'s Chair Leg Raises': 'Abs',
+        'Captain\'s Chair Knee Raises': 'Abs',
+        'Dumbbell Row': 'Back',
+        'Barbell Row': 'Back',
+        'Lat Pulldown': 'Back',
+        'Dumbbell Curl': 'Biceps',
+        'Dumbbell Concentration Curl': 'Biceps',
+        'Dumbbell Hammer Curl': 'Biceps',
+        'Crossbody Dumbbell Hammer Curl': 'Biceps',
+        'EZ-Bar Preacher Curl': 'Biceps',
+        'Flat Dumbbell Bench Press': 'Chest',
+        'Flat Dumbbell Fly': 'Chest',
+        'Incline Dumbbell Bench Press': 'Chest',
+        'Barbell Squat': 'Legs',
+        'Leg Extension Machine': 'Legs',
+        'Romanian Deadlift': 'Legs',
+        'Standing Calf Raise Machine': 'Legs',
+        'Seated Calf Raise Machine': 'Legs',
+        'Seated Dumbbell Press': 'Shoulders',
+        'Seated Shoulder Press Machine': 'Shoulders',
+        'Dumbbell Overhead Triceps Extension': 'Triceps',
+        'EZ-Bar Skullcrusher': 'Triceps',
+        'Parallel Bar Triceps Dip': 'Triceps',
+        # '': [],
+    }
+
     for key in exercise_map:
         exercise_map[key].append(key.lower())
 
-    return exercise_map
+    return exercise_map, category_map
 
 
 if __name__ == '__main__':
