@@ -37,40 +37,47 @@ def main():
                     line_date = lines[line_index].strip().split()
                     if read_date(line_date) is not None:
                         break
-                    line_text = lines[line_index].strip('\n').lower()
-                    if '* gym' in line_text:
+                    line_text = lines[line_index].strip('\n')
+                    if '* gym' in line_text.lower():
                         line_index += 1
                         if line_index >= len(lines):
                             break
-                        line_text = lines[line_index].strip('\n').lower()
+                        line_text = lines[line_index].strip('\n')
                         while '   * ' in line_text:
-                            exercise, exercise_fitnotes, weight, reps, notes, bad_read = \
+                            exercise, exercise_fitnotes, sets, notes, bad_read = \
                                 read_exercise_line(line_text, exercise_map)
                             if bad_read:
-                                print(f'Bad read: {line_text}')
-                                print(exercise, exercise_fitnotes, weight, reps, notes)
-                                print()
+                                # print(f'Bad read: {line_text}')
+                                # print(exercise, exercise_fitnotes, weight, reps, notes)
+                                # print()
+                                pass
                             else:
                                 if exercise_fitnotes is None:
                                     unmatched_exercises.append(exercise)
                                 else:
                                     category = category_map[exercise_fitnotes]
                                     notes = ', '.join(notes)
-                                    for rep in reps:
+                                    sets = [(set_weight[0], rep) for set_weight in sets for rep in set_weight[1]]
+                                    for set_index, (weight, rep) in enumerate(sets):
                                         distance, distance_unit, time = '', '', ''
                                         if weight is None:
                                             weight = ''
+                                        if set_index != len(sets) - 1:
+                                            comment = ''
+                                        else:
+                                            comment = notes
                                         print('\t'.join([date.strftime('%m/%d/%Y'), exercise_fitnotes, category,
-                                                         str(weight), str(rep), distance, distance_unit, time, notes]))
+                                                         str(weight), str(rep), distance, distance_unit, time,
+                                                         comment]))
                             line_index += 1
                             if line_index >= len(lines):
                                 break
-                            line_text = lines[line_index].strip('\n').lower()
+                            line_text = lines[line_index].strip('\n')
                     if line_index >= len(lines):
                         break
 
     unmatched_exercises = pd.Series(unmatched_exercises).value_counts(sort=False)
-    print(unmatched_exercises)
+    # print(unmatched_exercises)
     unmatched_exercises.plot(kind='barh')
 
     plt.show()
@@ -89,13 +96,13 @@ def read_date(line):
 
 
 def read_exercise_line(line_text, exercise_map):
-    exercise, exercise_fitnotes, weight, reps, notes, bad_read = None, None, None, [], [], False
+    exercise, exercise_fitnotes, sets, notes, bad_read = None, None, [], [], False
     first_digit = re.search(r'\d', line_text)
     if not first_digit:
         print(f'No digits found in line! {line_text}')
         bad_read = True
     else:
-        exercise = line_text[:first_digit.start()].strip(' *-')
+        exercise = line_text[:first_digit.start()].strip(' *-').lower()
         for exercise_name, name_list in exercise_map.items():
             if exercise in name_list:
                 exercise_fitnotes = exercise_name
@@ -104,17 +111,18 @@ def read_exercise_line(line_text, exercise_map):
             for ele in line_tail.split(', '):
                 if '-' in ele:
                     weight, reps, angle, rep_bad_read = read_rep_weight(ele)
+                    sets.append([weight, reps])
                     bad_read = bad_read or rep_bad_read
                     if angle is not None:
                         notes.append(angle)
-                # elif 'x' in ele:
                 elif is_weightless_rep(ele):
                     reps, rep_bad_read = read_reps(ele)
+                    sets.append([None, reps])
                     bad_read = bad_read or rep_bad_read
                 else:
                     notes.append(ele)
 
-    return exercise, exercise_fitnotes, weight, reps, notes, bad_read
+    return exercise, exercise_fitnotes, sets, notes, bad_read
 
 
 def read_rep_weight(rep_weight_string):
@@ -158,8 +166,8 @@ def read_reps(reps_string):
     rep_ints, bad_read = [], False
     reps = reps_string.split(',')
     for rep in reps:
-        if 'x' in rep:
-            rep_x = rep.split('x')
+        if 'x' in rep.lower():
+            rep_x = rep.lower().split('x')
             if len(rep_x) != 2:
                 print(f'Too many "x"s rep split! {reps_string}')
                 bad_read = True
@@ -183,8 +191,8 @@ def read_reps(reps_string):
 
 def is_weightless_rep(rep_string):
     is_res = False
-    if 'x' in rep_string:
-        rep_string = rep_string.split('x')
+    if 'x' in rep_string.lower():
+        rep_string = rep_string.lower().split('x')
         try:
             reps = int(rep_string[0])
             sets = int(rep_string[1])
