@@ -22,10 +22,12 @@ def main():
     helper = AppHelper()
     helper.reverse_lists()
     helper.start_listening()
-    # helper.test()
+    print(f'Press {helper.experience_key} to enter an Experience')
+    print(f'Press {helper.education_key} to enter an Education')
     while True:
         sleep(1)
         if len(helper.experience_list) == len(helper.education_list) == 0:
+            sleep(5)
             break
 
     print('donzo')
@@ -63,6 +65,8 @@ class AppHelper:
         if key == self.experience_key:
             experience = self.experience_list.pop(0)
             print('Writing Experience...')
+            print(f'Start Date: {experience.start_date}')
+            print(f'End Date: {experience.end_date}')
             pg.write(experience.job_title)
             pg.press('tab')
             pg.write(experience.company)
@@ -80,6 +84,8 @@ class AppHelper:
         if key == self.education_key:
             education = self.education_list.pop(0)
             print('Writing Education...')
+            print(f'Start Date: {education.start_date}')
+            print(f'End Date: {education.end_date}')
             pg.write(education.institution)
             pg.press('tab')
             pg.write(education.major)
@@ -94,19 +100,23 @@ class AppHelper:
 
 
 class Experience:
-    def __int__(self):
+    def __init__(self):
         self.company = None
         self.job_title = None
         self.location = None
         self.description = None
+        self.start_date = None
+        self.end_date = None
 
 
 class Education:
-    def __int__(self):
+    def __init__(self):
         self.institution = None
         self.major = None
         self.degree = None
         self.location = None
+        self.start_date = None
+        self.end_date = None
 
 
 def read_work_experience(file_path):
@@ -122,7 +132,6 @@ def read_work_experience(file_path):
         elif 'Education\n' in entry:
             entry_type = 'Education'
             entry = entry.replace('Education\n', '')
-            education_list.append(Education)
         elif 'Skills\n' in entry:
             entry_type = 'Skills'
             entry = entry.replace('Skills:\n', '')
@@ -139,6 +148,10 @@ def read_work_experience(file_path):
                     new_experience.location = line.replace('Location: ', '')
                 elif 'Description: ' in line:
                     new_experience.description = line.replace('Description: ', '')
+                elif 'Start Date: ' in line:
+                    new_experience.start_date = line.replace('Start Date: ', '')
+                elif 'End Date: ' in line:
+                    new_experience.end_date = line.replace('End Date: ', '')
             experience_list.append(new_experience)
         elif entry_type == 'Education':
             new_education = Education()
@@ -151,7 +164,10 @@ def read_work_experience(file_path):
                     new_education.degree = line.replace('Degree: ', '')
                 elif 'Location: ' in line:
                     new_education.location = line.replace('Location: ', '')
-            print(dir(new_education))
+                elif 'Start Date: ' in line:
+                    new_education.start_date = line.replace('Start Date: ', '')
+                elif 'End Date: ' in line:
+                    new_education.end_date = line.replace('End Date: ', '')
             education_list.append(new_education)
 
     # print(experience_list, education_list)
