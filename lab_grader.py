@@ -8,13 +8,53 @@ Created on Tue Apr 03 13:54:50 2018
 
 import pyautogui as pg
 import time
+from time import sleep
+
+import selenium.common.exceptions
+from selenium.common.exceptions import WebDriverException, NoSuchElementException
+from selenium import webdriver
+from selenium.webdriver.common.by import By
 
 
 def main():
-    pars = initialize()
-    grade(pars)
+    # pars = initialize()
+    # grade(pars)
+    selenium_test()
     print('donzo')
-    
+
+
+def selenium_test():
+    # Selenium got blocked after first couple tests, even when I did Captchas
+    driver_path = 'chromedriver/chromedriver_win.exe'
+    # application_url = 'https://www.gradescope.com/courses/526872/questions/22484569/submissions/1513301465/' \
+    #                   'grade?not_grouped=true'
+    application_url = 'https://www.gradescope.com/courses/526874/questions/22541002/submissions/1513458940/' \
+                      'grade?not_grouped=true'
+    driver = webdriver.Chrome(executable_path=driver_path)
+    rubric_numbers = [1]
+    driver.get(application_url)
+    sleep(2)
+    driver.find_element(By.XPATH, '//*[@id="session_email"]').send_keys('dneff@physics.ucla.edu')
+    driver.find_element(By.XPATH, '//*[@id="session_password"]').send_keys('SmaugA201718')
+    driver.find_element(By.XPATH, '/html/body/div[1]/main/div[2]/div/section/form/div[4]/input').click()
+    sleep(5)
+    while True:
+        try:
+            for rubric_number in rubric_numbers:
+                rubric_xpath = f'//*[@id="main-content"]/div/main/div[3]/div[2]/' \
+                               f'div/div[2]/div[1]/ol/li[{rubric_number}]/div/div/button'
+                driver.find_element(By.XPATH, rubric_xpath).click()
+            driver.find_element(By.XPATH,
+                                '//*[@id="main-content"]/div/main/section/ul/li[5]/button/span/span/span').click()
+        except NoSuchElementException:
+            sleep(2)
+            print(driver.find_element(By.XPATH, '//*[@id="main-content"]/div[2]/div/div').get_attribute('class'))
+            break
+
+    sleep(15)
+    driver.close()
+    driver.quit()
+
     
 def initialize():
     submissions = [32, 28, 29]  # Number of submissions
