@@ -16,7 +16,7 @@ from datetime import timedelta
 
 def main():
     path = 'C:/Users/Dylan/Desktop/ryzen_stock.txt'
-    item = 'Ryzen 5 5600X'
+    item = 'Ryzen 7 5800X'
     in_mode = 'lines'
     # path = 'C:/Users/Dylan/Desktop/msi_tom_stock.txt'
     # item = 'MAG X570 TOMAHAWK WIFI'
@@ -114,7 +114,7 @@ def pair_stock_dates(stock_data):
     for vendor in vendors:
         stock_periods.update({vendor: []})
         start = None
-        for date, item in sorted(zip(stock_data[0], stock_data[1])):
+        for date, item in sorted(zip(stock_data[0], stock_data[1]), key=lambda x: x[0]):
             if item['vendor'] == vendor:
                 if start:
                     if item['available']:
