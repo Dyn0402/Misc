@@ -21,6 +21,7 @@ from selenium.common.exceptions import WebDriverException, NoSuchElementExceptio
 from selenium.webdriver.chrome.service import Service
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
 
 
 def main():
@@ -29,19 +30,19 @@ def main():
 
 
 def selenium_test():
-    assignment_name = 'Week 1'
-    # good_course_include_flags = ['5CL-G']
+    assignment_name = ['Week 1', 'lab 1']
     section_ta_map = get_section_ta_map()
-    good_course_include_flags = ['5CL-G4', '5CL-G5', '5CL-G12', '5CL-G13']
+    good_course_include_flags = ['5CL-G']
+    # good_course_include_flags = ['5CL-G4', '5CL-G5', '5CL-G12', '5CL-G13']
     wait_time_for_page_element = 1  # s
     window_width, window_height = 1200, 800  # Pixels
 
-    driver_path = 'chromedriver/chromedriver_win.exe'
+    driver_path = '../chromedriver/chromedriver_win.exe'
     application_url = 'https://www.gradescope.com/login'
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument(f'--window-size={window_width},{window_height}')
-    service = Service(executable_path=driver_path)
-    driver = webdriver.Chrome(service=service, chrome_options=chrome_options)
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=chrome_options)
     driver.implicitly_wait(wait_time_for_page_element)
     driver.get(application_url)
     driver.find_element(By.XPATH, '//*[@id="session_email"]').send_keys('dneff@physics.ucla.edu')
@@ -61,7 +62,7 @@ def selenium_test():
                     assign_xpath = f'//*[@id="assignments-instructor-table"]/tbody/tr[{assign_index}]/td[1]/div/div/a'
                     try:
                         assign_button = driver.find_element(By.XPATH, assign_xpath)
-                        if assignment_name in assign_button.text:
+                        if any(ass_name in assign_button.text for ass_name in assignment_name):
                             assign_button.click()
                             review = driver.find_element(By.XPATH, '/html/body/nav[1]/div[1]/ul[1]/li[5]/a/div[2]')
                             if 'Review Grades' in review.text:
@@ -73,11 +74,14 @@ def selenium_test():
                             while True:
                                 try:
                                     score_xpath = f'//*[@id="DataTables_Table_0"]/tbody/tr[{student_index}]/td[3]'
-                                    score = float(driver.find_element(By.XPATH, score_xpath).text)
-                                    name_xpath = f'//*[@id="DataTables_Table_0"]/tbody/tr[{student_index}]/td[1]/a'
-                                    student_name = driver.find_element(By.XPATH, name_xpath).text
-                                    df.append({'section': course_name, 'ta': section_ta_map[course_name],
-                                               'student_name': student_name, 'score': score})
+                                    try:
+                                        score = float(driver.find_element(By.XPATH, score_xpath).text)
+                                        name_xpath = f'//*[@id="DataTables_Table_0"]/tbody/tr[{student_index}]/td[1]/a'
+                                        student_name = driver.find_element(By.XPATH, name_xpath).text
+                                        df.append({'section': course_name, 'ta': section_ta_map[course_name],
+                                                   'student_name': student_name, 'score': score})
+                                    except ValueError:
+                                        pass
                                     student_index += 1
                                 except NoSuchElementException:
                                     print(f'End of course {course_name}')
@@ -86,7 +90,8 @@ def selenium_test():
                     except NoSuchElementException:
                         print('Couldn\'t find right assignment')
                         break
-                driver.find_element(By.XPATH, '/html/body/nav[1]/div[1]/div[2]/div[1]/a/img').click()
+                    assign_index += 1
+                driver.find_element(By.XPATH, '/html/body/nav[1]/div[1]/div[2]/div[1]/a/img').click()  # Return to main
             course_index += 1
 
         except NoSuchElementException:
@@ -103,6 +108,8 @@ def selenium_test():
 
     fig_coures, ax_courses = plt.subplots(dpi=144)
     sns.histplot(data=df, x='score', hue='section')
+    fig_coures, ax_courses = plt.subplots(dpi=144)
+    sns.kdeplot(data=df, x='score', hue='section')
     # for section in pd.unique(df['section']):
     #     df_section = df[df['section'] == section]
     #     sns.histplot(df_section['score'], label=section)
@@ -110,6 +117,8 @@ def selenium_test():
 
     fig_tas, ax_tas = plt.subplots(dpi=144)
     sns.histplot(data=df, x='score', hue='ta')
+    fig_tas, ax_tas = plt.subplots(dpi=144)
+    sns.kdeplot(data=df, x='score', hue='ta')
     # for ta_name in pd.unique(df['ta']):
     #     df_ta = df[df['ta'] == ta_name]
     #     sns.histplot(df_ta['score'], label=ta_name)

@@ -25,7 +25,7 @@ def main():
 
 def selenium_test():
     # Selenium got blocked after first couple tests, even when I did Captchas
-    driver_path = 'chromedriver/chromedriver_win.exe'
+    driver_path = '../chromedriver/chromedriver_win.exe'
     # application_url = 'https://www.gradescope.com/courses/526872/questions/22484569/submissions/1513301465/' \
     #                   'grade?not_grouped=true'
     application_url = 'https://www.gradescope.com/courses/526874/questions/22541002/submissions/1513458940/' \
