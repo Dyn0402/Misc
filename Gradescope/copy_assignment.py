@@ -26,7 +26,7 @@ def main():
 
 
 def copy_assignment():
-    assignment_name = 'Pre-Lab 2'
+    assignment_name = '5C Lab 2'
     week = 2
     # good_course_include_flags = ['5CL-G']
     section_time_map = get_section_time_map()
