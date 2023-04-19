@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 
-from groupy.client import Client
+# from groupy.client import Client
 
 
 def main():
@@ -166,7 +166,7 @@ def get_uid_name_map(df, print_uid_alias=False):
 
 
 def write_messages_to_csv():
-    token = '***REMOVED***'
+    token = read_token('C:/Users/Dylan/Desktop/Creds/groupme_token.txt')
     group_name = 'Take A Shot For Harambe, He Took One For You'
     df = get_group_messages(group_name, token)
     df.to_csv('C:/Users/Dylan/Desktop/harambe_groupme.csv')
@@ -239,22 +239,29 @@ def get_group_messages(group_name, token):
     return pd.DataFrame(df)
 
 
-def groupy():
-    # No likes functionality
-    token = '***REMOVED***'
-    client = Client.from_token(token)
+# def groupy():
+#     # No likes functionality
+#     token =
+#     client = Client.from_token(token)
+#
+#     for group in client.groups.list():
+#         if 'Harambe' in group.name:
+#             print(group.id)
+#             # print(list(group.messages.list().autopage())[-1])
+#             print(list(group.messages.list())[-1])
+#
+#     # group = client.groups.get(4575471)
+#     # message = group.messages.get(168141414059076448)
+#     # print(message)
+#
+#     # print([l for l in client.groups.list()])
 
-    for group in client.groups.list():
-        if 'Harambe' in group.name:
-            print(group.id)
-            # print(list(group.messages.list().autopage())[-1])
-            print(list(group.messages.list())[-1])
 
-    # group = client.groups.get(4575471)
-    # message = group.messages.get(168141414059076448)
-    # print(message)
+def read_token(path):
+    with open(path) as file:
+        lines = file.readlines()
 
-    # print([l for l in client.groups.list()])
+    return lines[0]
 
 
 if __name__ == '__main__':

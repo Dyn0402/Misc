@@ -35,6 +35,7 @@ def copy_assignment():
     copy_course = '5CL-G4'
     wait_time_for_page_element = 1  # s
     window_width, window_height = 1200, 800  # Pixels
+    uname, pword = read_credentials('C:/Users/Dylan/Desktop/Creds/gradescope_creds.txt')
 
     application_url = 'https://www.gradescope.com/login'
     chrome_options = webdriver.ChromeOptions()
@@ -43,8 +44,8 @@ def copy_assignment():
     driver = webdriver.Chrome(service=service, options=chrome_options)
     driver.implicitly_wait(wait_time_for_page_element)
     driver.get(application_url)
-    driver.find_element(By.XPATH, '//*[@id="session_email"]').send_keys('***REMOVED***')
-    driver.find_element(By.XPATH, '//*[@id="session_password"]').send_keys('***REMOVED***')
+    driver.find_element(By.XPATH, '//*[@id="session_email"]').send_keys(uname)
+    driver.find_element(By.XPATH, '//*[@id="session_password"]').send_keys(pword)
     driver.find_element(By.XPATH, '/html/body/div[1]/main/div[2]/div/section/form/div[4]/input').click()
 
     course_index = 1
@@ -205,6 +206,13 @@ def get_section_id_map(prefix='5CL-G'):
     section_id_map = {f'{prefix}{section}': section_id for section, section_id in section_ids.items()}
 
     return section_id_map
+
+
+def read_credentials(path):
+    with open(path, 'r') as file:
+        lines = file.readlines()
+
+    return lines
 
 
 if __name__ == '__main__':

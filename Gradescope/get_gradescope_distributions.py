@@ -36,6 +36,7 @@ def selenium_test():
     # good_course_include_flags = ['5CL-G4', '5CL-G5', '5CL-G12', '5CL-G13']
     wait_time_for_page_element = 1  # s
     window_width, window_height = 1200, 800  # Pixels
+    uname, pword = read_credentials('C:/Users/Dylan/Desktop/Creds/gradescope_creds.txt')
 
     driver_path = '../chromedriver/chromedriver_win.exe'
     application_url = 'https://www.gradescope.com/login'
@@ -45,8 +46,8 @@ def selenium_test():
     driver = webdriver.Chrome(service=service, options=chrome_options)
     driver.implicitly_wait(wait_time_for_page_element)
     driver.get(application_url)
-    driver.find_element(By.XPATH, '//*[@id="session_email"]').send_keys('***REMOVED***')
-    driver.find_element(By.XPATH, '//*[@id="session_password"]').send_keys('***REMOVED***')
+    driver.find_element(By.XPATH, '//*[@id="session_email"]').send_keys(uname)
+    driver.find_element(By.XPATH, '//*[@id="session_password"]').send_keys(pword)
     driver.find_element(By.XPATH, '/html/body/div[1]/main/div[2]/div/section/form/div[4]/input').click()
 
     df = []
@@ -146,6 +147,12 @@ def get_section_ta_map(prefix='5CL-G'):
 
     return section_ta_map
 
+
+def read_credentials(path):
+    with open(path, 'r') as file:
+        lines = file.readlines()
+
+    return lines
 
 if __name__ == '__main__':
     main()
