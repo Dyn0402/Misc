@@ -19,18 +19,32 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 
+from GradescopeNavigator import GradescopeAssignmentDuplicator as GsAD
+
 
 def main():
     copy_assignment()
     print('donzo')
 
 
+def copy_assignment_gn():
+    copy_from_section = '5CL-G4'
+    assignment_name = 'Pre-Lab 2'
+    week = 2
+
+    gs_duplicator = GsAD()
+    for section in gs_duplicator.get_sections():
+        print(section)
+        # gnav.duplicate_assignment(section, copy_from_section, assignment_name)
+        # gnav.set_assignment_due_date(section, assignment_name, week)
+
+
 def copy_assignment():
     assignment_name = '5C Lab 2'
     week = 2
     # good_course_include_flags = ['5CL-G']
-    section_time_map = get_section_time_map()
-    section_id_map = get_section_id_map()
+    section_time_map = get_section_time_map()  # {section: time}
+    section_id_map = get_section_id_map()  # {section: section_id}
     good_course_include_flags = ['5CL-G']
     copy_course = '5CL-G4'
     wait_time_for_page_element = 1  # s
@@ -48,33 +62,64 @@ def copy_assignment():
     driver.find_element(By.XPATH, '//*[@id="session_password"]').send_keys(pword)
     driver.find_element(By.XPATH, '/html/body/div[1]/main/div[2]/div/section/form/div[4]/input').click()
 
-    course_index = 1
-    while course_index is not None:
+    for section, section_id in section_id_map.items():
+        open_course(driver, section_id)
+        assignment_button = find_assignment(driver, assignment_name)
+        if assignment_button is not None:
+            duplicate_assignment(driver, assignment_name, section_id_map, copy_course)
+            set_assignment_due_date(driver, assignment_name, section, week, section_time_map)
+            print(f'{section} {assignment_name} copied and due date updated')
+        else:
+            print(f'{section} {assignment_name} already here')
+    sleep(5)
+    driver.close()
+    driver.quit()
+
+    # course_index = 1
+    # while course_index is not None:
+    #     try:
+    #         course_name = driver.find_element(By.XPATH, f'//*[@id="account-show"]/div/div[2]/a[{course_index}]/h3').text
+    #         if any(flag in course_name for flag in good_course_include_flags):
+    #             driver.find_element(By.XPATH, f'//*[@id="account-show"]/div/div[2]/a[{course_index}]/div[2]').click()
+    #             assign_index = 1
+    #             while True:
+    #                 # This path can be bad if only one assignment. Then tr[i]/ -> tr/
+    #                 assign_xpath = f'//*[@id="assignments-instructor-table"]/tbody/tr[{assign_index}]/td[1]/div/div/a'
+    #                 try:
+    #                     assign_button = driver.find_element(By.XPATH, assign_xpath)
+    #                     if assignment_name in assign_button.text:
+    #                         print(f'{course_name} {assignment_name} already here')
+    #                         break
+    #                 except NoSuchElementException:
+    #                     duplicate_assignment(driver, assignment_name, section_id_map, copy_course)
+    #                     set_assignment_due_date(driver, assignment_name, course_name, week, section_time_map)
+    #                     print(f'{course_name} {assignment_name} copied and due date updated')
+    #                     break
+    #                 assign_index += 1
+    #             driver.find_element(By.XPATH, '/html/body/nav[1]/div[1]/div[2]/div[1]/a/img').click()  # Return to main
+    #         course_index += 1
+    #     except NoSuchElementException:
+    #         print('No more courses')
+    #         break
+    # sleep(2)
+
+
+def open_course(driver, course_id):
+    driver.get(f'https://www.gradescope.com/courses/{course_id}')
+
+
+def find_assignment(driver, assignment_name):
+    assign_index = 1
+    while True:
+        # This path can be bad if only one assignment. Then tr[i]/ -> tr/
+        assign_xpath = f'//*[@id="assignments-instructor-table"]/tbody/tr[{assign_index}]/td[1]/div/div/a'
         try:
-            course_name = driver.find_element(By.XPATH, f'//*[@id="account-show"]/div/div[2]/a[{course_index}]/h3').text
-            if any(flag in course_name for flag in good_course_include_flags):
-                driver.find_element(By.XPATH, f'//*[@id="account-show"]/div/div[2]/a[{course_index}]/div[2]').click()
-                assign_index = 1
-                while True:
-                    # This path can be bad if only one assignment. Then tr[i]/ -> tr/
-                    assign_xpath = f'//*[@id="assignments-instructor-table"]/tbody/tr[{assign_index}]/td[1]/div/div/a'
-                    try:
-                        assign_button = driver.find_element(By.XPATH, assign_xpath)
-                        if assignment_name in assign_button.text:
-                            print(f'{course_name} {assignment_name} already here')
-                            break
-                    except NoSuchElementException:
-                        duplicate_assignment(driver, assignment_name, section_id_map, copy_course)
-                        set_assignment_due_date(driver, assignment_name, course_name, week, section_time_map)
-                        print(f'{course_name} {assignment_name} copied and due date updated')
-                        break
-                    assign_index += 1
-                driver.find_element(By.XPATH, '/html/body/nav[1]/div[1]/div[2]/div[1]/a/img').click()  # Return to main
-            course_index += 1
+            assign_button = driver.find_element(By.XPATH, assign_xpath)
+            if assignment_name in assign_button.text:
+                return assign_button
         except NoSuchElementException:
-            print('No more courses')
-            break
-    sleep(2)
+            return None
+        assign_index += 1
 
 
 def duplicate_assignment(driver, assignment_name, section_id_map, copy_course):
@@ -212,7 +257,7 @@ def read_credentials(path):
     with open(path, 'r') as file:
         lines = file.readlines()
 
-    return lines
+    return [line.strip() for line in lines]
 
 
 if __name__ == '__main__':

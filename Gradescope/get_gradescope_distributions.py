@@ -152,7 +152,8 @@ def read_credentials(path):
     with open(path, 'r') as file:
         lines = file.readlines()
 
-    return lines
+    return [line.strip() for line in lines]
+
 
 if __name__ == '__main__':
     main()

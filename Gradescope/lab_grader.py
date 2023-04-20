@@ -7,6 +7,7 @@ Created on Tue Apr 03 13:54:50 2018
 
 
 import pyautogui as pg
+from pynput import keyboard
 import time
 from time import sleep
 
@@ -16,22 +17,50 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 
+from GradescopeNavigator import GradescopeGrader as GsG
+
+
+pause = False
+
 
 def main():
     # pars = initialize()
     # grade(pars)
-    selenium_test()
+    # selenium_test()
+    grade_gsg()
     print('donzo')
 
 
+def grade_gsg():
+    # sections = ['5CL-G4', '5CL-G5']
+    sections = ['5CL-G5']
+    assignment_name = 'Pre-Lab 2'
+    rubric_numbers = [1]
+    grader = GsG()
+    grader.grade_assignment(assignment_name, sections, rubric_numbers)
+
+
+def on_press(key):
+    if key == keyboard.Key.space:
+        global pause
+        pause = False if pause else True
+        if pause:
+            print('Pausing')
+        else:
+            print('Resuming')
+
+
 def selenium_test():
+    rubric_numbers = [1]
     wait_time_for_page_element = 1  # s
-    window_width, window_height = 1200, 800  # Pixels
+    question_check_time = 1  # s
+    # window_width, window_height = 1200, 100  # Pixels
     uname, pword = read_credentials('C:/Users/Dylan/Desktop/Creds/gradescope_creds.txt')
 
-    application_url = 'https://www.gradescope.com/login'
+    application_url = 'https://www.gradescope.com/courses/526872/questions/22701604/submissions/' \
+                      '1523798748/grade?not_grouped=true'
     chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument(f'--window-size={window_width},{window_height}')
+    chrome_options.add_argument(f'--start-maximized')
     service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
     driver.implicitly_wait(wait_time_for_page_element)
@@ -40,20 +69,33 @@ def selenium_test():
     driver.find_element(By.XPATH, '//*[@id="session_password"]').send_keys(pword)
     driver.find_element(By.XPATH, '/html/body/div[1]/main/div[2]/div/section/form/div[4]/input').click()
 
+    listener = keyboard.Listener(on_press=on_press)
+    listener.start()
+
     while True:
+        print('Here')
         try:
+            sleep(question_check_time / 2)
             for rubric_number in rubric_numbers:
                 rubric_xpath = f'//*[@id="main-content"]/div/main/div[3]/div[2]/' \
                                f'div/div[2]/div[1]/ol/li[{rubric_number}]/div/div/button'
                 driver.find_element(By.XPATH, rubric_xpath).click()
+            sleep(question_check_time / 2)
+            while pause:  # If space bar was clicked
+                sleep(0.1)  # Wait for space bar to be clicked again
             driver.find_element(By.XPATH,
                                 '//*[@id="main-content"]/div/main/section/ul/li[5]/button/span/span/span').click()
         except NoSuchElementException:
             sleep(2)
-            print(driver.find_element(By.XPATH, '//*[@id="main-content"]/div[2]/div/div').get_attribute('class'))
-            break
+            page_class = driver.find_element(By.XPATH, '//*[@id="main-content"]/div[2]/div/div').get_attribute('class')
+            if page_class == 'gradingDashboard':
+                driver.find_element(By.XPATH, '//*[@id="main-content"]/section/ul/li[2]/a').click()  # Next Question
+            else:
+                break
 
-    sleep(15)
+    print('Finished')
+    listener.join()
+    sleep(5)
     driver.close()
     driver.quit()
 
@@ -122,11 +164,50 @@ def get_question_key_string(question):
     return qstring
 
 
+def get_section_id_map(prefix='5CL-G'):
+    section_ids = {
+        1: 526869,
+        2: 526870,
+        3: 526871,
+        4: 526872,
+        5: 526874,
+        6: 526875,
+        7: 526878,
+        8: 526879,
+        9: 526880,
+        10: 526881,
+        11: 526882,
+        12: 526883,
+        13: 526884,
+        14: 526888,
+        15: 526889,
+        16: 526891,
+        17: 526892,
+        18: 526893,
+        19: 526894,
+        20: 526895,
+        21: 526896,
+        22: 526897,
+        23: 526898,
+        24: 526901,
+        25: 526902,
+        26: 526906,
+        27: 526907,
+        28: 526909,
+        29: 526910,
+        30: 526915,
+    }
+
+    section_id_map = {f'{prefix}{section}': section_id for section, section_id in section_ids.items()}
+
+    return section_id_map
+
+
 def read_credentials(path):
     with open(path, 'r') as file:
         lines = file.readlines()
 
-    return lines
+    return [line.strip() for line in lines]
 
 
 if __name__ == '__main__':
