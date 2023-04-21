@@ -23,9 +23,12 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 
+from GradescopeNavigator import GradescopeDistributionGetter as GsDG
+
 
 def main():
-    selenium_test()
+    # selenium_test()
+    plot_lab1()
     print('donzo')
 
 
@@ -102,24 +105,33 @@ def selenium_test():
         # course_index = None
 
     df = pd.DataFrame(df)
+    df.to_csv('C:/Users/Dylan/Desktop/lab1_dists.csv', index=False)
     # print(df)
     # sleep(2)
     driver.close()
     driver.quit()
 
+
+def plot_lab1():
+    df = pd.read_csv('C:/Users/Dylan/Desktop/lab1_dists.csv')
+    df = df[df['section'] != '5CL-G30']
+    df = df[(df['score'] != 0) & (df['score'] != 20)]
+    print(df)
     fig_coures, ax_courses = plt.subplots(dpi=144)
     sns.histplot(data=df, x='score', hue='section')
     fig_coures, ax_courses = plt.subplots(dpi=144)
     sns.kdeplot(data=df, x='score', hue='section')
+    sns.rugplot(data=df, x='score', hue='section')
     # for section in pd.unique(df['section']):
     #     df_section = df[df['section'] == section]
     #     sns.histplot(df_section['score'], label=section)
     # plt.legend()
 
     fig_tas, ax_tas = plt.subplots(dpi=144)
-    sns.histplot(data=df, x='score', hue='ta')
+    sns.histplot(data=df, x='score', hue='ta', multiple='stack')
     fig_tas, ax_tas = plt.subplots(dpi=144)
     sns.kdeplot(data=df, x='score', hue='ta')
+    sns.rugplot(data=df, x='score', hue='ta')
     # for ta_name in pd.unique(df['ta']):
     #     df_ta = df[df['ta'] == ta_name]
     #     sns.histplot(df_ta['score'], label=ta_name)

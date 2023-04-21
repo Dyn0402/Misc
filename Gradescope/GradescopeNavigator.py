@@ -219,6 +219,13 @@ class GradescopeGrader(GradescopeNavigator):
                     return 'Lost'
 
 
+class GradescopeDistributionGetter(GradescopeNavigator):
+    def __init__(self, cred_path=None):
+        GradescopeNavigator.__init__(self, cred_path)
+
+
+
+
 def get_section_time_map(prefix='5CL-G'):
     section_times = {
         1: datetime(2023, 4, 10, 8, 0, 0),
