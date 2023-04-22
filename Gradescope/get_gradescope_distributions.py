@@ -27,7 +27,7 @@ from GradescopeNavigator import GradescopeDistributionGetter as GsDG
 
 
 def main():
-    # selenium_test()
+    selenium_test()
     plot_lab1()
     print('donzo')
 
@@ -114,7 +114,7 @@ def selenium_test():
 
 def plot_lab1():
     df = pd.read_csv('C:/Users/Dylan/Desktop/lab1_dists.csv')
-    df = df[df['section'] != '5CL-G30']
+    # df = df[df['section'] != '5CL-G30']
     df = df[(df['score'] != 0) & (df['score'] != 20)]
     print(df)
     fig_coures, ax_courses = plt.subplots(dpi=144)
