@@ -62,7 +62,7 @@ class GradescopeNavigator:
         assignment_id = self.find_assignment_id(section, assignment_name)
         if assignment_id is not None:
             section_id = self.section_id_map[section]
-            assignment_url = f'https://www.gradescope.com/courses/{section_id}/assignments/{assignment_id}/grade'
+            assignment_url = f'https://www.gradescope.com/courses/{section_id}/assignments/{assignment_id}/{page}'
             self.driver.get(assignment_url)
             return True
         else:
@@ -103,22 +103,25 @@ class GradescopeNavigator:
 
 
 class GradescopeAssignmentDuplicator(GradescopeNavigator):
-    def __int__(self, cred_path=None):
+    def __init__(self, cred_path=None):
         self.section_time_map = get_section_time_map()
 
         GradescopeNavigator.__init__(self, cred_path)
 
-    def duplicate_assignment(self, copy_to_course, copy_from_course, assignment_name):
-        self.open_section_assignments(copy_to_course)
+    def duplicate_assignment(self, copy_to_section, copy_from_section, assignment_name):
+        if self.find_assignment_id(copy_to_section, assignment_name):
+            print(f'Assignment {assignment_name} already in {copy_to_section}')
+            return False
+        self.open_section_assignments(copy_to_section)
         self.driver.find_element(By.XPATH, '//*[@id="main-content"]/section/ul/li[3]/a').click()  # Duplicate
-        course_drop = self.driver.find_element(By.XPATH, f'//*[@id="course-{self.section_id_map[copy_from_course]}"]')
+        course_drop = self.driver.find_element(By.XPATH, f'//*[@id="course-{self.section_id_map[copy_from_section]}"]')
         course_drop.click()
         course_drop_parent = course_drop.find_element(By.XPATH, '..')
         for dup_assignment in course_drop_parent.find_elements(By.XPATH, './ul/*'):
             if assignment_name in dup_assignment.text:
                 dup_assignment.click()
                 self.driver.find_element(By.XPATH, '//*[@id="duplicate-btn"]').click()
-                break
+                return True
 
     def set_assignment_due_date(self, section, assignment_name, week):
         if self.open_section_assignment(section, assignment_name, page='edit'):  # Settings

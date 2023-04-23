@@ -23,20 +23,21 @@ from GradescopeNavigator import GradescopeAssignmentDuplicator as GsAD
 
 
 def main():
-    copy_assignment()
+    # copy_assignment()
+    copy_assignment_gn()
     print('donzo')
 
 
 def copy_assignment_gn():
     copy_from_section = '5CL-G4'
-    assignment_name = 'Pre-Lab 2'
-    week = 2
+    assignment_name = 'Pre-Lab 3'
+    week = 3
 
     gs_duplicator = GsAD()
     for section in gs_duplicator.get_sections():
         print(section)
-        # gnav.duplicate_assignment(section, copy_from_section, assignment_name)
-        # gnav.set_assignment_due_date(section, assignment_name, week)
+        if gs_duplicator.duplicate_assignment(section, copy_from_section, assignment_name):
+            gs_duplicator.set_assignment_due_date(section, assignment_name, week)
 
 
 def copy_assignment():
