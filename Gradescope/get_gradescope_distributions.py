@@ -32,7 +32,7 @@ def main():
     print('donzo')
 
 
-def selenium_test():
+def selenium_test():  # Old assignments go away on dashboard. Need to use assignments page when put in GsDG class
     assignment_name = ['Week 1', 'lab 1']
     section_ta_map = get_section_ta_map()
     good_course_include_flags = ['5CL-G']
