@@ -13,6 +13,7 @@ from pynput import keyboard
 from time import sleep
 
 from selenium.common.exceptions import WebDriverException, NoSuchElementException
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -138,7 +139,7 @@ class GradescopeAssignmentDuplicator(GradescopeNavigator):
         if 'Pre-Lab' in assign_name:
             due_date -= timedelta(hours=1)
         elif 'Lab' in assign_name:
-            due_date += timedelta(days=2)
+            due_date += timedelta(days=2, hours=1.5)
         else:
             print('Don\'t recognize assignment?', assign_name)
             due_date = None
@@ -227,6 +228,55 @@ class GradescopeDistributionGetter(GradescopeNavigator):
         GradescopeNavigator.__init__(self, cred_path)
 
 
+class GradescopeRubricFixer(GradescopeNavigator):
+    def __init__(self, cred_path=None):
+        GradescopeNavigator.__init__(self, cred_path)
+
+    def fix_rubric_item(self, section, assignment_name, question_name, old_text, new_text=None, new_score=None):
+        if self.open_section_assignment(section, assignment_name, 'rubric/edit'):
+            item_index = 1
+            while True:
+                try:
+                    item_xpath = f'//*[@id="main-content"]/div/main/div[3]/div/div/div[2]/div[{item_index}]'
+                    rubric_item = self.driver.find_element(By.XPATH, item_xpath)
+                    item_name = rubric_item.find_element(By.XPATH, f'./div[1]/div[1]/h2/span[2]').text
+                    if item_name == question_name:
+                        q_item_index = 1
+                        while True:
+                            try:
+                                q_item_xpath = f'./div[2]/div/div[2]/div[1]/ol/li[{q_item_index}]/div/div/div[2]/div'
+                                q_item_text = rubric_item.find_element(By.XPATH, q_item_xpath)
+                                if q_item_text.text == f'Grading comment:\n{old_text}':
+                                    if new_text is not None:
+                                        q_item_text.click()
+                                        question_item_text_entry = self.driver.switch_to.active_element
+                                        question_item_text_entry.send_keys(Keys.CONTROL, 'a')
+                                        question_item_text_entry.send_keys(Keys.DELETE)
+                                        question_item_text_entry.send_keys(new_text)
+                                        question_item_text_entry.send_keys(Keys.RETURN)
+                                    if new_score is not None:
+                                        q_item_score_xpath = f'./div[2]/div/div[2]/div[1]/ol/li[{q_item_index}]' \
+                                                             f'/div/div/div[2]/button'
+                                        q_item_score = rubric_item.find_element(By.XPATH, q_item_score_xpath)
+                                        q_item_score.click()
+                                        q_item_score_entry = self.driver.switch_to.active_element
+                                        q_item_score_entry.send_keys(Keys.CONTROL, 'a')
+                                        q_item_score_entry.send_keys(Keys.DELETE)
+                                        q_item_score_entry.send_keys(new_score)
+                                        q_item_score_entry.send_keys(Keys.RETURN)
+                                    print(f'{section} - {assignment_name} - {question_name} rubric item updated: \n'
+                                          f'{old_text} -> {new_text} {new_score}')
+                                    break
+                            except NoSuchElementException:
+                                print(f'Couldn\'t find some element in rubric')
+                                break
+                            q_item_index += 1
+                except NoSuchElementException:
+                    # print(f'Didn\'t find rubric item {question_name} in {section} {assignment_name}')
+                    break
+                item_index += 1
+        else:
+            print(f'Couldn\'t get rubric for {section} {assignment_name}')
 
 
 def get_section_time_map(prefix='5CL-G'):
