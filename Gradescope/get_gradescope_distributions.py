@@ -34,11 +34,12 @@ def main():
 
 
 def gsn_get_distribution():
-    section_flags = ['5CL-G4']
+    section_flags = ['5CL-G']
     # assignment_name = 'Week 1 Assignment & Lab Credit'
     assignment_name = '5C Pre-Lab 2'
     assignment_name_alt = 'lab 1'
-    distribution_getter = GsDG()
+    # distribution_getter = GsDG()
+    distribution_getter = GsDG('C:/Users/Dyn04/Desktop/Creds/gradescope_creds.txt')
     df = []
     for section in distribution_getter.get_sections():
         if any(flag in section for flag in section_flags):
@@ -49,8 +50,9 @@ def gsn_get_distribution():
             df.extend(df_section)
     distribution_getter.close()
     df = pd.DataFrame(df)
-    df.to_csv('C:/Users/Dylan/Desktop/prelab2_dists.csv', index=False)
-    plot_prelab2()
+    # df.to_csv('C:/Users/Dylan/Desktop/prelab2_dists.csv', index=False)
+    df.to_csv('C:/Users/Dyn04/Desktop/prelab2_dists.csv', index=False)
+    plot_prelab2('C:/Users/Dyn04/Desktop/prelab2_dists.csv')
 
 
 def plot_lab1():
@@ -81,8 +83,10 @@ def plot_lab1():
     plt.show()
 
 
-def plot_prelab2():
-    df = pd.read_csv('C:/Users/Dylan/Desktop/prelab2_dists.csv')
+def plot_prelab2(path=None):
+    if path is None:
+        path = 'C:/Users/Dylan/Desktop/prelab2_dists.csv'
+    df = pd.read_csv(path)
     # df = df[df['section'] != '5CL-G30']
     df = df[(df['score'] != 0) & (df['score'] != 8)]
     print(df)
