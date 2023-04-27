@@ -53,8 +53,10 @@ def gsn_get_distribution():
     plot_prelab2()
 
 
-def plot_lab1():
-    df = pd.read_csv('C:/Users/Dylan/Desktop/lab1_dists.csv')
+def plot_lab(path=None):
+    if path is None:
+        path = 'C:/Users/Dylan/Desktop/lab1_dists.csv'
+    df = pd.read_csv(path)
     # df = df[df['section'] != '5CL-G30']
     df = df[(df['score'] != 0) & (df['score'] != 20)]
     print(df)
