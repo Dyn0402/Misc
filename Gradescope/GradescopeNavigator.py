@@ -45,6 +45,11 @@ class GradescopeNavigator:
         self.driver = webdriver.Chrome(service=service, options=chrome_options)
         self.driver.implicitly_wait(self.wait_time_for_page_element)
 
+    def close(self):
+        if self.driver is not None:
+            self.driver.close()
+            self.driver.quit()
+
     def log_in(self):
         gradescope_log_url = 'https://www.gradescope.com/login'
         uname, pword = read_credentials(self.cred_path)
@@ -225,7 +230,33 @@ class GradescopeGrader(GradescopeNavigator):
 
 class GradescopeDistributionGetter(GradescopeNavigator):
     def __init__(self, cred_path=None):
+        self.section_ta_map = get_section_ta_map()
+
         GradescopeNavigator.__init__(self, cred_path)
+
+    def get_distribution(self, section, assignment):
+        df = []
+        if self.open_section_assignment(section, assignment, 'review_grades'):
+            student_index = 1
+            while True:
+                try:
+                    score_xpath = f'//*[@id="DataTables_Table_0"]/tbody/tr[{student_index}]/td[3]'
+                    try:
+                        score = float(self.driver.find_element(By.XPATH, score_xpath).text)
+                        name_xpath = f'//*[@id="DataTables_Table_0"]/tbody/tr[{student_index}]/td[1]/a'
+                        student_name = self.driver.find_element(By.XPATH, name_xpath).text
+                        df.append({'section': section, 'ta': self.section_ta_map[section],
+                                   'student_name': student_name, 'score': score})
+                    except ValueError:
+                        pass
+                    student_index += 1
+                except NoSuchElementException:
+                    print(f'End of course {section}')
+                    break
+        else:
+            print(f'Couldn\'t get {section} {assignment}')
+
+        return df
 
 
 class GradescopeRubricFixer(GradescopeNavigator):
@@ -355,6 +386,26 @@ def get_section_id_map(prefix='5CL-G'):
     section_id_map = {f'{prefix}{section}': section_id for section, section_id in section_ids.items()}
 
     return section_id_map
+
+
+def get_section_ta_map(prefix='5CL-G'):
+    ta_sections = {
+        'Tianci': [1, 2, 3],
+        'Dylan': [4, 5],
+        'Casey': [6, 7, 14],
+        'Andrew': [8, 9, 10],
+        'Mianzhi': [11, 29],
+        'J': [12, 13, 22],
+        'Jacob T': [15, 16],
+        'Jared': [17, 18, 19],
+        'Fidele': [21, 20, 25],
+        'Jacob S': [23, 24, 30],
+        'Kate': [26, 27, 28],
+    }
+
+    section_ta_map = {f'{prefix}{section}': name for name, sections in ta_sections.items() for section in sections}
+
+    return section_ta_map
 
 
 def read_credentials(path):
