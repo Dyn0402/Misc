@@ -241,17 +241,21 @@ class GradescopeDistributionGetter(GradescopeNavigator):
             while True:
                 try:
                     score_xpath = f'//*[@id="DataTables_Table_0"]/tbody/tr[{student_index}]/td[3]'
+                    graded_xpath = f'//*[@id="DataTables_Table_0"]/tbody/tr[{student_index}]/td[4]/i'
                     try:
                         score = float(self.driver.find_element(By.XPATH, score_xpath).text)
+                        graded_status = self.driver.find_element(By.XPATH, graded_xpath).get_attribute('aria-label')
+                        # print(graded_status)
+                        graded = True if graded_status == 'Submission is graded.' else False
                         name_xpath = f'//*[@id="DataTables_Table_0"]/tbody/tr[{student_index}]/td[1]/a'
                         student_name = self.driver.find_element(By.XPATH, name_xpath).text
-                        df.append({'section': section, 'ta': self.section_ta_map[section],
-                                   'student_name': student_name, 'score': score})
+                        df.append({'section': section, 'ta': self.section_ta_map[section], 'assignment': assignment,
+                                   'student_name': student_name, 'score': score, 'graded': graded})
                     except ValueError:
                         pass
                     student_index += 1
                 except NoSuchElementException:
-                    print(f'End of course {section}')
+                    # print(f'End of course {section}')
                     break
         else:
             print(f'Couldn\'t get {section} {assignment}')
