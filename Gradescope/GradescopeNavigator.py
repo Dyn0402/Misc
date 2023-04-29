@@ -134,7 +134,8 @@ class GradescopeAssignmentDuplicator(GradescopeNavigator):
             due_date_entry = self.driver.find_element(By.XPATH, '//*[@id="assignment_due_date_string"]')  # Due Date
             due_date_entry.clear()
             due_date = self.get_due_date(section, week, assignment_name)
-            due_date_entry.send_keys(due_date.strftime('%b %d %Y %H:%M %p'))
+            for date_field in '%m %d %Y %H %M %p'.split():
+                due_date_entry.send_keys(due_date.strftime(date_field))
             self.driver.find_element(By.XPATH, '//*[@id="assignment-actions"]/input').click()
         else:
             print('Can\'t find assignment')
