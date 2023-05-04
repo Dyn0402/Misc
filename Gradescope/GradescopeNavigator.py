@@ -15,6 +15,7 @@ from time import sleep
 from selenium.common.exceptions import WebDriverException, NoSuchElementException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.support.ui import Select
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
@@ -74,6 +75,11 @@ class GradescopeNavigator:
         else:
             return False
 
+    def open_section(self, section, page=''):
+        section_id = self.section_id_map[section]
+        assignment_url = f'https://www.gradescope.com/courses/{section_id}/{page}'
+        self.driver.get(assignment_url)
+
     def find_assignment_id(self, section_name, assignment_name):
         self.open_section_assignments(section_name)
         assign_index = 1
@@ -106,6 +112,81 @@ class GradescopeNavigator:
 
     def get_sections(self):
         return self.section_id_map.keys()
+
+    def get_roster(self, section, get_student_id=True):
+        self.open_section(section, 'memberships')
+        df = []
+        member_index = 1
+        while True:
+            name_xpath = f'//*[@id="DataTables_Table_0"]/tbody/tr[{member_index}]/td[1]'
+            role_xpath = f'//*[@id="DataTables_Table_0"]/tbody/tr[{member_index}]/td[3]/select'
+            edit_xpath = f'//*[@id="DataTables_Table_0"]/tbody/tr[{member_index}]/td[5]/button'
+            id_xpath = '//*[@id="course_membership_sid"]'
+            cancel_xpath = '//*[@id="edit-member-modal"]/div/div[2]/form/div[7]/button'
+            try:
+                name = self.driver.find_element(By.XPATH, name_xpath).text
+                if name[-5:] == ' Edit':
+                    name = name[:-5]
+                role_drop = Select(self.driver.find_element(By.XPATH, role_xpath))
+                role = role_drop.first_selected_option.text
+                df.append({'name': name, 'role': role})
+                if get_student_id:
+                    self.driver.find_element(By.XPATH, edit_xpath).click()
+                    student_id = self.driver.find_element(By.XPATH, id_xpath).get_attribute('value')
+                    self.driver.find_element(By.XPATH, cancel_xpath).click()
+                    df[-1].update({'student_id': student_id})
+            except NoSuchElementException:
+                break
+            member_index += 1
+
+        return df
+
+    def upload_scans(self, section, assignment_name, scans_directory):
+        if self.open_section_assignment(section, assignment_name, 'submission_batches'):
+            print(self.driver.window_handles)
+            select_pdf_files_xpath = '//*[@id="main-content"]/div/main/div[3]/div/div/div/div[1]/div[2]/div/button/span'
+            select_pdf_files_button = self.driver.find_element(By.XPATH, select_pdf_files_xpath)
+            select_pdf_files_button.click()
+            sleep(1)
+            key_control = keyboard.Controller()
+            print(scans_directory.replace('/', '\\'))
+            key_control.type(scans_directory.replace('/', '\\'))
+            key_control.press(keyboard.Key.enter)
+            key_control.release(keyboard.Key.enter)
+            for i in range(11):
+                key_control.press(keyboard.Key.tab)
+                key_control.release(keyboard.Key.tab)
+                sleep(0.5)
+            key_control.press(keyboard.Key.ctrl)
+            key_control.press('a')
+            key_control.release(keyboard.Key.ctrl)
+            key_control.release('a')
+            key_control.press(keyboard.Key.enter)
+            key_control.release(keyboard.Key.enter)
+            sleep(5)
+
+        else:
+            print(f'Couldn\'t open {section} {assignment_name}')
+
+    def upload_submissions(self, section, assignment_name, scans_directory, roster):
+        if self.open_section_assignment(section, assignment_name, 'submissions'):
+            upload_sub_xpath = '//*[@id="actionBar"]/ul/button'
+            student_name_xpath = '//*[@id="owner_id-selectized"]'
+            select_file_xpath = '//*[@id="submissions-manager-upload-form"]/div[2]/label/span[2]/span'
+            upload_xpath = '//*[@id="submit"]'
+            for name in roster:
+                self.driver.find_element(By.XPATH, upload_sub_xpath).click()
+                student_name_entry = self.driver.find_element(By.XPATH, student_name_xpath)
+                student_name_entry.clear()
+                student_name_entry.send_keys(name + '\n')
+                self.driver.find_element(By.XPATH, select_file_xpath).click()
+                sleep(0.5)
+                key_control = keyboard.Controller()
+                key_control.type(scans_directory.replace('/', '\\') + name + '.pdf\n')
+                sleep(0.5)
+                self.driver.find_element(By.XPATH, upload_xpath).click()
+        else:
+            print(f'Couldn\'t open {section} {assignment_name}')
 
 
 class GradescopeAssignmentDuplicator(GradescopeNavigator):
@@ -213,7 +294,7 @@ class GradescopeGrader(GradescopeNavigator):
                 while self.pause:  # If space bar was clicked
                     sleep(0.1)  # Wait for space bar to be clicked again
                 self.driver.find_element(By.XPATH,
-                                    '//*[@id="main-content"]/div/main/section/ul/li[5]/button/span/span/span').click()
+                                         '//*[@id="main-content"]/div/main/section/ul/li[5]/button/span/span/span').click()
             except NoSuchElementException:
                 sleep(1)
                 page = self.get_page()
@@ -356,39 +437,49 @@ def get_section_time_map(prefix='5CL-G'):
 
 def get_section_id_map(prefix='5CL-G'):
     section_ids = {
-        1: 526869,
-        2: 526870,
-        3: 526871,
-        4: 526872,
-        5: 526874,
-        6: 526875,
-        7: 526878,
-        8: 526879,
-        9: 526880,
-        10: 526881,
-        11: 526882,
-        12: 526883,
-        13: 526884,
-        14: 526888,
-        15: 526889,
-        16: 526891,
-        17: 526892,
-        18: 526893,
-        19: 526894,
-        20: 526895,
-        21: 526896,
-        22: 526897,
-        23: 526898,
-        24: 526901,
-        25: 526902,
-        26: 526906,
-        27: 526907,
-        28: 526909,
-        29: 526910,
-        30: 526915,
+        {
+            '5CL-G': {
+                1: 526869,
+                2: 526870,
+                3: 526871,
+                4: 526872,
+                5: 526874,
+                6: 526875,
+                7: 526878,
+                8: 526879,
+                9: 526880,
+                10: 526881,
+                11: 526882,
+                12: 526883,
+                13: 526884,
+                14: 526888,
+                15: 526889,
+                16: 526891,
+                17: 526892,
+                18: 526893,
+                19: 526894,
+                20: 526895,
+                21: 526896,
+                22: 526897,
+                23: 526898,
+                24: 526901,
+                25: 526902,
+                26: 526906,
+                27: 526907,
+                28: 526909,
+                29: 526910,
+                30: 526915,
+            },
+            '5AL-G': {
+
+            },
+            '5BL-G': {
+
+            }
+        }
     }
 
-    section_id_map = {f'{prefix}{section}': section_id for section, section_id in section_ids.items()}
+    section_id_map = {f'{prefix}{section}': section_id for section, section_id in section_ids[prefix].items()}
 
     return section_id_map
 
