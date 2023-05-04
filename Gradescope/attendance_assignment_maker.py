@@ -33,8 +33,9 @@ def make_attendance_assignments():
     assignment_name = 'Attendance Test'
     pdf_repo_path = 'C:/Users/Dylan/Desktop/gradescope_pdfs/'
     nav = GsAD()
-    for section in nav.get_sections():
-        if section == '5CL-G5':
+    for section in nav.get_sections(['5CL-G', '5BL-G']):
+        # if section == '5CL-G5':
+        if section == '5BL-G4':
             print(f'Starting {section}...')
             nav.duplicate_assignment(section, copy_from_section, assignment_name)
             roster = pd.DataFrame(nav.get_roster(section, False))

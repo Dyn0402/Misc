@@ -110,7 +110,9 @@ class GradescopeNavigator:
     def get_page(self):
         return self.driver.current_url.split('/')[-1]
 
-    def get_sections(self):
+    def get_sections(self, prefixes=None):
+        if prefixes is not None:
+            self.section_id_map = get_section_id_map(prefixes)
         return self.section_id_map.keys()
 
     def get_roster(self, section, get_student_id=True):
@@ -435,9 +437,8 @@ def get_section_time_map(prefix='5CL-G'):
     return section_time_map
 
 
-def get_section_id_map(prefix='5CL-G'):
+def get_section_id_map(prefixes=['5CL-G']):
     section_ids = {
-        {
             '5CL-G': {
                 1: 526869,
                 2: 526870,
@@ -474,12 +475,16 @@ def get_section_id_map(prefix='5CL-G'):
 
             },
             '5BL-G': {
-
+                4: 526848,
             }
-        }
     }
 
-    section_id_map = {f'{prefix}{section}': section_id for section, section_id in section_ids[prefix].items()}
+    if type(prefixes) is not list:
+        prefixes = [prefixes]
+
+    section_id_map = {}
+    for prefix in prefixes:
+        section_id_map.update({f'{prefix}{section}': section_id for section, section_id in section_ids[prefix].items()})
 
     return section_id_map
 
