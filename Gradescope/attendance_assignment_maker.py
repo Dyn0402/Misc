@@ -30,20 +30,19 @@ def main():
 
 def make_attendance_assignments():
     copy_from_section = '5CL-G4'
-    assignment_name = 'Attendance Test'
+    assignment_name = 'Attendance/Participation/LA Survey Adjustments'
     pdf_repo_path = 'C:/Users/Dylan/Desktop/gradescope_pdfs/'
     nav = GsAD()
-    for section in nav.get_sections(['5CL-G', '5BL-G']):
+    for section in nav.get_sections(['5CL-G']):
         # if section == '5CL-G5':
-        if section == '5BL-G4':
-            print(f'Starting {section}...')
-            nav.duplicate_assignment(section, copy_from_section, assignment_name)
+        print(f'Starting {section}...')
+        if nav.duplicate_assignment(section, copy_from_section, assignment_name):
             roster = pd.DataFrame(nav.get_roster(section, False))
             roster = roster[roster['role'] == 'Student']
             section_pdf_path = f'{pdf_repo_path}{section}/'
             make_pdfs(roster, section_pdf_path, False)
             nav.upload_submissions(section, assignment_name, section_pdf_path, roster.name)
-            print(f'Finished {section}\n')
+        print(f'Finished {section}\n')
 
 
 def make_pdfs(roster, pdf_repo_path, write_student_id=True):

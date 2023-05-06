@@ -27,7 +27,8 @@ def main():
     # pars = initialize()
     # grade(pars)
     # selenium_test()
-    grade_gsg()
+    # grade_gsg()
+    grade_attendance()
     print('donzo')
 
 
@@ -38,6 +39,18 @@ def grade_gsg():
     rubric_numbers = [1]
     grader = GsG()
     grader.grade_assignment(assignment_name, sections, rubric_numbers)
+
+
+def grade_attendance():
+    assignment_name = 'Attendance/Participation/LA Survey Adjustments'
+    # question_rubrics = {1: [1], 2: [1], 3: [1], 4: [1], 5: [1], 6: [1], 7: [1], 8: [1]}
+    question_rubrics = {1: [1], 2: [1], 3: [1], 4: [1]}
+    grader = GsG()
+    sections = grader.get_sections('5CL-G')
+    print(sections)
+    # sections = ['5CL-G5']
+    grader.grade_assignment_questions(assignment_name, sections, question_rubrics)
+    grader.close()
 
 
 def on_press(key):

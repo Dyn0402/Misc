@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from pynput import keyboard
 from time import sleep
 
-from selenium.common.exceptions import WebDriverException, NoSuchElementException
+from selenium.common.exceptions import WebDriverException, NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import Select
@@ -36,8 +36,12 @@ class GradescopeNavigator:
         self.log_in()
 
     def __del__(self):
-        self.driver.close()
-        self.driver.quit()
+        self.close()
+
+    def close(self):
+        if self.driver is not None:
+            self.driver.close()
+            self.driver.quit()
 
     def start_driver(self):
         chrome_options = webdriver.ChromeOptions()
@@ -113,7 +117,7 @@ class GradescopeNavigator:
     def get_sections(self, prefixes=None):
         if prefixes is not None:
             self.section_id_map = get_section_id_map(prefixes)
-        return self.section_id_map.keys()
+        return list(self.section_id_map.keys())
 
     def get_roster(self, section, get_student_id=True):
         self.open_section(section, 'memberships')
@@ -239,15 +243,24 @@ class GradescopeAssignmentDuplicator(GradescopeNavigator):
 class GradescopeGrader(GradescopeNavigator):
     def __init__(self, cred_path=None):
         self.pause = False
-        self.listener = keyboard.Listener(on_press=self.on_press)
-        self.listener.start()
+        self.listener = None
+        self.start_listener()
 
-        self.question_check_time = 1
+        self.question_check_time = 0.4
 
         GradescopeNavigator.__init__(self, cred_path)
 
     def __del__(self):
-        self.listener.join()
+        self.close()
+
+    def close(self):
+        if self.listener is not None:
+            self.listener.stop()
+            self.listener.join()
+
+    def start_listener(self):
+        self.listener = keyboard.Listener(on_press=self.on_press)
+        self.listener.start()
 
     def on_press(self, key):
         if key == keyboard.Key.space:
@@ -267,6 +280,65 @@ class GradescopeGrader(GradescopeNavigator):
                     statuses[section] = self.grade_next_question(rubric_numbers)
                 else:
                     print(f'Couldn\'t open assignment. {section} {assignment_name}')
+
+    def grade_assignment_questions(self, assignment_name, sections, question_rubrics):
+        if type(sections) != list:
+            sections = [sections]
+        for section in sections:
+            print(f'\nStarting {section}...')
+            self.open_section_assignment(section, assignment_name, page='grade')
+            for question_number, rubric_items in question_rubrics.items():
+                if self.get_page() == 'grade':
+                    self.grade_question(question_number, rubric_items)
+                elif self.open_section_assignment(section, assignment_name, page='grade'):
+                    self.grade_question(question_number, rubric_items)
+                else:
+                    print(f'Couldn\'t open assignment. {section} {assignment_name}')
+
+    def grade_question(self, question_number, rubric_items):
+        if self.get_question(question_number):
+            while True:
+                try:
+                    sleep(self.question_check_time)
+                    for rubric_number in rubric_items:
+                        rubric_xpath = f'//*[@id="main-content"]/div/main/div[3]/div[2]/' \
+                                       f'div/div[2]/div[1]/ol/li[{rubric_number}]/div/div/button'
+                        self.driver.find_element(By.XPATH, rubric_xpath).click()
+                    while self.pause:  # If space bar was clicked
+                        sleep(0.1)  # Wait for space bar to be clicked again
+                    next_ungraded_xpath = '//*[@id="main-content"]/div/main/section/ul/li[5]/button/span/span/span'
+                    self.driver.find_element(By.XPATH, next_ungraded_xpath).click()
+                except NoSuchElementException:
+                    sleep(1)
+                    page = self.get_page()
+                    if page == 'grade' or page == 'review_grades':
+                        return True
+                    else:
+                        return False
+                except StaleElementReferenceException:
+                    print('Stale Element, refreshing...')
+                    self.driver.refresh()
+                    sleep(1)
+        return False
+
+    def get_question(self, question_number):
+        '//*[@id="main-content"]/div[2]/div/div/div[2]/div[1]/div/a[1]'
+        '//*[@id="main-content"]/div[2]/div/div/div[2]/div[3]/span'
+        '//*[@id="main-content"]/div[2]/div/div/div[3]/div[1]/div/a[1]'
+        if self.get_page() != 'grade':
+            print('Not on Grading Dashboard!')
+            False
+        try:
+            question_line_xpath = f'//*[@id="main-content"]/div[2]/div/div/div[{question_number + 1}]'
+            question_line = self.driver.find_element(By.XPATH, question_line_xpath)
+        except NoSuchElementException:
+            print(f'Can\'t find question {question_number}')
+            return False
+        question_graded = question_line.find_element(By.XPATH, './div[3]/span').text == '100%'
+        if question_graded:
+            return False
+        question_line.find_element(By.XPATH, './div[1]/div/a[1]').click()
+        return True
 
     def get_next_question(self):
         if self.get_page() != 'grade':
@@ -310,6 +382,8 @@ class GradescopeGrader(GradescopeNavigator):
                 else:
                     print(f'Don\'t know where we are? {page}')
                     return 'Lost'
+
+
 
 
 class GradescopeDistributionGetter(GradescopeNavigator):
