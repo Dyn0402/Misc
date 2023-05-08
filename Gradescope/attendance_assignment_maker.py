@@ -33,7 +33,7 @@ def make_attendance_assignments():
     assignment_name = 'Attendance/Participation/LA Survey Adjustments'
     pdf_repo_path = 'C:/Users/Dylan/Desktop/gradescope_pdfs/'
     nav = GsAD()
-    for section in nav.get_sections(['5CL-G']):
+    for section in nav.get_sections(['5BL-G', '5CL-G']):
         # if section == '5CL-G5':
         print(f'Starting {section}...')
         if nav.duplicate_assignment(section, copy_from_section, assignment_name):

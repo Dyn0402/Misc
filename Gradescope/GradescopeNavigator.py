@@ -241,10 +241,11 @@ class GradescopeAssignmentDuplicator(GradescopeNavigator):
 
 
 class GradescopeGrader(GradescopeNavigator):
-    def __init__(self, cred_path=None):
+    def __init__(self, cred_path=None, listener=True):
         self.pause = False
         self.listener = None
-        self.start_listener()
+        if listener:
+            self.start_listener()
 
         self.question_check_time = 0.4
 
@@ -546,10 +547,39 @@ def get_section_id_map(prefixes=['5CL-G']):
                 30: 526915,
             },
             '5AL-G': {
-
+                1: 526796,
+                2: 526799,
+                3: 526800,
+                4: 526801,
+                5: 526805,
+                6: 526806,
+                7: 526807,
+                8: 526809,
+                9: 526812,
+                10: 526813,
+                11: 526814,
+                12: 526815,
             },
             '5BL-G': {
+                1: 526840,
+                2: 526841,
+                3: 526843,
                 4: 526848,
+                5: 526850,
+                6: 526851,
+                7: 526853,
+                8: 526855,
+                9: 526858,
+                10: 526859,
+                11: 526860,
+                12: 526861,
+                13: 526862,
+                14: 526863,
+                15: 526864,
+                16: 526865,
+                17: 526866,
+                18: 526867,
+                19: 526868,
             }
     }
 
