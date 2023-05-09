@@ -15,16 +15,16 @@ from GradescopeNavigator import GradescopeRubricFixer as GsRF
 
 
 def main():
-    assignment_name = '5C Lab 3'
-    question_name = 'Parallel Plates'
-    old_text = 'No or wrong indication of direction of electric field lines (arrows)'
+    assignment_name = '5C Lab 5'
+    question_name = 'LED'
+    old_text = 'Linear fit clearly bad or fit using all points'
     section_flags = ['5CL-G']
     rubric_fixer = GsRF()
     for section in rubric_fixer.get_sections():
         if any(flag in section for flag in section_flags):
             print(f'\n{section}')
             rubric_fixer.fix_rubric_item(section, assignment_name, question_name, old_text, new_text=None,
-                                         new_score='-0.3')
+                                         new_score='-0.25')
     print('donzo')
 
 
