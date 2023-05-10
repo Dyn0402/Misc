@@ -44,11 +44,12 @@ def grade_gsg():
 def grade_attendance():
     assignment_name = 'Attendance/Participation/LA Survey Adjustments'
     # question_rubrics = {1: [1], 2: [1], 3: [1], 4: [1], 5: [1], 6: [1], 7: [1], 8: [1]}
-    question_rubrics = {1: [1], 2: [1], 3: [1], 4: [1]}
+    # question_rubrics = {1: [1], 2: [1], 3: [1], 4: [1], 5: [1], 9: [1]}
+    question_rubrics = {5: [1]}
     grader = GsG(listener=False)
-    sections = grader.get_sections('5BL-G')
-    print(sections)
-    # sections = ['5CL-G5']
+    sections = grader.get_sections('5CL-G')
+    # print(sections)
+    sections = ['5CL-G3']
     grader.grade_assignment_questions(assignment_name, sections, question_rubrics)
     grader.close()
 

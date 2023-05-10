@@ -304,7 +304,9 @@ class GradescopeGrader(GradescopeNavigator):
                     for rubric_number in rubric_items:
                         rubric_xpath = f'//*[@id="main-content"]/div/main/div[3]/div[2]/' \
                                        f'div/div[2]/div[1]/ol/li[{rubric_number}]/div/div/button'
-                        self.driver.find_element(By.XPATH, rubric_xpath).click()
+                        rubric_button = self.driver.find_element(By.XPATH, rubric_xpath)
+                        if rubric_button.get_attribute('aria-pressed') == 'false':
+                            self.driver.find_element(By.XPATH, rubric_xpath).click()
                     while self.pause:  # If space bar was clicked
                         sleep(0.1)  # Wait for space bar to be clicked again
                     next_ungraded_xpath = '//*[@id="main-content"]/div/main/section/ul/li[5]/button/span/span/span'
