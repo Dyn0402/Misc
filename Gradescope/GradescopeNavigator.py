@@ -79,6 +79,27 @@ class GradescopeNavigator:
         else:
             return False
 
+    # def open_section_assignment(self, section, assignment_name):
+    #     self.open_section_assignments(section)
+    #     assign_index = 1
+    #     while True:
+    #         # This path can be bad if only one assignment. Then tr[i]/ -> tr/
+    #         assign_xpath = f'//*[@id="assignments-instructor-table"]/tbody/tr[{assign_index}]/td[1]/div/div/a'
+    #         try:
+    #             assign_button = self.driver.find_element(By.XPATH, assign_xpath)
+    #             if assignment_name in assign_button.text:
+    #                 assign_button.click()
+    #                 page = self.get_page()
+    #                 if page == 'grade':
+    #                     return True
+    #                 elif page == 'review_grades':
+    #                     print(f'{section} {assignment_name} already graded')
+    #                     return False
+    #         except NoSuchElementException:
+    #             print(f'{section} {assignment_name} couldn\'t find assignment button')
+    #             return False
+    #         assign_index += 1
+
     def open_section(self, section, page=''):
         section_id = self.section_id_map[section]
         assignment_url = f'https://www.gradescope.com/courses/{section_id}/{page}'
@@ -298,6 +319,7 @@ class GradescopeGrader(GradescopeNavigator):
 
     def grade_question(self, question_number, rubric_items):
         if self.get_question(question_number):
+            print(f'Got question {question_number}')
             while True:
                 try:
                     sleep(self.question_check_time)
@@ -325,12 +347,9 @@ class GradescopeGrader(GradescopeNavigator):
         return False
 
     def get_question(self, question_number):
-        '//*[@id="main-content"]/div[2]/div/div/div[2]/div[1]/div/a[1]'
-        '//*[@id="main-content"]/div[2]/div/div/div[2]/div[3]/span'
-        '//*[@id="main-content"]/div[2]/div/div/div[3]/div[1]/div/a[1]'
         if self.get_page() != 'grade':
             print('Not on Grading Dashboard!')
-            False
+            return False
         try:
             question_line_xpath = f'//*[@id="main-content"]/div[2]/div/div/div[{question_number + 1}]'
             question_line = self.driver.find_element(By.XPATH, question_line_xpath)
@@ -339,8 +358,20 @@ class GradescopeGrader(GradescopeNavigator):
             return False
         question_graded = question_line.find_element(By.XPATH, './div[3]/span').text == '100%'
         if question_graded:
+            print(f'Question {question_number} already graded')
             return False
         question_line.find_element(By.XPATH, './div[1]/div/a[1]').click()
+        if self.get_page() == 'answer_groups':
+            grade_individually_xpath = '//*[@id="main-content"]/div/div/main/section/ul/li[2]/button'
+            try:
+                self.driver.find_element(By.XPATH, grade_individually_xpath).click()
+                sleep(0.5)
+                if self.get_page() != 'grade':
+                    print(f'Question {question_number} grade individually took me to a bad place')
+                    return False
+            except NoSuchElementException:
+                print(f'Question {question_number} can\'t click grade individually')
+                return False
         return True
 
     def get_next_question(self):

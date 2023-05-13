@@ -28,7 +28,8 @@ def main():
     # grade(pars)
     # selenium_test()
     # grade_gsg()
-    grade_attendance()
+    # grade_attendance()
+    grade_lab_attendance()
     print('donzo')
 
 
@@ -50,6 +51,19 @@ def grade_attendance():
     sections = grader.get_sections('5CL-G')
     # print(sections)
     sections = ['5CL-G3']
+    grader.grade_assignment_questions(assignment_name, sections, question_rubrics)
+    grader.close()
+
+
+def grade_lab_attendance():
+    assignment_name = '5C Lab 5'
+    # question_rubrics = {1: [1], 2: [1], 3: [1], 4: [1], 5: [1], 6: [1], 7: [1], 8: [1]}
+    # question_rubrics = {1: [1], 2: [1], 3: [1], 4: [1], 5: [1], 9: [1]}
+    question_rubrics = {1: [1]}
+    grader = GsG(listener=False)
+    sections = grader.get_sections('5CL-G')
+    # print(sections)
+    # sections = ['5CL-G3']
     grader.grade_assignment_questions(assignment_name, sections, question_rubrics)
     grader.close()
 
