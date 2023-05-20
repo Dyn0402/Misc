@@ -15,10 +15,10 @@ from GradescopeNavigator import GradescopeRubricFixer as GsRF
 
 
 def main():
-    assignment_name = '5C Lab 4'
-    question_name = 'Parallel Circuit'
-    old_text = 'Discussion of current conservation (all current measurements the same)'
-    new_text = 'Discussion of current conservation (sum of light bulb currents equal to current through power supply)'
+    assignment_name = '5C Pre-Lab 5'
+    question_name = 'Lightbulb Current vs Voltage'
+    old_text = 'Q4 answered completelyCorrect'
+    new_text = '**Q4** answered completely'
     # new_text = None
     # new_score = '-0.25'
     new_score = None
