@@ -20,7 +20,7 @@ def main():
 
 def copy_assignment_gn():
     copy_from_section = '5CL-G4'
-    week = 6
+    week = 7
     # assignment_name = f'5C Lab {week}'
     assignment_name = f'5C Pre-Lab {week}'
 
