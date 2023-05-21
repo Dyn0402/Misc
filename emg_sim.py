@@ -10,6 +10,7 @@ Created as Misc/emg_sim.py
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 import multiprocessing
 from tqdm import tqdm
@@ -19,62 +20,93 @@ k = 8.988e9  # N * m^2 / C^2
 
 
 def main():
-    arm_len = 25.  # cm
+    arm_len = 30.  # cm
+    arm_radius = 3  # cm
     pos_lead_z = 12.  # cm
     neg_lead_z = 13.  # cm
-    muscle_depth = 2.  # cm
-    muscle_radius = 1.  # cm
+    muscle_depth = 1.  # cm
+    muscle_radius = 0.5  # cm
     muscle_charge_sep = 0.01  # cm
 
-    n_rings_z = 500
+    n_rings_z = 200
     n_points_ring = 50
-
+    charge_time = 0.05  # s  Characteristic time to get from q_rest to q_ap
+    discharge_time = 0.06  # s  Characteristic time to decay from q_ap back to q_rest
     q_out_rest, q_in_rest, q_out_ap, q_in_ap = +1e-10, -1e-10, -1e-10, +1e-10  # C Total charge of rings
-    n_points_ap = 20
-    v_ap = 10000  # cm/s
 
-    processes = 10
+    v_ap = 1000  # cm/s
+
+    plot = True
+    cmap = cm.get_cmap('bwr')
+
+    # processes = 10
 
     dt = arm_len / n_rings_z / v_ap  # s
 
+    ap_charge_t_max = -np.log(charge_time / (discharge_time + charge_time)) * charge_time
+    ap_charge_max = ap_function(ap_charge_t_max, charge_time, discharge_time)
+
     pos_lead_pos, neg_lead_pos = np.array([0, 0, pos_lead_z]), np.array([0, 0, neg_lead_z])
     z_rings = np.linspace(0, arm_len, n_rings_z)
+    out_radius = muscle_radius + muscle_charge_sep / 2
+    in_radius = muscle_radius - muscle_charge_sep / 2
 
-    t = -2 * dt
+    # t_start, t_end = -2 * dt, arm_len / v_ap
+    t_start, t_end = -2 * dt, discharge_time * 2
     ts, pos_lead_pots, neg_lead_pots = [], [], []
 
-    pool = multiprocessing.Pool(processes=processes)
-    results = []
+    # pool = multiprocessing.Pool(processes=processes)
+    # results = []
 
-    ts = np.arange(t, arm_len / v_ap)
+    # ts = np.arange(t_start, t_end, dt)
 
-    args = [v_ap, n_points_ap, arm_len, n_rings_z, z_rings, n_points_ring, muscle_radius,  muscle_charge_sep,
-              muscle_depth, q_out_ap, q_out_rest, q_in_ap, q_in_rest, pos_lead_pos, neg_lead_pos]
-    with tqdm(total=len(ts)) as pbar:
-        for result in pool.imap(calc_ring, ts, args * len(ts)):
-            results.append(result)
-            pbar.update(1)
+    # args = [v_ap, n_points_ap, arm_len, n_rings_z, z_rings, n_points_ring, muscle_radius,  muscle_charge_sep,
+    #           muscle_depth, q_out_ap, q_out_rest, q_in_ap, q_in_rest, pos_lead_pos, neg_lead_pos]
+    # with tqdm(total=len(ts)) as pbar:
+    #     for result in pool.imap(calc_ring, ts, args * len(ts)):
+    #         results.append(result)
+    #         pbar.update(1)
 
-    while t <= arm_len / v_ap:
+    if plot:
+        fig, axs = plt.subplots(nrows=2, figsize=(10, 5), dpi=144)
+        plot_arm(axs[1], 0, arm_len, arm_radius, muscle_depth, muscle_radius, neg_lead_z, pos_lead_z, z_rings,
+                 [q_out_rest] * len(z_rings), cmap, q_out_rest, q_out_ap)
+        axs[0].set_xlabel('Time (s)')
+        axs[0].set_ylabel('Voltage (V)')
+        fig.tight_layout()
+        frame_info = []
+        plt.show()
 
+    t = t_start
+    while t <= t_end:
         pos_lead_pot, neg_lead_pot = 0, 0
-        z_ap_max = t * v_ap
-        z_ap_min = z_ap_max - n_points_ap * arm_len / n_rings_z
+        # z_ap_max = t * v_ap
+        # z_ap_min = z_ap_max - n_points_ap * arm_len / n_rings_z
+        z_ap = t * v_ap
         for ring_z in z_rings:
+            t_ap = t - ring_z / v_ap
+
+            q_out = q_out_rest
+            q_in = q_in_rest
+            if ring_z < z_ap:
+                q_out = ap_charge(t_ap, charge_time, discharge_time, q_out_rest, q_out_ap, ap_charge_max)
+                q_in = ap_charge(t_ap, charge_time, discharge_time, q_in_rest, q_in_ap, ap_charge_max)
+
+            out_point_q = q_out / n_points_ring
+            in_point_q = q_in / n_points_ring
+
+            # print(f'{ring_z}cm, q_out={q_out}, q_in={q_in}')
+
             for angle in np.linspace(0, 2*np.pi, n_points_ring):
-                out_radius = muscle_radius + muscle_charge_sep / 2
                 out_x = out_radius * np.cos(angle)
                 out_y = -muscle_depth + out_radius * np.sin(angle)
                 out_point_pos = np.array([out_x, out_y, ring_z])
-                q_out = q_out_ap if z_ap_min < ring_z <= z_ap_max else q_out_rest
-                out_point_q = q_out / n_points_ring
+                # q_out = q_out_ap if z_ap_min < ring_z <= z_ap_max else q_out_rest
 
-                in_radius = muscle_radius - muscle_charge_sep / 2
                 in_x = in_radius * np.cos(angle)
                 in_y = -muscle_depth + in_radius * np.sin(angle)
                 in_point_pos = np.array([in_x, in_y, ring_z])
-                q_in = q_in_ap if z_ap_min < ring_z <= z_ap_max else q_in_rest
-                in_point_q = q_in / n_points_ring
+                # q_in = q_in_ap if z_ap_min < ring_z <= z_ap_max else q_in_rest
 
                 pos_lead_pot += calc_point_pot_cm(pos_lead_pos, out_point_pos, out_point_q)
                 pos_lead_pot += calc_point_pot_cm(pos_lead_pos, in_point_pos, in_point_q)
@@ -84,7 +116,7 @@ def main():
         ts.append(t)
         pos_lead_pots.append(pos_lead_pot)
         neg_lead_pots.append(neg_lead_pot)
-        print(f't={t:.6f}s')
+        print(f't={t:.6f}s  |  q_in={q_in}  |  q_out={q_out}')
         t += dt
 
     plt.figure()
@@ -149,8 +181,41 @@ def calc_ring(t, v_ap, n_points_ap, arm_len, n_rings_z, z_rings, n_points_ring, 
     return pos_lead_pot, neg_lead_pot
 
 
+def plot_arm(ax, arm_z0, arm_zf, arm_radius, muscle_depth, muscle_radius, neg_lead_z, pos_lead_z, z_charges,
+             z_charge_seps, cmap, q_rest, q_ap):
+    ax.plot([arm_z0, arm_zf], [0, 0], color='black')
+    ax.plot([arm_z0, arm_zf], [-arm_radius * 2, -arm_radius * 2], color='black')
+    ax.scatter([neg_lead_z], [muscle_depth * 0.02], marker='o', color='orange', label='Negative Lead')
+    ax.scatter([pos_lead_z], [muscle_depth * 0.02], marker='+', color='red', label='Positive Lead')
+    lines = {}
+    for z, z_charge_sep in zip(z_charges, z_charge_seps):
+        color_scale = (z_charge_sep - q_rest) / (q_ap - q_rest) * cmap.N
+        color = cmap(color_scale)
+        print(z, z_charge_sep, color, color_scale)
+        line, = ax.plot([z, z], [-muscle_depth + muscle_radius, -muscle_depth - muscle_radius], color=color, lw=1)
+        lines.update({z: line})
+    ax.set_xlabel('Along Arm (cm)')
+    ax.set_ylabel('Depth in Arm (cm)')
+    ax.set_aspect('equal')
+
+    return lines
+
+
 def calc_point_pot_cm(obs_pos, point_pos, point_q):
     return k * point_q / (np.linalg.norm(obs_pos - point_pos) / 100)
+
+
+def weibull_function(t, k_shape, lam):
+    return (k_shape / lam) * (t / lam)**(k_shape - 1) * np.exp(-(t / lam)**k_shape)
+
+
+def ap_function(x, b, c):
+    return (1 - np.exp(-x / b)) * np.exp(-x / c)
+
+
+def ap_charge(t, tau_charge, tau_discharge, q_rest, q_ap, ap_func_max):
+    # return (q_ap - q_rest) / weibull_max * weibull_function(t, k_shape, lam) + q_rest
+    return (q_ap - q_rest) / ap_func_max * ap_function(t, tau_charge, tau_discharge) + q_rest
 
 
 if __name__ == '__main__':
