@@ -22,19 +22,22 @@ k = 8.988e9  # N * m^2 / C^2
 def main():
     arm_len = 30.  # cm
     arm_radius = 3  # cm
-    pos_lead_z = 12.  # cm
-    neg_lead_z = 13.  # cm
+    pos_lead_z = 5.  # cm
+    neg_lead_z = 20.  # cm
     muscle_depth = 1.  # cm
     muscle_radius = 0.5  # cm
     muscle_charge_sep = 0.01  # cm
 
-    n_rings_z = 200
+    n_rings_z = 151
+    # n_rings_z = 1
     n_points_ring = 50
     charge_time = 0.05  # s  Characteristic time to get from q_rest to q_ap
     discharge_time = 0.06  # s  Characteristic time to decay from q_ap back to q_rest
+    # charge_time = 0.001  # s  Characteristic time to get from q_rest to q_ap
+    # discharge_time = 0.001  # s  Characteristic time to decay from q_ap back to q_rest
     q_out_rest, q_in_rest, q_out_ap, q_in_ap = +1e-10, -1e-10, -1e-10, +1e-10  # C Total charge of rings
 
-    v_ap = 1000  # cm/s
+    v_ap = 500  # cm/s
 
     plot = True
     cmap = cm.get_cmap('bwr')
@@ -42,23 +45,26 @@ def main():
     # processes = 10
 
     dt = arm_len / n_rings_z / v_ap  # s
+    # dt = 0.001
 
     ap_charge_t_max = -np.log(charge_time / (discharge_time + charge_time)) * charge_time
     ap_charge_max = ap_function(ap_charge_t_max, charge_time, discharge_time)
 
     pos_lead_pos, neg_lead_pos = np.array([0, 0, pos_lead_z]), np.array([0, 0, neg_lead_z])
     z_rings = np.linspace(0, arm_len, n_rings_z)
+    # z_rings = np.array([0.5 * arm_len])
     out_radius = muscle_radius + muscle_charge_sep / 2
     in_radius = muscle_radius - muscle_charge_sep / 2
 
     # t_start, t_end = -2 * dt, arm_len / v_ap
-    t_start, t_end = -2 * dt, discharge_time * 2
+    t_start = -2 * dt
+    t_end = max(discharge_time * 2, 1.5 * arm_len / v_ap)
     ts, pos_lead_pots, neg_lead_pots = [], [], []
 
     # pool = multiprocessing.Pool(processes=processes)
     # results = []
 
-    # ts = np.arange(t_start, t_end, dt)
+    ts_plot = np.arange(0, t_end, dt)
 
     # args = [v_ap, n_points_ap, arm_len, n_rings_z, z_rings, n_points_ring, muscle_radius,  muscle_charge_sep,
     #           muscle_depth, q_out_ap, q_out_rest, q_in_ap, q_in_rest, pos_lead_pos, neg_lead_pos]
@@ -66,6 +72,13 @@ def main():
     #     for result in pool.imap(calc_ring, ts, args * len(ts)):
     #         results.append(result)
     #         pbar.update(1)
+
+    fig, ax = plt.subplots(dpi=144)
+    ax.grid()
+    ax.plot(ts_plot, ap_charge(ts_plot, charge_time, discharge_time, q_out_rest, q_out_ap, ap_charge_max))
+    ax.set_xlabel('Time from Action Potential (s)')
+    ax.set_ylabel('Charge Outside (C)')
+    fig.tight_layout()
 
     if plot:
         fig, axs = plt.subplots(nrows=2, figsize=(10, 5), dpi=144)
@@ -75,7 +88,7 @@ def main():
         axs[0].set_ylabel('Voltage (V)')
         fig.tight_layout()
         frame_info = []
-        plt.show()
+        # plt.show()
 
     t = t_start
     while t <= t_end:
@@ -97,6 +110,7 @@ def main():
 
             # print(f'{ring_z}cm, q_out={q_out}, q_in={q_in}')
 
+            old_pos_pot, old_neg_pot = pos_lead_pot, neg_lead_pot
             for angle in np.linspace(0, 2*np.pi, n_points_ring):
                 out_x = out_radius * np.cos(angle)
                 out_y = -muscle_depth + out_radius * np.sin(angle)
@@ -116,7 +130,9 @@ def main():
         ts.append(t)
         pos_lead_pots.append(pos_lead_pot)
         neg_lead_pots.append(neg_lead_pot)
-        print(f't={t:.6f}s  |  q_in={q_in}  |  q_out={q_out}')
+        print(f't={t:.6f}s')
+        # print(f't={t:.6f}s  |  q_in={q_in}  |  q_out={q_out}  | q_out_pos={out_point_pos}  | q_in_pos={in_point_pos}')
+        # print(f'pos_lead_pot diff={pos_lead_pot - old_pos_pot}  |  neg_lead_pot diff={neg_lead_pot - old_neg_pot}')
         t += dt
 
     plt.figure()
