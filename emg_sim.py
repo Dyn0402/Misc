@@ -12,6 +12,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
+from scipy.interpolate import interp1d
+
 import multiprocessing
 from tqdm import tqdm
 
@@ -31,10 +33,10 @@ def main():
     n_rings_z = 151
     # n_rings_z = 1
     n_points_ring = 50
-    charge_time = 0.05  # s  Characteristic time to get from q_rest to q_ap
-    discharge_time = 0.06  # s  Characteristic time to decay from q_ap back to q_rest
-    # charge_time = 0.001  # s  Characteristic time to get from q_rest to q_ap
-    # discharge_time = 0.001  # s  Characteristic time to decay from q_ap back to q_rest
+    # charge_time = 0.05  # s  Characteristic time to get from q_rest to q_ap
+    # discharge_time = 0.06  # s  Characteristic time to decay from q_ap back to q_rest
+    charge_time = 0.001  # s  Characteristic time to get from q_rest to q_ap
+    discharge_time = 0.001  # s  Characteristic time to decay from q_ap back to q_rest
     q_out_rest, q_in_rest, q_out_ap, q_in_ap = +1e-10, -1e-10, -1e-10, +1e-10  # C Total charge of rings
 
     v_ap = 500  # cm/s
@@ -157,6 +159,36 @@ def main():
     plt.figure()
     plt.grid()
     plt.plot(ts, np.array(pos_lead_pots) - np.array(neg_lead_pots), label='Difference')
+    plt.legend()
+    plt.xlabel('Time (s)')
+    plt.ylabel('Voltage (V)')
+    plt.tight_layout()
+
+    ts = np.array(ts)
+    f_pos = interp1d(ts, pos_lead_pots, bounds_error=False, fill_value=pos_lead_pots[-1])
+    f_neg = interp1d(ts, neg_lead_pots, bounds_error=False, fill_value=neg_lead_pots[0])
+    # ap_times = np.arange([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) * 4 * dt
+    ap_times = np.linspace(0, 0.05, 30)
+    pos_lead_pots_sum, neg_lead_pots_sum = np.zeros(len(pos_lead_pots)), np.zeros(len(neg_lead_pots))
+    plt.figure()
+    for ap_t in ap_times:
+        pos_lead_pots_sum += f_pos(ts - ap_t)
+        neg_lead_pots_sum += f_neg(ts - ap_t)
+        plt.plot(ts, f_pos(ts - ap_t))
+    plt.xlabel('Time (s)')
+    plt.ylabel('Voltage (V)')
+
+    plt.figure()
+    plt.plot(ts, pos_lead_pots_sum, label='Positive Lead Sum')
+    plt.plot(ts, neg_lead_pots_sum, label='Negative Lead Sum')
+    plt.legend()
+    plt.xlabel('Time (s)')
+    plt.ylabel('Voltage (V)')
+    plt.tight_layout()
+
+    plt.figure()
+    plt.grid()
+    plt.plot(ts, np.array(pos_lead_pots_sum) - np.array(neg_lead_pots_sum), label='Sum Difference')
     plt.legend()
     plt.xlabel('Time (s)')
     plt.ylabel('Voltage (V)')
