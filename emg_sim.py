@@ -24,22 +24,22 @@ k = 8.988e9  # N * m^2 / C^2
 def main():
     arm_len = 30.  # cm
     arm_radius = 3  # cm
-    pos_lead_z = 5.  # cm
+    pos_lead_z = 10.  # cm
     neg_lead_z = 20.  # cm
     muscle_depth = 1.  # cm
-    muscle_radius = 0.5  # cm
-    muscle_charge_sep = 0.01  # cm
+    muscle_radius = 28e-6 * 100  # cm
+    muscle_charge_sep = muscle_radius / 100  # cm
 
     n_rings_z = 151
     # n_rings_z = 1
     n_points_ring = 50
     # charge_time = 0.05  # s  Characteristic time to get from q_rest to q_ap
     # discharge_time = 0.06  # s  Characteristic time to decay from q_ap back to q_rest
-    charge_time = 0.001  # s  Characteristic time to get from q_rest to q_ap
+    charge_time = 0.00125  # s  Characteristic time to get from q_rest to q_ap
     discharge_time = 0.001  # s  Characteristic time to decay from q_ap back to q_rest
     q_out_rest, q_in_rest, q_out_ap, q_in_ap = +1e-10, -1e-10, -1e-10, +1e-10  # C Total charge of rings
 
-    v_ap = 500  # cm/s
+    v_ap = 400  # cm/s
 
     plot = True
     cmap = cm.get_cmap('bwr')
@@ -67,6 +67,12 @@ def main():
     # results = []
 
     ts_plot = np.arange(0, t_end, dt)
+
+    angles = np.linspace(0, 2 * np.pi, n_points_ring)
+    out_x = out_radius * np.cos(angles)
+    out_y = -muscle_depth + out_radius * np.sin(angles)
+    in_x = in_radius * np.cos(angles)
+    in_y = -muscle_depth + in_radius * np.sin(angles)
 
     # args = [v_ap, n_points_ap, arm_len, n_rings_z, z_rings, n_points_ring, muscle_radius,  muscle_charge_sep,
     #           muscle_depth, q_out_ap, q_out_rest, q_in_ap, q_in_rest, pos_lead_pos, neg_lead_pos]
@@ -110,25 +116,34 @@ def main():
             out_point_q = q_out / n_points_ring
             in_point_q = q_in / n_points_ring
 
+            out_point_pos = np.array([out_x, out_y, ring_z])
+            in_point_pos = np.array([in_x, in_y, ring_z])
+
             # print(f'{ring_z}cm, q_out={q_out}, q_in={q_in}')
 
-            old_pos_pot, old_neg_pot = pos_lead_pot, neg_lead_pot
-            for angle in np.linspace(0, 2*np.pi, n_points_ring):
-                out_x = out_radius * np.cos(angle)
-                out_y = -muscle_depth + out_radius * np.sin(angle)
-                out_point_pos = np.array([out_x, out_y, ring_z])
-                # q_out = q_out_ap if z_ap_min < ring_z <= z_ap_max else q_out_rest
+            pos_lead_pot += np.sum(calc_point_pot_cm(pos_lead_pos, out_point_pos, out_point_q))
+            pos_lead_pot += np.sum(calc_point_pot_cm(pos_lead_pos, in_point_pos, in_point_q))
 
-                in_x = in_radius * np.cos(angle)
-                in_y = -muscle_depth + in_radius * np.sin(angle)
-                in_point_pos = np.array([in_x, in_y, ring_z])
-                # q_in = q_in_ap if z_ap_min < ring_z <= z_ap_max else q_in_rest
+            neg_lead_pot += np.sum(calc_point_pot_cm(neg_lead_pos, out_point_pos, out_point_q))
+            neg_lead_pot += np.sum(calc_point_pot_cm(neg_lead_pos, in_point_pos, in_point_q))
 
-                pos_lead_pot += calc_point_pot_cm(pos_lead_pos, out_point_pos, out_point_q)
-                pos_lead_pot += calc_point_pot_cm(pos_lead_pos, in_point_pos, in_point_q)
-
-                neg_lead_pot += calc_point_pot_cm(neg_lead_pos, out_point_pos, out_point_q)
-                neg_lead_pot += calc_point_pot_cm(neg_lead_pos, in_point_pos, in_point_q)
+            # old_pos_pot, old_neg_pot = pos_lead_pot, neg_lead_pot
+            # for angle in np.linspace(0, 2*np.pi, n_points_ring):
+            #     out_x = out_radius * np.cos(angle)
+            #     out_y = -muscle_depth + out_radius * np.sin(angle)
+            #     out_point_pos = np.array([out_x, out_y, ring_z])
+            #     # q_out = q_out_ap if z_ap_min < ring_z <= z_ap_max else q_out_rest
+            #
+            #     in_x = in_radius * np.cos(angle)
+            #     in_y = -muscle_depth + in_radius * np.sin(angle)
+            #     in_point_pos = np.array([in_x, in_y, ring_z])
+            #     # q_in = q_in_ap if z_ap_min < ring_z <= z_ap_max else q_in_rest
+            #
+            #     pos_lead_pot += calc_point_pot_cm(pos_lead_pos, out_point_pos, out_point_q)
+            #     pos_lead_pot += calc_point_pot_cm(pos_lead_pos, in_point_pos, in_point_q)
+            #
+            #     neg_lead_pot += calc_point_pot_cm(neg_lead_pos, out_point_pos, out_point_q)
+            #     neg_lead_pot += calc_point_pot_cm(neg_lead_pos, in_point_pos, in_point_q)
         ts.append(t)
         pos_lead_pots.append(pos_lead_pot)
         neg_lead_pots.append(neg_lead_pot)
@@ -168,7 +183,8 @@ def main():
     f_pos = interp1d(ts, pos_lead_pots, bounds_error=False, fill_value=pos_lead_pots[-1])
     f_neg = interp1d(ts, neg_lead_pots, bounds_error=False, fill_value=neg_lead_pots[0])
     # ap_times = np.arange([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) * 4 * dt
-    ap_times = np.linspace(0, 0.05, 30)
+    # ap_times = np.linspace(0, 0.05, 30)
+    ap_times = np.random.normal(0.02, 0.05, 10000)
     pos_lead_pots_sum, neg_lead_pots_sum = np.zeros(len(pos_lead_pots)), np.zeros(len(neg_lead_pots))
     plt.figure()
     for ap_t in ap_times:

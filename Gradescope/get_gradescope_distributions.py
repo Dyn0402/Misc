@@ -7,7 +7,7 @@ Created as Misc/get_gradescope_distributions
 
 @author: Dylan Neff, Dylan
 """
-
+import os.path
 import time
 from time import sleep
 
@@ -27,16 +27,16 @@ from GradescopeNavigator import GradescopeDistributionGetter as GsDG
 
 
 def main():
-    lab_type = 'prelab'
-    lab_num = 5
+    lab_type = 'lab'
+    lab_num = 6
     # selenium_test()
-    # gsn_get_distribution(lab_type, lab_num)
+    csv_path = gsn_get_distribution(lab_type, lab_num)
     plot_lab(f'C:/Users/Dylan/Desktop/{lab_type}{lab_num}_dists.csv', prelab=True if lab_type == 'prelab' else False)
     # plot_lab('C:/Users/Dylan/Desktop/lab3_dists.csv', prelab=False)
     print('donzo')
 
 
-def gsn_get_distribution(lab_type, lab_num):
+def gsn_get_distribution(lab_type, lab_num, overwrite_csv=False):
     section_flags = ['5CL-G']
     # assignment_name = 'Week 1 Assignment & Lab Credit'
     assignment_name = f'5C {"Pre-Lab" if lab_type == "prelab" else "Lab"} {lab_num}'
@@ -46,6 +46,11 @@ def gsn_get_distribution(lab_type, lab_num):
     assignment_type_name = 'prelab' if prelab else 'lab'
     assignment_num = int(assignment_name[-1])
     csv_path = f'C:/Users/Dylan/Desktop/{assignment_type_name}{assignment_num}_dists.csv'
+    if os.path.exists(csv_path):
+        if overwrite_csv:
+            print(f'Path exists, will overwrite {csv_path}')
+        print(f'{csv_path}')
+        return csv_path
     # distribution_getter = GsDG('C:/Users/Dyn04/Desktop/Creds/gradescope_creds.txt')
     df = []
     for section in distribution_getter.get_sections():
