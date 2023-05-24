@@ -10,9 +10,13 @@ Created as Misc/get_gradescope_distributions
 import os.path
 import time
 from time import sleep
+import string
+import random
 
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
+import matplotlib.gridspec as gridspec
 import seaborn as sns
 import pandas as pd
 
@@ -27,16 +31,32 @@ from GradescopeNavigator import GradescopeDistributionGetter as GsDG
 
 
 def main():
-    lab_type = 'lab'
-    lab_num = 6
-    # selenium_test()
-    csv_path = gsn_get_distribution(lab_type, lab_num)
-    plot_lab(f'C:/Users/Dylan/Desktop/{lab_type}{lab_num}_dists.csv', prelab=True if lab_type == 'prelab' else False)
+    csv_directory_path = 'N:/UCLA_Microsoft/OneDrive - personalmicrosoftsoftware.ucla.edu/' \
+                         'Tablet_Store/UCLA/TA/Phys 5CL/Spring_2023/Grade_Distributions/'
+    # get_grade_distributions(csv_directory_path)
+    # lab_type = 'lab'
+    # lab_num = 6
+    # # selenium_test()
+    # csv_path = gsn_get_distribution(lab_type, lab_num)
+    # plot_lab(f'C:/Users/Dylan/Desktop/{lab_type}{lab_num}_dists.csv', prelab=True if lab_type == 'prelab' else False)
     # plot_lab('C:/Users/Dylan/Desktop/lab3_dists.csv', prelab=False)
+    plot_total(csv_directory_path)
     print('donzo')
 
 
-def gsn_get_distribution(lab_type, lab_num, overwrite_csv=False):
+def get_grade_distributions(csv_directory_path='C:/Users/Dylan/Desktop/'):
+    lab_types = ['prelab', 'lab']
+    lab_nums = [1, 2, 3, 4, 5, 6]
+    # selenium_test()
+    for lab_type in lab_types:
+        for lab_num in lab_nums:
+            if lab_num == 1 and lab_type == 'prelab':
+                continue
+            csv_path = gsn_get_distribution(lab_type, lab_num, False, csv_directory_path)
+    # plot_lab(f'C:/Users/Dylan/Desktop/{lab_type}{lab_num}_dists.csv', prelab=True if lab_type == 'prelab' else False)
+
+
+def gsn_get_distribution(lab_type, lab_num, overwrite_csv=False, csv_dir='C:/Users/Dylan/Desktop/'):
     section_flags = ['5CL-G']
     # assignment_name = 'Week 1 Assignment & Lab Credit'
     assignment_name = f'5C {"Pre-Lab" if lab_type == "prelab" else "Lab"} {lab_num}'
@@ -44,8 +64,11 @@ def gsn_get_distribution(lab_type, lab_num, overwrite_csv=False):
     assignment_name_alt = 'lab 1'
     distribution_getter = GsDG()
     assignment_type_name = 'prelab' if prelab else 'lab'
-    assignment_num = int(assignment_name[-1])
-    csv_path = f'C:/Users/Dylan/Desktop/{assignment_type_name}{assignment_num}_dists.csv'
+    csv_path = f'{csv_dir}{assignment_type_name}{lab_num}_dists.csv'
+
+    if lab_num == 1:
+        assignment_name = '5CL Week 1 Assignment & Lab Credit'
+
     if os.path.exists(csv_path):
         if overwrite_csv:
             print(f'Path exists, will overwrite {csv_path}')
@@ -57,15 +80,26 @@ def gsn_get_distribution(lab_type, lab_num, overwrite_csv=False):
         if any(flag in section for flag in section_flags):
             print(section)
             df_section = distribution_getter.get_distribution(section, assignment_name)
-            if len(df_section) == 0:
+            if len(df_section) == 0 and lab_num == 1:
                 df_section = distribution_getter.get_distribution(section, assignment_name_alt)
             df.extend(df_section)
     # distribution_getter.close()
     df = pd.DataFrame(df)
     # df.to_csv('C:/Users/Dylan/Desktop/prelab2_dists.csv', index=False)
     df.to_csv(csv_path, index=False, mode='w')
-    print(csv_path)
+    print(f'Writing {assignment_name} to {csv_path}')
     # plot_lab(csv_path, prelab)
+
+
+def combine_csvs(csv_dir):
+    dfs = []
+    for file_name in os.listdir(csv_dir):
+        if '.csv' in file_name:
+            df = pd.read_csv(f'{csv_dir}{file_name}')
+            df['possible'] = df['assignment'].apply(lambda assign: 8. if 'Pre-Lab' in assign else 20.)
+            dfs.append(df)
+
+    return pd.concat(dfs)
 
 
 def plot_lab(path=None, prelab=False):
@@ -123,6 +157,54 @@ def plot_lab(path=None, prelab=False):
     plt.xticks(rotation=45)
     ax_tas.set_ylabel('Average Score')
     plt.tight_layout()
+
+    plt.show()
+
+
+def plot_total(csv_dir='C:/Users/Dylan/Desktop/'):
+    df = combine_csvs(csv_dir)
+
+    alias = True
+    ta_col = 'ta_alias' if alias else 'ta'
+    ta_names = df['ta'].unique()
+    random.shuffle(ta_names)
+    ta_map = dict(zip(ta_names, [f'TA {x}' for x in list(string.ascii_uppercase)[:len(ta_names)]]))
+    print(ta_map)
+    df['ta_alias'] = df['ta'].map(ta_map)
+
+    df['assign_count'] = 1
+
+    df_graded = df.groupby(ta_col).sum()
+    df_graded['frac_graded'] = df_graded['graded'] / df_graded['assign_count']
+    df_graded = df_graded.reset_index()
+
+    df = df[df['graded']]
+    df_ta = df.groupby([ta_col, 'student_name']).sum()
+    df_ta['percent'] = df_ta['score'] / df_ta['possible']
+    df_ta_ungrouped = df_ta.reset_index()
+
+    fig_tas = plt.figure(figsize=(8, 6), dpi=144)
+    gs = gridspec.GridSpec(2, 1, height_ratios=[1, 2.5])
+    ax_bar = plt.subplot(gs[0])
+    ax_tas = plt.subplot(gs[1], sharex=ax_bar)
+
+    ax_tas.grid()
+    ta_mean_sd_df = df_ta.groupby(ta_col)['percent'].agg(['mean', 'std']).reset_index()
+    ax_tas.axhline(1, color='black')
+    ax_tas.errorbar(ta_mean_sd_df[ta_col], ta_mean_sd_df['mean'], yerr=ta_mean_sd_df['std'], marker='o', ls='none')
+    ax_tas.scatter(df_ta_ungrouped[ta_col], df_ta_ungrouped['percent'], marker='_', alpha=0.2)
+    plt.xticks(rotation=45)
+    ax_tas.set_ylabel('Total Score')
+    ax_tas.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1, decimals=0))
+
+    ax_bar.bar(df_graded[ta_col], df_graded['frac_graded'])
+    ax_bar.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1, decimals=0))
+    ax_bar.set_ylabel('Assignments Graded')
+    ax_bar.set_ylim(top=1.0)
+
+    fig_tas.subplots_adjust(hspace=0.0)
+    fig_tas.tight_layout()
+    fig_tas.subplots_adjust(hspace=0.0)
 
     plt.show()
 
