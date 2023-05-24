@@ -184,7 +184,7 @@ def main():
     f_neg = interp1d(ts, neg_lead_pots, bounds_error=False, fill_value=neg_lead_pots[0])
     # ap_times = np.arange([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) * 4 * dt
     # ap_times = np.linspace(0, 0.05, 30)
-    ap_times = np.random.normal(0.02, 0.05, 10000)
+    ap_times = np.random.normal(0.02, 0.05, 100)
     pos_lead_pots_sum, neg_lead_pots_sum = np.zeros(len(pos_lead_pots)), np.zeros(len(neg_lead_pots))
     plt.figure()
     for ap_t in ap_times:
