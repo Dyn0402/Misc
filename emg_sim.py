@@ -24,20 +24,24 @@ k = 8.988e9  # N * m^2 / C^2
 def main():
     arm_len = 30.  # cm
     arm_radius = 3  # cm
-    pos_lead_z = 10.  # cm
-    neg_lead_z = 20.  # cm
+    pos_lead_z = 20.  # cm
+    neg_lead_z = 10.  # cm
     muscle_depth = 1.  # cm
-    muscle_radius = 28e-6 * 100  # cm
-    muscle_charge_sep = muscle_radius / 100  # cm
+    muscle_radius = 0.6e-6 * 100  # cm
+    muscle_charge_sep = muscle_radius / 10  # cm
 
     n_rings_z = 151
     # n_rings_z = 1
     n_points_ring = 50
-    # charge_time = 0.05  # s  Characteristic time to get from q_rest to q_ap
-    # discharge_time = 0.06  # s  Characteristic time to decay from q_ap back to q_rest
-    charge_time = 0.00125  # s  Characteristic time to get from q_rest to q_ap
-    discharge_time = 0.001  # s  Characteristic time to decay from q_ap back to q_rest
-    q_out_rest, q_in_rest, q_out_ap, q_in_ap = +1e-10, -1e-10, -1e-10, +1e-10  # C Total charge of rings
+    # Muscle ca++
+    charge_time = 0.5  # s  Characteristic time to get from q_rest to q_ap
+    discharge_time = 0.05  # s  Characteristic time to decay from q_ap back to q_rest
+    q_out_rest, q_in_rest, q_out_ap, q_in_ap = +1e-10, 0, 0, +1e-10  # C Total charge of rings
+
+    # Muscle action potential
+    # charge_time = 0.00125  # s  Characteristic time to get from q_rest to q_ap
+    # discharge_time = 0.001  # s  Characteristic time to decay from q_ap back to q_rest
+    # q_out_rest, q_in_rest, q_out_ap, q_in_ap = +1e-10, -1e-10, -1e-10, +1e-10  # C Total charge of rings
 
     v_ap = 400  # cm/s
 
@@ -180,11 +184,11 @@ def main():
     plt.tight_layout()
 
     ts = np.array(ts)
-    f_pos = interp1d(ts, pos_lead_pots, bounds_error=False, fill_value=pos_lead_pots[-1])
+    f_pos = interp1d(ts, pos_lead_pots, bounds_error=False, fill_value=pos_lead_pots[0])
     f_neg = interp1d(ts, neg_lead_pots, bounds_error=False, fill_value=neg_lead_pots[0])
     # ap_times = np.arange([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]) * 4 * dt
     # ap_times = np.linspace(0, 0.05, 30)
-    ap_times = np.random.normal(0.02, 0.05, 100)
+    ap_times = np.random.normal(0.003, 0.001, 100)
     pos_lead_pots_sum, neg_lead_pots_sum = np.zeros(len(pos_lead_pots)), np.zeros(len(neg_lead_pots))
     plt.figure()
     for ap_t in ap_times:
@@ -279,7 +283,11 @@ def ap_function(x, b, c):
 
 def ap_charge(t, tau_charge, tau_discharge, q_rest, q_ap, ap_func_max):
     # return (q_ap - q_rest) / weibull_max * weibull_function(t, k_shape, lam) + q_rest
-    return (q_ap - q_rest) / ap_func_max * ap_function(t, tau_charge, tau_discharge) + q_rest
+    if type(t) is np.ndarray:
+        t[t < 0] = 0
+    else:
+        t = t if t >= 0 else 0
+    return(q_ap - q_rest) / ap_func_max * ap_function(t, tau_charge, tau_discharge) + q_rest
 
 
 if __name__ == '__main__':
