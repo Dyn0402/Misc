@@ -15,13 +15,13 @@ from GradescopeNavigator import GradescopeRubricFixer as GsRF
 
 
 def main():
-    assignment_name = '5C Pre-Lab 6'
-    question_name = 'Simple RC and Time Constants'
-    old_text = 'Part of Q1 not answered'
-    # new_text = '**Q4** answered completely'
-    new_text = None
-    new_score = '+2.6'
-    # new_score = None
+    assignment_name = '5C Lab 6'
+    question_name = 'Capacitors in Parallel'
+    old_text = 'Correctly identify capacitors in series decreases capacitance'
+    new_text = 'Correctly identified capacitors in parallel increases capacitance'
+    # new_text = None
+    # new_score = '+2.6'
+    new_score = None
     section_flags = ['5CL-G']
     rubric_fixer = GsRF()
     for section in rubric_fixer.get_sections():
