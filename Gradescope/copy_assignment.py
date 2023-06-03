@@ -20,9 +20,10 @@ def main():
 
 def copy_assignment_gn():
     copy_from_section = '5CL-G4'
-    week = 7
+    week = 9
+    lab_num = 8
     # assignment_name = f'5C Lab {week}'
-    assignment_name = f'5C Pre-Lab {week}'
+    assignment_name = f'5C Pre-Lab {lab_num}'
 
     gs_duplicator = GsAD()
     for section in gs_duplicator.get_sections():
