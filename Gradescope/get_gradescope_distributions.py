@@ -33,7 +33,8 @@ from GradescopeNavigator import GradescopeDistributionGetter as GsDG
 def main():
     csv_directory_path = 'N:/UCLA_Microsoft/OneDrive - personalmicrosoftsoftware.ucla.edu/' \
                          'Tablet_Store/UCLA/TA/Phys 5CL/Spring_2023/Grade_Distributions/'
-    # get_grade_distributions(csv_directory_path)
+    overwrite_csv = True
+    get_grade_distributions(csv_directory_path, overwrite_csv)
     # lab_type = 'lab'
     # lab_num = 6
     # # selenium_test()
@@ -44,7 +45,7 @@ def main():
     print('donzo')
 
 
-def get_grade_distributions(csv_directory_path='C:/Users/Dylan/Desktop/'):
+def get_grade_distributions(csv_directory_path='C:/Users/Dylan/Desktop/', overwrite=False):
     lab_types = ['prelab', 'lab']
     lab_nums = [1, 2, 3, 4, 5, 6]
     # selenium_test()
@@ -52,7 +53,7 @@ def get_grade_distributions(csv_directory_path='C:/Users/Dylan/Desktop/'):
         for lab_num in lab_nums:
             if lab_num == 1 and lab_type == 'prelab':
                 continue
-            csv_path = gsn_get_distribution(lab_type, lab_num, False, csv_directory_path)
+            csv_path = gsn_get_distribution(lab_type, lab_num, overwrite, csv_directory_path)
     # plot_lab(f'C:/Users/Dylan/Desktop/{lab_type}{lab_num}_dists.csv', prelab=True if lab_type == 'prelab' else False)
 
 
@@ -72,8 +73,9 @@ def gsn_get_distribution(lab_type, lab_num, overwrite_csv=False, csv_dir='C:/Use
     if os.path.exists(csv_path):
         if overwrite_csv:
             print(f'Path exists, will overwrite {csv_path}')
-        print(f'{csv_path}')
-        return csv_path
+        else:
+            print(f'{csv_path} already exists')
+            return csv_path
     # distribution_getter = GsDG('C:/Users/Dyn04/Desktop/Creds/gradescope_creds.txt')
     df = []
     for section in distribution_getter.get_sections():
