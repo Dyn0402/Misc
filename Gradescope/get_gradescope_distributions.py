@@ -34,7 +34,8 @@ def main():
     csv_directory_path = 'N:/UCLA_Microsoft/OneDrive - personalmicrosoftsoftware.ucla.edu/' \
                          'Tablet_Store/UCLA/TA/Phys 5CL/Spring_2023/Grade_Distributions/'
     overwrite_csv = True
-    get_grade_distributions(csv_directory_path, overwrite_csv)
+    lab_nums = [6, 5, 4, 3, 1]
+    get_grade_distributions(csv_directory_path, overwrite_csv, lab_nums=lab_nums)
     # lab_type = 'lab'
     # lab_num = 6
     # # selenium_test()
@@ -45,9 +46,12 @@ def main():
     print('donzo')
 
 
-def get_grade_distributions(csv_directory_path='C:/Users/Dylan/Desktop/', overwrite=False):
-    lab_types = ['prelab', 'lab']
-    lab_nums = [1, 2, 3, 4, 5, 6]
+def get_grade_distributions(csv_directory_path='C:/Users/Dylan/Desktop/', overwrite=False,
+                            lab_types=None, lab_nums=None):
+    if lab_types is None:
+        lab_types = ['prelab', 'lab']
+    if lab_nums is None:
+        lab_nums = [1, 2, 3, 4, 5, 6]
     # selenium_test()
     for lab_type in lab_types:
         for lab_num in lab_nums:
