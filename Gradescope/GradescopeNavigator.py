@@ -505,6 +505,34 @@ class GradescopeRubricFixer(GradescopeNavigator):
         else:
             print(f'Couldn\'t get rubric for {section} {assignment_name}')
 
+    def remove_outline_question(self, section, assignment_name, question_name):
+        if self.open_section_assignment(section, assignment_name, 'outline/edit'):
+            change_made = False
+            item_index = 1
+            while True:
+                try:
+                    item_xpath = f'//*[@id="main-content"]/div/main/div[3]/div[2]/div/div[2]/div[2]/div[1]/div[2]/' \
+                                 f'div/div[2]/div[{item_index}]/div/div/div[2]/input'
+                    question_field = self.driver.find_element(By.XPATH, item_xpath)
+                    question_value = question_field.get_attribute('value')
+
+                    if question_value == question_name:
+                        question_field.click()
+                        delete_xpath = f'//*[@id="main-content"]/div/main/div[3]/div[2]/div/div[2]/div[2]/div[1]/' \
+                                       f'div[2]/div/div[2]/div[{item_index}]/div/div/div[4]/button[1]'
+                        self.driver.find_element(By.XPATH, delete_xpath).click()
+                        change_made = True
+                except NoSuchElementException:
+                    # print(f'Didn\'t find rubric item {question_name} in {section} {assignment_name}')
+                    break
+                item_index += 1
+            if change_made:
+                save_xpath = f'//*[@id="main-content"]/div/main/div[3]/div[2]/div/div[2]/div[2]/div[3]/button[2]'
+                self.driver.find_element(By.XPATH, save_xpath).click()
+                sleep(2)
+        else:
+            print(f'Couldn\'t get rubric for {section} {assignment_name}')
+
 
 def get_section_time_map(prefix='5CL-G'):
     section_times = {
