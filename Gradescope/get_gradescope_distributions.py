@@ -33,8 +33,8 @@ from GradescopeNavigator import GradescopeDistributionGetter as GsDG
 def main():
     csv_directory_path = 'N:/UCLA_Microsoft/OneDrive - personalmicrosoftsoftware.ucla.edu/' \
                          'Tablet_Store/UCLA/TA/Phys 5CL/Spring_2023/Grade_Distributions/'
-    overwrite_csv = True
-    lab_nums = [6, 5, 4, 3, 1]
+    overwrite_csv = False
+    lab_nums = [7, 6, 5, 4, 3, 2, 1]
     get_grade_distributions(csv_directory_path, overwrite_csv, lab_nums=lab_nums)
     # lab_type = 'lab'
     # lab_num = 6
@@ -67,7 +67,6 @@ def gsn_get_distribution(lab_type, lab_num, overwrite_csv=False, csv_dir='C:/Use
     assignment_name = f'5C {"Pre-Lab" if lab_type == "prelab" else "Lab"} {lab_num}'
     prelab = True if 'Pre-Lab' in assignment_name else False
     assignment_name_alt = 'lab 1'
-    distribution_getter = GsDG()
     assignment_type_name = 'prelab' if prelab else 'lab'
     csv_path = f'{csv_dir}{assignment_type_name}{lab_num}_dists.csv'
 
@@ -81,6 +80,8 @@ def gsn_get_distribution(lab_type, lab_num, overwrite_csv=False, csv_dir='C:/Use
             print(f'{csv_path} already exists')
             return csv_path
     # distribution_getter = GsDG('C:/Users/Dyn04/Desktop/Creds/gradescope_creds.txt')
+
+    distribution_getter = GsDG()
     df = []
     for section in distribution_getter.get_sections():
         if any(flag in section for flag in section_flags):
