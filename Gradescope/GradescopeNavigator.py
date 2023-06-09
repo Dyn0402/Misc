@@ -331,7 +331,8 @@ class GradescopeGrader(GradescopeNavigator):
                             self.driver.find_element(By.XPATH, rubric_xpath).click()
                     while self.pause:  # If space bar was clicked
                         sleep(0.1)  # Wait for space bar to be clicked again
-                    next_ungraded_xpath = '//*[@id="main-content"]/div/main/section/ul/li[5]/button/span/span/span'
+                    # next_ungraded_xpath = '//*[@id="main-content"]/div/main/section/ul/li[5]/button/span/span/span'
+                    next_ungraded_xpath = '//*[@id="main-content"]/div/main/section/ul/li[5]/button'
                     self.driver.find_element(By.XPATH, next_ungraded_xpath).click()
                 except NoSuchElementException:
                     sleep(1)
