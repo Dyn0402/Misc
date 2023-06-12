@@ -34,7 +34,7 @@ def main():
     csv_directory_path = 'N:/UCLA_Microsoft/OneDrive - personalmicrosoftsoftware.ucla.edu/' \
                          'Tablet_Store/UCLA/TA/Phys 5CL/Spring_2023/Grade_Distributions/'
     overwrite_csv = False
-    lab_nums = [7, 6, 5, 4, 3, 2, 1]
+    lab_nums = [8, 7, 6, 5, 4, 3, 2, 1]
     get_grade_distributions(csv_directory_path, overwrite_csv, lab_nums=lab_nums)
     # lab_type = 'lab'
     # lab_num = 6
@@ -176,8 +176,8 @@ def plot_total(csv_dir='C:/Users/Dylan/Desktop/'):
     ta_names = df['ta'].unique()
     random.shuffle(ta_names)
     ta_map = dict(zip(ta_names, [f'TA {x}' for x in list(string.ascii_uppercase)[:len(ta_names)]]))
-    print(ta_map)
     df['ta_alias'] = df['ta'].map(ta_map)
+    inverted_ta_map = {alias: ta for ta, alias in ta_map.items()}
 
     df['assign_count'] = 1
 
@@ -208,6 +208,14 @@ def plot_total(csv_dir='C:/Users/Dylan/Desktop/'):
     ax_bar.yaxis.set_major_formatter(mtick.PercentFormatter(xmax=1, decimals=0))
     ax_bar.set_ylabel('Assignments Graded')
     ax_bar.set_ylim(top=1.0)
+
+    if ta_col == 'ta':
+        for ta, mean in zip(ta_mean_sd_df['ta'], ta_mean_sd_df['mean']):
+            print(f'{ta_map[ta]} {ta}: {mean * 100:.2f}%')
+    elif ta_col == 'ta_alias':
+        for alias, mean in zip(ta_mean_sd_df['ta_alias'], ta_mean_sd_df['mean']):
+            print(f'{alias} {inverted_ta_map[alias]}: {mean * 100:.2f}%')
+    print(f'Course TA average: {ta_mean_sd_df["mean"].mean() * 100:.2f}%')
 
     fig_tas.subplots_adjust(hspace=0.0)
     fig_tas.tight_layout()
