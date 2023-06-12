@@ -22,6 +22,12 @@ k = 8.988e9  # N * m^2 / C^2
 
 
 def main():
+    # full_emg_sim()
+    charged_cylinder_potential()
+    print('donzo')
+
+
+def full_emg_sim():
     arm_len = 30.  # cm
     arm_radius = 3  # cm
     pos_lead_z = 20.  # cm
@@ -216,8 +222,6 @@ def main():
 
     plt.show()
 
-    print('donzo')
-
 
 def calc_ring(t, v_ap, n_points_ap, arm_len, n_rings_z, z_rings, n_points_ring, muscle_radius,  muscle_charge_sep,
               muscle_depth, q_out_ap, q_out_rest, q_in_ap, q_in_rest, pos_lead_pos, neg_lead_pos):
@@ -288,6 +292,40 @@ def ap_charge(t, tau_charge, tau_discharge, q_rest, q_ap, ap_func_max):
     else:
         t = t if t >= 0 else 0
     return(q_ap - q_rest) / ap_func_max * ap_function(t, tau_charge, tau_discharge) + q_rest
+
+
+def charged_cylinder_potential():
+    arm_len = 30.  # cm
+    lead_z = 15.  # cm
+    muscle_depth = 1.  # cm
+    muscle_radii = np.linspace(0.0e-6 * 100, 2e-6 * 100, 100)  # cm
+
+    n_rings_z = 151
+    n_points_ring = 50
+    q_out = +1e-10  # C Total charge of rings
+
+    lead_pos = np.array([0, 0, lead_z])
+    z_rings = np.linspace(0, arm_len, n_rings_z)
+
+    angles = np.linspace(0, 2 * np.pi, n_points_ring)
+
+    potentials = []
+    for muscle_radius in muscle_radii:
+        out_x = muscle_radius * np.cos(angles)
+        out_y = -muscle_depth + muscle_radius * np.sin(angles)
+
+        lead_pot = 0
+        for ring_z in z_rings:
+            out_point_q = q_out / n_points_ring
+            out_point_pos = np.array([out_x, out_y, ring_z])
+            lead_pot += np.sum(calc_point_pot_cm(lead_pos, out_point_pos, out_point_q))
+        potentials.append(lead_pot)
+
+    plt.grid()
+    plt.plot(muscle_radii * 1e4, potentials)
+    plt.xlabel(r'Cylinder Radius ($\mu m$)')
+    plt.ylabel(r'Electric Potential 1cm Above Center of Cylinder (V)')
+    plt.show()
 
 
 if __name__ == '__main__':
