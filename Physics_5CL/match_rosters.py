@@ -16,21 +16,25 @@ import pandas as pd
 def main():
     base_path = 'N:/UCLA_Microsoft/OneDrive - personalmicrosoftsoftware.ucla.edu/Tablet_Store/UCLA/TA/Phys 5CL/' \
                 'Spring_2023/Final_Grades/'
-    section = 5
+    section = 4
     roster_file = f'5CL_G0{section}.xlsx'
     roster_sheet = f'G0{section}'
     grade_file = f'5CL-G{section}_Spring_2023_grades.xlsx'
-    grade_sheet = 'Name_Grade'
+    grade_sheet = 'Course Grades'
 
     match_threshold = 0.51  # Percentage of names matching above which to declare a match
 
     df_roster = pd.read_excel(f'{base_path}{roster_file}', sheet_name=roster_sheet, header=1)
-    df_grade = pd.read_excel(f'{base_path}{grade_file}', sheet_name=grade_sheet)
+    df_grade = pd.read_excel(f'{base_path}{grade_file}', sheet_name=grade_sheet, header=1)
+
+    print(df_grade)
 
     unmatch_warnings = []
     for index_grade, row_grade in df_grade.iterrows():
         matched = False
         name_grade = row_grade['Name']
+        if pd.isna(name_grade):
+            continue
         name_grade_set = set([x.strip(',').lower() for x in name_grade.split()])
         for index_roster, row_roster in df_roster.iterrows():
             name_roster = row_roster['Name (Last, First)']
@@ -38,11 +42,11 @@ def main():
             common_words = len(name_grade_set.intersection(name_roster_set))
             match_percent = float(common_words) / min(len(name_grade_set), len(name_roster_set))
             if match_percent > match_threshold:
-                df_roster.at[index_roster, 'Grade'] = row_grade['Grade']
+                df_roster.at[index_roster, 'Grade'] = row_grade['Final']
                 matched = True
                 break
         if not matched:
-            unmatch_warnings.append(f'{name_grade} not matched! {row_grade["Grade"]}')
+            unmatch_warnings.append(f'{name_grade} not matched! {row_grade["Final"]}')
 
     print(df_grade)
     print(df_roster)
