@@ -34,8 +34,9 @@ def main():
     csv_directory_path = 'N:/UCLA_Microsoft/OneDrive - personalmicrosoftsoftware.ucla.edu/' \
                          'Tablet_Store/UCLA/TA/Phys 5CL/Spring_2023/Grade_Distributions/'
     overwrite_csv = True
-    lab_nums = [8, 7, 6, 5, 4, 3, 2, 1]
-    get_grade_distributions(csv_directory_path, overwrite_csv, lab_nums=lab_nums)
+    lab_nums = [1]
+    lab_types = ['lab']
+    get_grade_distributions(csv_directory_path, overwrite_csv, lab_types=lab_types, lab_nums=lab_nums)
     # lab_type = 'lab'
     # lab_num = 6
     # # selenium_test()
@@ -186,6 +187,10 @@ def plot_total(csv_dir='C:/Users/Dylan/Desktop/'):
     df_graded['ungraded'] = df_graded['assign_count'] - df_graded['graded']
     df_graded = df_graded.reset_index()
 
+    df_graded_assign = df.groupby('assignment').sum()
+    df_graded_assign['ungraded'] = df_graded_assign['assign_count'] - df_graded_assign['graded']
+    df_graded_assign = df_graded_assign.reset_index()
+
     df = df[df['graded']]
     df_ta = df.groupby([ta_col, 'student_name']).sum()
     df_ta['percent'] = df_ta['score'] / df_ta['possible']
@@ -210,6 +215,10 @@ def plot_total(csv_dir='C:/Users/Dylan/Desktop/'):
     ax_bar.set_ylabel('Assignments Graded')
     ax_bar.set_ylim(top=1.0)
 
+    fig_tas.subplots_adjust(hspace=0.0)
+    fig_tas.tight_layout()
+    fig_tas.subplots_adjust(hspace=0.0)
+
     if ta_col == 'ta':
         for ta, mean in zip(ta_mean_sd_df['ta'], ta_mean_sd_df['mean']):
             ungraded = df_graded[df_graded['ta'] == ta]['ungraded'].iloc[0]
@@ -220,9 +229,9 @@ def plot_total(csv_dir='C:/Users/Dylan/Desktop/'):
             print(f'{alias} {inverted_ta_map[alias]}: {mean * 100:.2f}%  {ungraded} ungraded')
     print(f'Course TA average: {ta_mean_sd_df["mean"].mean() * 100:.2f}%')
 
-    fig_tas.subplots_adjust(hspace=0.0)
-    fig_tas.tight_layout()
-    fig_tas.subplots_adjust(hspace=0.0)
+    for assignment, ungraded in zip(df_graded_assign['assignment'], df_graded_assign['ungraded']):
+        print(f'{assignment}: {ungraded} ungraded')
+
 
     plt.show()
 
