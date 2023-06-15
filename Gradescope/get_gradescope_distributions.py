@@ -33,7 +33,7 @@ from GradescopeNavigator import GradescopeDistributionGetter as GsDG
 def main():
     csv_directory_path = 'N:/UCLA_Microsoft/OneDrive - personalmicrosoftsoftware.ucla.edu/' \
                          'Tablet_Store/UCLA/TA/Phys 5CL/Spring_2023/Grade_Distributions/'
-    overwrite_csv = False
+    overwrite_csv = True
     lab_nums = [8, 7, 6, 5, 4, 3, 2, 1]
     get_grade_distributions(csv_directory_path, overwrite_csv, lab_nums=lab_nums)
     # lab_type = 'lab'
@@ -183,6 +183,7 @@ def plot_total(csv_dir='C:/Users/Dylan/Desktop/'):
 
     df_graded = df.groupby(ta_col).sum()
     df_graded['frac_graded'] = df_graded['graded'] / df_graded['assign_count']
+    df_graded['ungraded'] = df_graded['assign_count'] - df_graded['graded']
     df_graded = df_graded.reset_index()
 
     df = df[df['graded']]
@@ -211,10 +212,12 @@ def plot_total(csv_dir='C:/Users/Dylan/Desktop/'):
 
     if ta_col == 'ta':
         for ta, mean in zip(ta_mean_sd_df['ta'], ta_mean_sd_df['mean']):
-            print(f'{ta_map[ta]} {ta}: {mean * 100:.2f}%')
+            ungraded = df_graded[df_graded['ta'] == ta]['ungraded'].iloc[0]
+            print(f'{ta_map[ta]} {ta}: {mean * 100:.2f}%  {ungraded} ungraded')
     elif ta_col == 'ta_alias':
         for alias, mean in zip(ta_mean_sd_df['ta_alias'], ta_mean_sd_df['mean']):
-            print(f'{alias} {inverted_ta_map[alias]}: {mean * 100:.2f}%')
+            ungraded = df_graded[df_graded['ta_alias'] == alias]['ungraded'].iloc[0]
+            print(f'{alias} {inverted_ta_map[alias]}: {mean * 100:.2f}%  {ungraded} ungraded')
     print(f'Course TA average: {ta_mean_sd_df["mean"].mean() * 100:.2f}%')
 
     fig_tas.subplots_adjust(hspace=0.0)
