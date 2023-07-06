@@ -22,8 +22,29 @@ from selenium.webdriver.support import expected_conditions as EC
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 
+from VisaTracker import VisaTracker
+from WAMessenger import WAMessenger
+
 
 def main():
+    test_wa_messenger('Testing for visa tracker')
+    # test_vfs_selenium()
+    # visatracker_test()
+    print('donzo')
+
+
+def visatracker_test():
+    tracker = VisaTracker()
+    tracker.start_new_booking()
+    tracker.check_appointment()
+
+
+def test_wa_messenger(message):
+    messenger = WAMessenger()
+    res = messenger.send_message(message)
+
+
+def test_vfs_selenium():
     uname = 'Dyn0402@hotmail.com'
     pword = 'JXMG9$jw*D5#k$U'
 
@@ -152,12 +173,6 @@ def main():
         print('Appointments available')
 
     driver.close()
-
-    print('donzo')
-
-
-# def on_press(key):
-#     pass
 
 
 if __name__ == '__main__':

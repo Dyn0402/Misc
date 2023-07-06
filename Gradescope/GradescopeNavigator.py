@@ -50,11 +50,6 @@ class GradescopeNavigator:
         self.driver = webdriver.Chrome(service=service, options=chrome_options)
         self.driver.implicitly_wait(self.wait_time_for_page_element)
 
-    def close(self):
-        if self.driver is not None:
-            self.driver.close()
-            self.driver.quit()
-
     def log_in(self):
         gradescope_log_url = 'https://www.gradescope.com/login'
         uname, pword = read_credentials(self.cred_path)
