@@ -108,8 +108,17 @@ class WAMessengerttd:
         return good_path
 
 
-def write_encrypt_file():
-    pass
+def print_new_encrypt_data():
+    path = 'C:/Users/Dylan/Desktop/wamessenger_data_ttd.txt'
+    with open(path, 'r') as file:
+        lines = file.readlines()
+    key = lines.pop(0)
+    cipher_suite = Fernet(bytes(key, 'utf-8'))
+
+    data = []
+
+    for data_i in data:
+        print(data_i, cipher_suite.encrypt(bytes(data_i, 'utf-8')))
 
 
 def read_encrypt_file():
@@ -129,4 +138,5 @@ def read_encrypt_file():
 
 
 if __name__ == '__main__':
-    read_encrypt_file()
+    # read_encrypt_file()
+    print_new_encrypt_data()
