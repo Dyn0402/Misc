@@ -19,17 +19,17 @@ def define_people_shifts():
         # 'Dylan Neff': {
         # 'Institution': 'CEA Saclay',
         # 'Shifts': [
-        #     {'Week Number': 21, 'Position': 'DAQ', 'Time': 'Owl'},
-        #     {'Week Number': 22, 'Position': 'DAQ', 'Time': 'Day'},
-        #     {'Week Number': 23, 'Position': 'DO', 'Time': 'Night'},]
+        #     {'Week Number': 13, 'Position': 'DAQ', 'Time': 'Night'},
+        #     {'Week Number': 14, 'Position': 'DAQ', 'Time': 'Night'},
+        #     {'Week Number': 15, 'Position': 'DAQ', 'Time': 'Night'},]
         # },
-        'Nicole D\'Hose': {
-        'Institution': 'CEA Saclay',
-        'Shifts': [
-            {'Week Number': 21, 'Position': 'DO', 'Time': 'Owl'},
-            {'Week Number': 22, 'Position': 'DO', 'Time': 'Day'},
-            {'Week Number': 23, 'Position': 'DM', 'Time': 'Night'},]
-        },
+        # 'Nicole D\'Hose': {
+        # 'Institution': 'CEA Saclay',
+        # 'Shifts': [
+        #     {'Week Number': 21, 'Position': 'DO', 'Time': 'Owl'},
+        #     {'Week Number': 22, 'Position': 'DO', 'Time': 'Day'},
+        #     {'Week Number': 23, 'Position': 'DM', 'Time': 'Night'},]
+        # },
         # 'Audrey Francisco': {
         # 'Institution': 'CEA Saclay',
         # 'Shifts': [
@@ -40,15 +40,15 @@ def define_people_shifts():
         # 'Virgile Mahaut': {
         # 'Institution': 'CEA Saclay',
         # 'Shifts': [
-        #     {'Week Number': 21, 'Position': 'DAQ', 'Time': 'Owl'},
-        #     {'Week Number': 22, 'Position': 'DAQ', 'Time': 'Day'},
-        #     {'Week Number': 23, 'Position': 'DO', 'Time': 'Night'},]
+        #     {'Week Number': 13, 'Position': 'DM', 'Time': 'Night'},
+        #     {'Week Number': 14, 'Position': 'DO', 'Time': 'Night'},
+        #     {'Week Number': 15, 'Position': 'DO', 'Time': 'Night'},]
         # },
         'Maxence Vandenbroucke': {
         'Institution': 'CEA Saclay',
         'Shifts': [
-            {'Week Number': 21, 'Position': 'DAQ', 'Time': 'Owl'},
-            {'Week Number': 22, 'Position': 'DAQ', 'Time': 'Day'},
+            # {'Week Number': 21, 'Position': 'DAQ', 'Time': 'Owl'},
+            # {'Week Number': 22, 'Position': 'DAQ', 'Time': 'Day'},
             {'Week Number': 23, 'Position': 'DO', 'Time': 'Night'},]
         },
     }
@@ -56,11 +56,17 @@ def define_people_shifts():
 
 
 def main():
+    """
+    Sign up for shifts on the Sphenix Shift Signup website.
+    TODO: Test the failure waiting!
+    :return:
+    """
     url_base = 'https://www.sphenix.bnl.gov/ShiftSignupRun3/index.php?do=shifttable'
-    failure_wait_time = 100  # s to wait before retrying after a failure
     # start_checking_datetime = datetime(2025, 1, 6, 10, 58, 0, 0, pytz.timezone('US/Eastern'))
-    start_checking_datetime = datetime(2024, 12, 16, 10, 8, 0, 0, pytz.timezone('US/Eastern'))
-    nominal_start_datetime = datetime(2025, 1, 6, 12, 0, 0, 0, pytz.timezone('US/Eastern'))
+    start_checking_datetime = datetime(2024, 12, 19, 5, 28, 0, 0)
+    nominal_start_datetime = datetime(2025, 1, 6, 12, 0, 0, 0)
+    start_checking_datetime = pytz.timezone('US/Eastern').localize(start_checking_datetime)
+    nominal_start_datetime = pytz.timezone('US/Eastern').localize(nominal_start_datetime)
 
     # Wait times (seconds) depending on minutes till nominal start {min: sec}
     failure_wait_times = {120: 5 * 60, 10.0: 2 * 60, 5.0: 60, 2.0: 20, 30.0 / 60: 5, 10.0 / 60: 2, 3.0 / 60: 1}
@@ -75,6 +81,7 @@ def main():
 
     people_shifts = define_people_shifts()
     wait_till_checking_time(start_checking_datetime)  # Wait until the start time to start checking
+    input('Press enter to start sign up process.')
 
     print('Starting sign up process.')
     for person, person_info in people_shifts.items():
@@ -147,14 +154,17 @@ def wait_till_checking_time(start_checking_datetime):
     :return:
     """
     fraction_of_full_time = 0.9
-    print(f'Waiting until {start_checking_datetime.strftime("%Y-%m-%d %H:%M:%S")}...')
+    now_eastern = datetime.now(pytz.timezone('US/Eastern'))
+    print(f'{now_eastern.strftime("%Y-%m-%d %H:%M:%S")} waiting until {start_checking_datetime.strftime("%Y-%m-%d %H:%M:%S")}...')
     while datetime.now(pytz.timezone('US/Eastern')) < start_checking_datetime:
         time_till_checking = start_checking_datetime - datetime.now(pytz.timezone('US/Eastern'))
         seconds_till_recalc = int(time_till_checking.total_seconds() * fraction_of_full_time + 0.5)
-        formatted_now = datetime.now(pytz.timezone('US/Eastern')).strftime('%Y-%m-%d %H:%M:%S')
-        then = datetime.now(pytz.timezone('US/Eastern')) + timedelta(seconds=seconds_till_recalc)
-        formatted_then = then.strftime('%Y-%m-%d %H:%M:%S')
-        print(f'{formatted_now} Waiting {seconds_till_recalc} seconds until {formatted_then}.')
+
+        if seconds_till_recalc >= 1:
+            formatted_now = datetime.now(pytz.timezone('US/Eastern')).strftime('%Y-%m-%d %H:%M:%S')
+            then = datetime.now(pytz.timezone('US/Eastern')) + timedelta(seconds=seconds_till_recalc)
+            formatted_then = then.strftime('%Y-%m-%d %H:%M:%S')
+            print(f'{formatted_now} Waiting {seconds_till_recalc} seconds until {formatted_then}.')
         sleep(seconds_till_recalc)
 
 
@@ -167,6 +177,7 @@ def wait_for_next_try(nominal_start_time, failure_wait_times):
     """
     time_till_nom_start = nominal_start_time - datetime.now(pytz.timezone('US/Eastern'))
     min_till_nom_start = time_till_nom_start.total_seconds() / 60
+    print(f'Failed. Waiting {failure_wait_times[min_till_nom_start]} seconds before trying again.')
 
     # Get the largest key that is less than the time till nominal start
     nom_start_key = min((k for k in failure_wait_times.keys() if k >= min_till_nom_start),
