@@ -63,9 +63,9 @@ def main():
     """
     url_base = 'https://www.sphenix.bnl.gov/ShiftSignupRun3/index.php?do=shifttable'
     # start_checking_datetime = datetime(2025, 1, 6, 10, 58, 0, 0, pytz.timezone('US/Eastern'))
-    start_checking_datetime = datetime(2024, 12, 30, 10, 8, 0, 0)
+    start_checking_datetime = datetime(2024, 12, 30, 10, 18, 0, 0)
     # nominal_start_datetime = datetime(2025, 1, 6, 12, 0, 0, 0)
-    nominal_start_datetime = datetime(2024, 12, 30, 10, 15, 0, 0)
+    nominal_start_datetime = datetime(2024, 12, 30, 10, 20, 0, 0)
     start_checking_datetime = pytz.timezone('US/Eastern').localize(start_checking_datetime)
     nominal_start_datetime = pytz.timezone('US/Eastern').localize(nominal_start_datetime)
 
@@ -113,7 +113,9 @@ def main():
             form_data.update(shift_form_data)  # Add shift data to form data
 
             try:
-                raise Exception('Test exception')
+                seconds_till_nom_start = (nominal_start_datetime - datetime.now(pytz.timezone('US/Eastern'))).total_seconds()
+                if seconds_till_nom_start > 0:
+                    raise Exception(f"Too early to sign up for {person}. {seconds_till_nom_start} seconds until nominal start.")
                 session = requests.Session()  # Start a session
 
                 response = session.post(url, data=form_data)  # Submit the first form
@@ -169,7 +171,7 @@ def wait_till_checking_time(start_checking_datetime):
             formatted_now = datetime.now(pytz.timezone('US/Eastern')).strftime('%Y-%m-%d %H:%M:%S')
             then = datetime.now(pytz.timezone('US/Eastern')) + timedelta(seconds=seconds_till_recalc)
             formatted_then = then.strftime('%Y-%m-%d %H:%M:%S')
-            print(f'{formatted_now} Waiting {seconds_till_recalc} seconds until {formatted_then}.')
+            print(f'{formatted_now} Waiting {seconds_till_recalc} seconds until {formatted_then}.\n')
         sleep(seconds_till_recalc)
 
 
@@ -183,8 +185,6 @@ def wait_for_next_try(nominal_start_time, failure_wait_times):
     time_till_nom_start = nominal_start_time - datetime.now(pytz.timezone('US/Eastern'))
     min_till_nom_start = time_till_nom_start.total_seconds() / 60
 
-    print(f'Good keys: {(k for k in failure_wait_times.keys() if k >= min_till_nom_start)}')
-
     # Get the largest key that is less than the time till nominal start
     nom_start_key = min((k for k in failure_wait_times.keys() if k >= min_till_nom_start),
                         default=max(failure_wait_times.keys()))
@@ -193,7 +193,8 @@ def wait_for_next_try(nominal_start_time, failure_wait_times):
 
     now_eastern = datetime.now(pytz.timezone('US/Eastern'))
     now_formatted = now_eastern.strftime('%Y-%m-%d %H:%M:%S')
-    print(f'{now_formatted} Failed. Minutes till nominal start: {min_till_nom_start}\nWaiting {wait_time} seconds before trying again.')
+    print(f'{now_formatted} Failed. Minutes till nominal start: {min_till_nom_start}\n'
+          f'Waiting {wait_time} seconds before trying again.\n')
 
     sleep(wait_time)
 
