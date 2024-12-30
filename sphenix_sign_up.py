@@ -16,13 +16,13 @@ import pytz
 
 def define_people_shifts():
     people = {
-        # 'Dylan Neff': {
-        # 'Institution': 'CEA Saclay',
-        # 'Shifts': [
-        #     {'Week Number': 13, 'Position': 'DAQ', 'Time': 'Night'},
-        #     {'Week Number': 14, 'Position': 'DAQ', 'Time': 'Night'},
-        #     {'Week Number': 15, 'Position': 'DAQ', 'Time': 'Night'},]
-        # },
+        'Dylan Neff': {
+        'Institution': 'CEA Saclay',
+        'Shifts': [
+            {'Week Number': 13, 'Position': 'DAQ', 'Time': 'Night'},
+            {'Week Number': 14, 'Position': 'DAQ', 'Time': 'Night'},
+            {'Week Number': 15, 'Position': 'DAQ', 'Time': 'Night'},]
+        },
         # 'Nicole D\'Hose': {
         # 'Institution': 'CEA Saclay',
         # 'Shifts': [
@@ -37,20 +37,20 @@ def define_people_shifts():
         #     {'Week Number': 22, 'Position': 'DAQ', 'Time': 'Day'},
         #     {'Week Number': 23, 'Position': 'DO', 'Time': 'Night'},]
         # },
-        # 'Virgile Mahaut': {
-        # 'Institution': 'CEA Saclay',
-        # 'Shifts': [
-        #     {'Week Number': 13, 'Position': 'DM', 'Time': 'Night'},
-        #     {'Week Number': 14, 'Position': 'DO', 'Time': 'Night'},
-        #     {'Week Number': 15, 'Position': 'DO', 'Time': 'Night'},]
-        # },
-        'Maxence Vandenbroucke': {
+        'Virgile Mahaut': {
         'Institution': 'CEA Saclay',
         'Shifts': [
-            # {'Week Number': 21, 'Position': 'DAQ', 'Time': 'Owl'},
-            # {'Week Number': 22, 'Position': 'DAQ', 'Time': 'Day'},
-            {'Week Number': 23, 'Position': 'DO', 'Time': 'Night'},]
+            {'Week Number': 13, 'Position': 'DM', 'Time': 'Night'},
+            {'Week Number': 14, 'Position': 'DO', 'Time': 'Night'},
+            {'Week Number': 15, 'Position': 'DO', 'Time': 'Night'},]
         },
+        # 'Maxence Vandenbroucke': {
+        # 'Institution': 'CEA Saclay',
+        # 'Shifts': [
+        #     # {'Week Number': 21, 'Position': 'DAQ', 'Time': 'Owl'},
+        #     # {'Week Number': 22, 'Position': 'DAQ', 'Time': 'Day'},
+        #     {'Week Number': 23, 'Position': 'DO', 'Time': 'Night'},]
+        # },
     }
     return people
 
@@ -58,14 +58,13 @@ def define_people_shifts():
 def main():
     """
     Sign up for shifts on the Sphenix Shift Signup website.
-    TODO: Test the failure waiting!
     :return:
     """
     url_base = 'https://www.sphenix.bnl.gov/ShiftSignupRun3/index.php?do=shifttable'
-    # start_checking_datetime = datetime(2025, 1, 6, 10, 58, 0, 0, pytz.timezone('US/Eastern'))
-    start_checking_datetime = datetime(2024, 12, 30, 10, 18, 0, 0)
-    # nominal_start_datetime = datetime(2025, 1, 6, 12, 0, 0, 0)
-    nominal_start_datetime = datetime(2024, 12, 30, 10, 20, 0, 0)
+    start_checking_datetime = datetime(2025, 1, 6, 10, 58, 0, 0, pytz.timezone('US/Eastern'))
+    nominal_start_datetime = datetime(2025, 1, 6, 12, 0, 0, 0)
+    # start_checking_datetime = datetime(2024, 12, 30, 10, 18, 0, 0)
+    # nominal_start_datetime = datetime(2024, 12, 30, 10, 20, 0, 0)
     start_checking_datetime = pytz.timezone('US/Eastern').localize(start_checking_datetime)
     nominal_start_datetime = pytz.timezone('US/Eastern').localize(nominal_start_datetime)
 
@@ -113,9 +112,9 @@ def main():
             form_data.update(shift_form_data)  # Add shift data to form data
 
             try:
-                seconds_till_nom_start = (nominal_start_datetime - datetime.now(pytz.timezone('US/Eastern'))).total_seconds()
-                if seconds_till_nom_start > 0:
-                    raise Exception(f"Too early to sign up for {person}. {seconds_till_nom_start} seconds until nominal start.")
+                # seconds_till_nom_start = (nominal_start_datetime - datetime.now(pytz.timezone('US/Eastern'))).total_seconds()
+                # if seconds_till_nom_start > 0:
+                #     raise Exception(f"Too early to sign up for {person}. {seconds_till_nom_start} seconds until nominal start.")
                 session = requests.Session()  # Start a session
 
                 response = session.post(url, data=form_data)  # Submit the first form
