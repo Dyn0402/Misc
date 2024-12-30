@@ -63,8 +63,9 @@ def main():
     """
     url_base = 'https://www.sphenix.bnl.gov/ShiftSignupRun3/index.php?do=shifttable'
     # start_checking_datetime = datetime(2025, 1, 6, 10, 58, 0, 0, pytz.timezone('US/Eastern'))
-    start_checking_datetime = datetime(2024, 12, 30, 7, 15, 0, 0)
-    nominal_start_datetime = datetime(2025, 1, 6, 12, 0, 0, 0)
+    start_checking_datetime = datetime(2024, 12, 30, 7, 30, 0, 0)
+    # nominal_start_datetime = datetime(2025, 1, 6, 12, 0, 0, 0)
+    nominal_start_datetime = datetime(2025, 12, 30, 8, 0, 0, 0)
     start_checking_datetime = pytz.timezone('US/Eastern').localize(start_checking_datetime)
     nominal_start_datetime = pytz.timezone('US/Eastern').localize(nominal_start_datetime)
 
@@ -81,7 +82,6 @@ def main():
 
     people_shifts = define_people_shifts()
     wait_till_checking_time(start_checking_datetime)  # Wait until the start time to start checking
-    input('Press enter to start sign up process.')
 
     print('Starting sign up process.')
     for person, person_info in people_shifts.items():
@@ -111,32 +111,36 @@ def main():
             }
             form_data.update(shift_form_data)  # Add shift data to form data
 
-            session = requests.Session()  # Start a session
+            try:
+                raise Exception('Test exception')
+                session = requests.Session()  # Start a session
 
-            response = session.post(url, data=form_data)  # Submit the first form
+                response = session.post(url, data=form_data)  # Submit the first form
 
-            if response.status_code != 200 or first_form_flag not in response.text:
-                print(f"Failed to submit the first form. \nStatus code: {response.status_code}\n"
-                      f"Response text:\n{response.text}")
+                if response.status_code != 200 or first_form_flag not in response.text:
+                    print(f"Failed to submit the first form. \nStatus code: {response.status_code}\n"
+                          f"Response text:\n{response.text}")
+                    raise Exception('Failed to submit first form.')  # If failed, go to wait and try again
+                else:
+                    print(f"First form submitted successfully for {person}!")
+
+                del form_data['signupType']  # Remove signupType from form data and add new button for second form
+                form_data['do'] = 'finalizesignup'  # Other elements are the same as the first form
+                form_data['store'] = 'Store Results'
+
+                response = session.post(url, data=form_data)  # Submit the second form
+
+                if response.status_code != 200 or second_form_flag not in response.text:
+                    print(f"Failed to submit the second form. \nStatus code: {response.status_code}\n"
+                          f"Response text:\n{response.text}")
+                    raise Exception('Failed to submit second form.')  # If failed, go to wait and try again
+                else:
+                    success = True  # If successful, move on to the next person
+                    print(f"Second form submitted successfully for {person}!")
+            except Exception as e:
+                print(f"Exception occurred: {e}")
                 wait_for_next_try(nominal_start_datetime, failure_wait_times)
-                continue  # If failed, wait and try again
-            else:
-                print(f"First form submitted successfully for {person}!")
-
-            del form_data['signupType']  # Remove signupType from form data and add new button for second form
-            form_data['do'] = 'finalizesignup'  # Other elements are the same as the first form
-            form_data['store'] = 'Store Results'
-
-            response = session.post(url, data=form_data)  # Submit the second form
-
-            if response.status_code != 200 or second_form_flag not in response.text:
-                print(f"Failed to submit the second form. \nStatus code: {response.status_code}\n"
-                      f"Response text:\n{response.text}")
-                wait_for_next_try(nominal_start_datetime, failure_wait_times)
-                continue  # If failed, wait and try again
-            else:
-                success = True  # If successful, move on to the next person
-                print(f"Second form submitted successfully for {person}!")
+                continue
 
     print('donzo')
 
