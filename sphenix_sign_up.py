@@ -63,9 +63,9 @@ def main():
     """
     url_base = 'https://www.sphenix.bnl.gov/ShiftSignupRun3/index.php?do=shifttable'
     # start_checking_datetime = datetime(2025, 1, 6, 10, 58, 0, 0, pytz.timezone('US/Eastern'))
-    start_checking_datetime = datetime(2024, 12, 30, 7, 33, 0, 0)
+    start_checking_datetime = datetime(2024, 12, 30, 10, 8, 0, 0)
     # nominal_start_datetime = datetime(2025, 1, 6, 12, 0, 0, 0)
-    nominal_start_datetime = datetime(2024, 12, 30, 8, 15, 0, 0)
+    nominal_start_datetime = datetime(2024, 12, 30, 10, 15, 0, 0)
     start_checking_datetime = pytz.timezone('US/Eastern').localize(start_checking_datetime)
     nominal_start_datetime = pytz.timezone('US/Eastern').localize(nominal_start_datetime)
 
