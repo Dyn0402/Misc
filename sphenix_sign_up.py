@@ -65,11 +65,12 @@ def main():
     # start_checking_datetime = datetime(2025, 1, 6, 10, 58, 0, 0, pytz.timezone('US/Eastern'))
     start_checking_datetime = datetime(2024, 12, 30, 7, 33, 0, 0)
     # nominal_start_datetime = datetime(2025, 1, 6, 12, 0, 0, 0)
-    nominal_start_datetime = datetime(2025, 12, 30, 8, 0, 0, 0)
+    nominal_start_datetime = datetime(2025, 12, 30, 8, 15, 0, 0)
     start_checking_datetime = pytz.timezone('US/Eastern').localize(start_checking_datetime)
     nominal_start_datetime = pytz.timezone('US/Eastern').localize(nominal_start_datetime)
 
-    # Wait times (seconds) depending on minutes till nominal start {min: sec}
+    # Wait times (seconds) depending on minutes till nominal start {min: sec}. Once the time is less than the key, wait
+    # the value. If the time is greater than the largest key, wait the value of the largest key.
     failure_wait_times = {120: 5 * 60, 10.0: 2 * 60, 5.0: 60, 2.0: 20, 30.0 / 60: 5, 10.0 / 60: 2, 3.0 / 60: 1}
 
     shift_map = {'Position': {'SL': 20, 'DO': 30, 'DAQ': 40, 'DM': 50},
@@ -182,13 +183,17 @@ def wait_for_next_try(nominal_start_time, failure_wait_times):
     time_till_nom_start = nominal_start_time - datetime.now(pytz.timezone('US/Eastern'))
     min_till_nom_start = time_till_nom_start.total_seconds() / 60
 
+    print(f'Good keys: {(k for k in failure_wait_times.keys() if k >= min_till_nom_start)}')
+
     # Get the largest key that is less than the time till nominal start
     nom_start_key = min((k for k in failure_wait_times.keys() if k >= min_till_nom_start),
                         default=max(failure_wait_times.keys()))
 
     wait_time = failure_wait_times[nom_start_key]
 
-    print(f'Failed. Waiting {wait_time} seconds before trying again.')
+    now_eastern = datetime.now(pytz.timezone('US/Eastern'))
+    now_formatted = now_eastern.strftime('%Y-%m-%d %H:%M:%S')
+    print(f'{now_formatted} Failed. Minutes till nominal start: {min_till_nom_start}\nWaiting {wait_time} seconds before trying again.')
 
     sleep(wait_time)
 
