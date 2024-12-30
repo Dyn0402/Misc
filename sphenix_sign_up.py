@@ -63,7 +63,7 @@ def main():
     """
     url_base = 'https://www.sphenix.bnl.gov/ShiftSignupRun3/index.php?do=shifttable'
     # start_checking_datetime = datetime(2025, 1, 6, 10, 58, 0, 0, pytz.timezone('US/Eastern'))
-    start_checking_datetime = datetime(2024, 12, 30, 7, 30, 0, 0)
+    start_checking_datetime = datetime(2024, 12, 30, 7, 33, 0, 0)
     # nominal_start_datetime = datetime(2025, 1, 6, 12, 0, 0, 0)
     nominal_start_datetime = datetime(2025, 12, 30, 8, 0, 0, 0)
     start_checking_datetime = pytz.timezone('US/Eastern').localize(start_checking_datetime)
@@ -181,12 +181,16 @@ def wait_for_next_try(nominal_start_time, failure_wait_times):
     """
     time_till_nom_start = nominal_start_time - datetime.now(pytz.timezone('US/Eastern'))
     min_till_nom_start = time_till_nom_start.total_seconds() / 60
-    print(f'Failed. Waiting {failure_wait_times[min_till_nom_start]} seconds before trying again.')
 
     # Get the largest key that is less than the time till nominal start
     nom_start_key = min((k for k in failure_wait_times.keys() if k >= min_till_nom_start),
                         default=max(failure_wait_times.keys()))
-    sleep(failure_wait_times[nom_start_key])
+
+    wait_time = failure_wait_times[nom_start_key]
+
+    print(f'Failed. Waiting {wait_time} seconds before trying again.')
+
+    sleep(wait_time)
 
 
 if __name__ == '__main__':
