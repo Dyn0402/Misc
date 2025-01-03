@@ -23,34 +23,29 @@ def define_people_shifts():
             {'Week Number': 14, 'Position': 'DAQ', 'Time': 'Night'},
             {'Week Number': 15, 'Position': 'DAQ', 'Time': 'Night'},]
         },
-        # 'Nicole D\'Hose': {
-        # 'Institution': 'CEA Saclay',
-        # 'Shifts': [
-        #     {'Week Number': 21, 'Position': 'DO', 'Time': 'Owl'},
-        #     {'Week Number': 22, 'Position': 'DO', 'Time': 'Day'},
-        #     {'Week Number': 23, 'Position': 'DM', 'Time': 'Night'},]
-        # },
-        # 'Audrey Francisco': {
-        # 'Institution': 'CEA Saclay',
-        # 'Shifts': [
-        #     {'Week Number': 21, 'Position': 'DAQ', 'Time': 'Owl'},
-        #     {'Week Number': 22, 'Position': 'DAQ', 'Time': 'Day'},
-        #     {'Week Number': 23, 'Position': 'DO', 'Time': 'Night'},]
-        # },
         'Virgile Mahaut': {
+            'Institution': 'CEA Saclay',
+            'Shifts': [
+                {'Week Number': 13, 'Position': 'DM', 'Time': 'Night'},
+                {'Week Number': 14, 'Position': 'DO', 'Time': 'Night'},
+                {'Week Number': 15, 'Position': 'DO', 'Time': 'Night'}, ]
+        },
+        'Nicole D\'Hose': {
         'Institution': 'CEA Saclay',
         'Shifts': [
-            {'Week Number': 13, 'Position': 'DM', 'Time': 'Night'},
-            {'Week Number': 14, 'Position': 'DO', 'Time': 'Night'},
-            {'Week Number': 15, 'Position': 'DO', 'Time': 'Night'},]
+            {'Week Number': 8, 'Position': 'DM', 'Time': 'Day'},]
         },
-        # 'Maxence Vandenbroucke': {
-        # 'Institution': 'CEA Saclay',
-        # 'Shifts': [
-        #     # {'Week Number': 21, 'Position': 'DAQ', 'Time': 'Owl'},
-        #     # {'Week Number': 22, 'Position': 'DAQ', 'Time': 'Day'},
-        #     {'Week Number': 23, 'Position': 'DO', 'Time': 'Night'},]
-        # },
+        'Audrey Francisco': {
+        'Institution': 'CEA Saclay',
+        'Shifts': [
+            {'Week Number': 7, 'Position': 'SL', 'Time': 'Day'},
+            {'Week Number': 8, 'Position': 'SL', 'Time': 'Day'},]
+        },
+        'Maxence Vandenbroucke': {
+        'Institution': 'CEA Saclay',
+        'Shifts': [
+            {'Week Number': 7, 'Position': 'DO', 'Time': 'Day'},]
+        },
     }
     return people
 
@@ -61,10 +56,10 @@ def main():
     :return:
     """
     url_base = 'https://www.sphenix.bnl.gov/ShiftSignupRun3/index.php?do=shifttable'
-    start_checking_datetime = datetime(2025, 1, 6, 10, 58, 0, 0, pytz.timezone('US/Eastern'))
-    nominal_start_datetime = datetime(2025, 1, 6, 12, 0, 0, 0)
-    # start_checking_datetime = datetime(2024, 12, 30, 10, 18, 0, 0)
-    # nominal_start_datetime = datetime(2024, 12, 30, 10, 20, 0, 0)
+    # start_checking_datetime = datetime(2025, 1, 6, 10, 58, 0, 0, pytz.timezone('US/Eastern'))
+    # nominal_start_datetime = datetime(2025, 1, 6, 12, 0, 0, 0)
+    start_checking_datetime = datetime(2025, 1, 3, 11, 10, 0, 0)
+    nominal_start_datetime = datetime(2025, 1, 3, 11, 15, 0, 0)
     start_checking_datetime = pytz.timezone('US/Eastern').localize(start_checking_datetime)
     nominal_start_datetime = pytz.timezone('US/Eastern').localize(nominal_start_datetime)
 
