@@ -56,7 +56,7 @@ def main():
     :return:
     """
     url_base = 'https://www.sphenix.bnl.gov/ShiftSignupRun3/index.php?do=shifttable'
-    start_checking_datetime = datetime(2025, 1, 6, 10, 58, 0, 0, pytz.timezone('US/Eastern'))
+    start_checking_datetime = datetime(2025, 1, 6, 10, 58, 0, 0)
     nominal_start_datetime = datetime(2025, 1, 6, 12, 0, 0, 0)
     # start_checking_datetime = datetime(2025, 1, 3, 11, 10, 0, 0)
     # nominal_start_datetime = datetime(2025, 1, 3, 11, 15, 0, 0)
