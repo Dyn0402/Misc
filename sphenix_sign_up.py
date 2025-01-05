@@ -33,7 +33,7 @@ def define_people_shifts():
         'Nicole D\'Hose': {
         'Institution': 'CEA Saclay',
         'Shifts': [
-            {'Week Number': 8, 'Position': 'DM', 'Time': 'Day'},]
+            {'Week Number': 7, 'Position': 'DM', 'Time': 'Day'},]
         },
         'Audrey Francisco': {
         'Institution': 'CEA Saclay',
@@ -56,10 +56,10 @@ def main():
     :return:
     """
     url_base = 'https://www.sphenix.bnl.gov/ShiftSignupRun3/index.php?do=shifttable'
-    start_checking_datetime = datetime(2025, 1, 6, 10, 58, 0, 0)
-    nominal_start_datetime = datetime(2025, 1, 6, 12, 0, 0, 0)
-    # start_checking_datetime = datetime(2025, 1, 3, 11, 10, 0, 0)
-    # nominal_start_datetime = datetime(2025, 1, 3, 11, 15, 0, 0)
+    # start_checking_datetime = datetime(2025, 1, 6, 10, 58, 0, 0)
+    # nominal_start_datetime = datetime(2025, 1, 6, 12, 0, 0, 0)
+    start_checking_datetime = datetime(2025, 1, 5, 14, 40, 0, 0)
+    nominal_start_datetime = datetime(2025, 1, 5, 14, 45, 0, 0)
     start_checking_datetime = pytz.timezone('US/Eastern').localize(start_checking_datetime)
     nominal_start_datetime = pytz.timezone('US/Eastern').localize(nominal_start_datetime)
 
