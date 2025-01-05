@@ -56,10 +56,10 @@ def main():
     :return:
     """
     url_base = 'https://www.sphenix.bnl.gov/ShiftSignupRun3/index.php?do=shifttable'
-    # start_checking_datetime = datetime(2025, 1, 6, 10, 58, 0, 0)
-    # nominal_start_datetime = datetime(2025, 1, 6, 12, 0, 0, 0)
-    start_checking_datetime = datetime(2025, 1, 5, 14, 40, 0, 0)
-    nominal_start_datetime = datetime(2025, 1, 5, 14, 45, 0, 0)
+    start_checking_datetime = datetime(2025, 1, 6, 10, 58, 0, 0)
+    nominal_start_datetime = datetime(2025, 1, 6, 12, 0, 0, 0)
+    # start_checking_datetime = datetime(2025, 1, 5, 14, 40, 0, 0)
+    # nominal_start_datetime = datetime(2025, 1, 5, 14, 45, 0, 0)
     start_checking_datetime = pytz.timezone('US/Eastern').localize(start_checking_datetime)
     nominal_start_datetime = pytz.timezone('US/Eastern').localize(nominal_start_datetime)
 
@@ -178,6 +178,7 @@ def wait_for_next_try(nominal_start_time, failure_wait_times):
     """
     time_till_nom_start = nominal_start_time - datetime.now(pytz.timezone('US/Eastern'))
     min_till_nom_start = time_till_nom_start.total_seconds() / 60
+    min_till_nom_start = abs(min_till_nom_start)  # Wait symmetrically on either side of nominal start time
 
     # Get the largest key that is less than the time till nominal start
     nom_start_key = min((k for k in failure_wait_times.keys() if k >= min_till_nom_start),
