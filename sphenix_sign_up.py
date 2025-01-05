@@ -188,7 +188,7 @@ def wait_for_next_try(nominal_start_time, failure_wait_times):
 
     now_eastern = datetime.now(pytz.timezone('US/Eastern'))
     now_formatted = now_eastern.strftime('%Y-%m-%d %H:%M:%S')
-    print(f'{now_formatted} Failed. Minutes till nominal start: {min_till_nom_start}\n'
+    print(f'\n\n{now_formatted} Failed. Minutes till nominal start: {min_till_nom_start}\n'
           f'Waiting {wait_time} seconds before trying again.\n')
 
     sleep(wait_time)
