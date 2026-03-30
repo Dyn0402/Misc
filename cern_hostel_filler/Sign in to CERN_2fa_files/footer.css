@@ -1,0 +1,86 @@
+/* CERN Footer */
+
+.login-pf-page {
+  height: auto;
+  margin-bottom: -111px;
+}
+
+.login-pf-page:after {
+  content: "";
+  display: block;
+  height: 111px;
+}
+
+#cernfooter {
+  bottom: 0px;
+  width: 100%;
+  background-color: #262626;
+  border-top: 1px solid #333;
+
+  /* opacity: 0.95;
+  -webkit-box-shadow: 0 0 20px black;
+  box-shadow: 0 0 20px black; */
+}
+#cernfooter #security_msg {
+  /* margin-right: 500px;  */
+  background-color: #ddd;
+  /*border: solid 1px red;*/
+}
+#cernfooter #flex {
+  display: flex;
+  justify-content: space-between;
+  /* margin-right: 500px;  
+  font-size: smaller; */
+}
+
+#cernfooter a {
+  color: #fffefe;
+}
+#cernfooter a:visited {
+  color: #fffefe;
+}
+#cernfooter h2 {
+  color: #aaa;
+}
+
+#cernfooter .debug {
+  color: #2b2b2b;
+  font-size: 80%
+}
+#cernfooter .col {
+  flex-grow: 1;
+}
+#cernfooter .lastcol {
+  align-self: flex-end;
+}
+
+#cernfooter ul {
+  list-style-type: none;
+  padding: 0px;
+  margin-bottom: 15px;
+}
+
+.cernlogo {
+  border-width: 0px;
+  height: 70px;
+  margin: 20px;
+}
+
+@media (max-width: 767px) {
+  .login-pf-page {
+    padding-bottom: 0px;
+  }
+
+  #cernfooter {
+    position: relative;
+  }
+
+  #cernfooter #flex {
+    display: block;
+    text-align: center;
+  }
+}
+
+#cernfooter h2 {
+  margin-top: 12px;
+}

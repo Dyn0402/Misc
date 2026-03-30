@@ -31,6 +31,7 @@ from bs4 import BeautifulSoup
 from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeoutError
 
 from gmail_notifier import GmailNotifier
+import login_server
 
 # ─────────────────────────────────────────────
 #  USER CONFIGURATION  ← edit this section
@@ -39,7 +40,7 @@ from gmail_notifier import GmailNotifier
 # The continuous date range you want to be covered at the hostel.
 # The script will auto-detect gaps between your existing reservations
 # that fall within this window and try to fill them.
-TARGET_START = date(2026, 7, 1)
+TARGET_START = date(2026, 6, 25)
 TARGET_END   = date(2026, 8, 30)
 
 # Email / notification settings
@@ -47,6 +48,12 @@ NOTIFY_EMAIL    = "dyn040294@gmail.com"
 # Path to a plain-text file with two lines: gmail address, then app password.
 # If the file doesn't exist, email notifications are silently skipped.
 GMAIL_CRED_PATH = Path.home() / "Desktop/creds/gmail_cred.txt"
+
+# Path to a plain-text file with CERN username on line 1 and password on line 2.
+# When set, the login page will only ask for the 2FA code (username/password are
+# pre-loaded), and the server will try to open an external SSH tunnel so it is
+# reachable from outside your home network.
+CERN_CREDS_PATH = Path.home() / "Desktop/creds/cern.txt"
 
 # How often to recheck (minutes)
 CHECK_INTERVAL_MINUTES = 30
@@ -59,6 +66,9 @@ PROFILE_DIR = Path.home() / ".cern_hostel_profile"
 
 # The reservation portal URL
 PORTAL_URL = "https://hostel.cern.ch/Reservations"
+
+# Port for the temporary login web server (open this in your phone browser)
+LOGIN_SERVER_PORT = 5000
 
 # Log file
 LOG_FILE = Path("cern_hostel_filler.log")
@@ -86,6 +96,33 @@ def date_range(start: date, end: date):
     while d < end:
         yield d
         d += timedelta(days=1)
+
+
+def format_date_ranges(dates: list[date]) -> str:
+    """
+    Format a sorted list of dates as compact human-readable ranges.
+    e.g. [Jul 17,18,19, Jul 23,24,25,26, Jul 29] → '7/17–7/19, 7/23–7/26, 7/29'
+    """
+    if not dates:
+        return ""
+    dates = sorted(dates)
+    ranges: list[tuple[date, date]] = []
+    start = end = dates[0]
+    for d in dates[1:]:
+        if d == end + timedelta(days=1):
+            end = d
+        else:
+            ranges.append((start, end))
+            start = end = d
+    ranges.append((start, end))
+
+    parts = []
+    for s, e in ranges:
+        if s == e:
+            parts.append(f"{s.month}/{s.day}")
+        else:
+            parts.append(f"{s.month}/{s.day}–{e.month}/{e.day}")
+    return ", ".join(parts)
 
 
 def parse_error_dates(error_text: str) -> set[date]:
@@ -131,9 +168,10 @@ def parse_reservations(html: str) -> list[dict]:
         if not from_input or not to_input:
             continue
 
-        # readonly inputs exist but can't be submitted – skip them
-        if from_input.get("readonly") or to_input.get("readonly"):
-            continue
+        # Readonly inputs exist but can't be submitted.
+        # We still include them so their nights count as covered in gap detection;
+        # modifiable=False prevents them from being targeted for extension.
+        is_modifiable = not (from_input.get("readonly") or to_input.get("readonly"))
 
         made_for_input = cancel_input.find_next("input", {"name": "madeFor"})
         made_for = made_for_input["value"] if made_for_input else ""
@@ -150,7 +188,7 @@ def parse_reservations(html: str) -> list[dict]:
             "from":       from_date,
             "to":         to_date,
             "made_for":   made_for,
-            "modifiable": True,
+            "modifiable": is_modifiable,
         })
 
     reservations.sort(key=lambda r: r["from"])
@@ -292,7 +330,7 @@ def find_furthest_available(
     target_date: date,          # the ideal boundary we'd like to reach
     base_date: date,            # current value of the other boundary (unchanged)
     dry_run: bool,
-) -> date | None:
+) -> tuple[date | None, set[date]]:
     """
     Binary-search between the current boundary and target_date to find the
     furthest date we can successfully extend to.
@@ -300,7 +338,11 @@ def find_furthest_available(
     extend_which: "to"   → we're pushing the checkout date forward
                   "from" → we're pulling the check-in date backward
 
-    Returns the furthest reachable date, or None if not even 1 day is available.
+    Returns (best_date, all_unavail) where:
+      - best_date is the furthest reachable date, or None if no improvement possible
+      - all_unavail is the union of every unavailable-date set seen during the search
+        (callers should merge this into their own all_unavail_dates so the final
+        potentially-bookable check is accurate)
     """
     if extend_which == "to":
         lo = res["to"]          # current checkout (already confirmed available)
@@ -309,7 +351,11 @@ def find_furthest_available(
         lo = target_date        # ideal new check-in (earlier)
         hi = res["from"]        # current check-in (already confirmed available)
 
+    # Remember starting boundary so we can reject "success" that didn't actually move.
+    initial_boundary = res["to"] if extend_which == "to" else res["from"]
+
     best = None
+    all_seen_unavail: set[date] = set()
 
     while True:
         if extend_which == "to":
@@ -325,6 +371,7 @@ def find_furthest_available(
 
         err = submit_modify(page, res["id"], new_from, new_to, dry_run)
         unavail = parse_error_dates(err) if err else set()
+        all_seen_unavail |= unavail
 
         if extend_which == "to":
             if not (unavail & set(date_range(res["to"], mid))):
@@ -349,7 +396,55 @@ def find_furthest_available(
                 res["to"]   = r["to"]
                 break
 
-    return best
+    # Only count as success if we actually moved the boundary.
+    if extend_which == "to":
+        best_result = best if (best is not None and best > initial_boundary) else None
+    else:
+        best_result = best if (best is not None and best < initial_boundary) else None
+
+    return best_result, all_seen_unavail
+
+
+# ── Automated CERN SSO login ──────────────────────────────────────────────────
+
+def perform_login(page, username: str, password: str, totp: str) -> bool:
+    """
+    Drive Playwright through the CERN SSO (Keycloak) login flow.
+
+    Page 1 (auth.cern.ch): username + password on the same page → click Sign In
+    Page 2 (auth.cern.ch): OTP field (#otp) → click Sign In
+    Then redirects back to the hostel portal.
+
+    Returns True on success, False if any step times out.
+    """
+    try:
+        # ── Page 1: username + password ───────────────────────────────────────
+        log.info("Login: waiting for username/password page…")
+        page.wait_for_selector("#username", timeout=15_000)
+        page.fill("#username", username)
+        page.fill("#password", password)
+        page.click("#kc-login")
+        log.info("Login: credentials submitted.")
+
+        # ── Page 2: OTP ───────────────────────────────────────────────────────
+        log.info("Login: waiting for OTP page…")
+        page.wait_for_selector("#otp", timeout=10_000)
+        page.fill("#otp", totp)
+        page.click("#kc-login")
+        log.info("Login: OTP submitted.")
+
+        # ── Redirect back to portal ───────────────────────────────────────────
+        log.info("Login: waiting for portal redirect…")
+        wait_for_reservations_page(page, timeout=20_000)
+        log.info("Login: success — session saved to %s", PROFILE_DIR)
+        return True
+
+    except PlaywrightTimeoutError as exc:
+        log.error("Login: timed out — %s", exc)
+        return False
+    except Exception as exc:
+        log.error("Login: unexpected error — %s", exc)
+        return False
 
 
 # ── Single check cycle ────────────────────────────────────────────────────────
@@ -395,6 +490,7 @@ def _run_check(page, dry_run: bool):
         log.info("Working on gap: %s", gap_label)
 
         cur_gap = {"label": gap_label, "actions": [], "result": "no change"}
+        all_unavail_dates: set[date] = set()   # union of all unavail sets seen this gap
 
         prev_res = gap["prev_res"]
         next_res = gap["next_res"]
@@ -436,6 +532,7 @@ def _run_check(page, dry_run: bool):
 
             # Partial failure – find furthest reachable date
             unavail = parse_error_dates(err)
+            all_unavail_dates |= unavail
             log.info("  Partial failure. Unavailable dates: %s", sorted(unavail))
 
             # The available dates are those in [gap_start, ideal_to) NOT in unavail
@@ -445,13 +542,14 @@ def _run_check(page, dry_run: bool):
             if available_new:
                 furthest = max(available_new)
                 log.info("  Searching for furthest available date (binary search) …")
-                furthest_to = find_furthest_available(
+                furthest_to, bs_unavail = find_furthest_available(
                     page, prev_res,
                     extend_which="to",
                     target_date=ideal_to,
                     base_date=prev_res["from"],
                     dry_run=dry_run,
                 )
+                all_unavail_dates |= bs_unavail
                 if furthest_to:
                     log.info(
                         "  ✓ Extended #%s to %s (covers through %s).",
@@ -513,6 +611,7 @@ def _run_check(page, dry_run: bool):
                 cur_gap["result"] = "filled"
             else:
                 unavail2 = parse_error_dates(err2)
+                all_unavail_dates |= unavail2
                 available2 = remaining_gap_nights - unavail2
                 if available2:
                     furthest_from = min(available2)  # earliest available check-in
@@ -520,13 +619,14 @@ def _run_check(page, dry_run: bool):
                         "  Partial – earliest available check-in for #%s: %s",
                         next_res["id"], furthest_from,
                     )
-                    reached = find_furthest_available(
+                    reached, bs_unavail2 = find_furthest_available(
                         page, next_res,
                         extend_which="from",
                         target_date=new_gap_start,
                         base_date=next_res["to"],
                         dry_run=dry_run,
                     )
+                    all_unavail_dates |= bs_unavail2
                     if reached:
                         cur_gap["actions"].append(
                             f"Extended #{next_res['id']} 'from' as far back as possible "
@@ -558,6 +658,32 @@ def _run_check(page, dry_run: bool):
 
         if not cur_gap["actions"]:
             cur_gap["actions"].append("No adjacent reservations found on either side; nothing attempted")
+
+        # Final check: if the gap is only partially filled, see if any remaining
+        # uncovered nights were NOT in any unavail set — those might be manually bookable.
+        if cur_gap["result"] == "partially filled":
+            html = page.content()
+            reservations = parse_reservations(html)
+            covered_final = set()
+            for r in reservations:
+                for d in date_range(r["from"], r["to"]):
+                    covered_final.add(d)
+            remaining_final = {
+                d for d in date_range(gap_start, gap_end + timedelta(days=1))
+                if d not in covered_final
+            }
+            potentially_bookable = remaining_final - all_unavail_dates
+            if potentially_bookable:
+                cur_gap["result"] = "partially filled + manual needed"
+                cur_gap["manual_nights"] = sorted(potentially_bookable)
+                cur_gap["actions"].append(
+                    f"Remaining nights possibly available for manual booking: "
+                    f"{sorted(potentially_bookable)}"
+                )
+                log.info(
+                    "  Nights possibly available for manual booking: %s",
+                    sorted(potentially_bookable),
+                )
 
         gap_summaries.append(cur_gap)
 
@@ -594,10 +720,12 @@ def _run_check(page, dry_run: bool):
     # ── Step 6: email notification ────────────────────────────────────────
     _send_notification(gap_summaries, remaining_gaps, final_reservations, dry_run)
 
+    return gap_summaries, remaining_gaps, final_reservations
+
 
 # ── Main loop ─────────────────────────────────────────────────────────────────
 
-def run(dry_run: bool, headless: bool, interval_minutes: int):
+def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = False):
     log.info("=" * 60)
     log.info("CERN Hostel Gap Filler  |  target: %s → %s", TARGET_START, TARGET_END)
     log.info("dry-run=%s  headless=%s  interval=%dm", dry_run, headless, interval_minutes)
@@ -630,21 +758,34 @@ def run(dry_run: bool, headless: bool, interval_minutes: int):
             except PlaywrightTimeoutError:
                 if not first_run:
                     log.warning("Session expired – login required.")
-                    _send_login_required_email()
                 else:
-                    log.info("Not logged in. A browser window should have opened.")
-                log.info(
-                    "Please log in with your CERN SSO + Google Authenticator 2FA,\n"
-                    "navigate to the 'My Reservations' tab if needed, then come back\n"
-                    "here and press ENTER to continue …"
-                )
-                input()
-                wait_for_reservations_page(page, timeout=30_000)
-                log.info("Login confirmed – session saved to %s", PROFILE_DIR)
+                    log.info("Not logged in – starting login flow.")
+
+                login_ok = False
+                while not login_ok:
+                    creds = login_server.collect_credentials(
+                        on_ready=_send_login_required_email,
+                        port=LOGIN_SERVER_PORT,
+                        creds_file=CERN_CREDS_PATH if CERN_CREDS_PATH.exists() else None,
+                    )
+                    login_ok = perform_login(
+                        page,
+                        username=creds["username"],
+                        password=creds["password"],
+                        totp=creds["totp"],
+                    )
+                    if not login_ok:
+                        log.warning(
+                            "Login automation failed — check selectors or re-try. "
+                            "The login server will restart for another attempt."
+                        )
 
             first_run = False
 
-            _run_check(page, dry_run)
+            result = _run_check(page, dry_run)
+            if show_plot and result:
+                gap_summaries, remaining_gaps, final_reservations = result
+                _show_plot(final_reservations, gap_summaries, remaining_gaps)
 
             log.info("Next check in %d minutes. Press Ctrl+C to stop.", interval_minutes)
             time.sleep(interval_minutes * 60)
@@ -654,16 +795,18 @@ def run(dry_run: bool, headless: bool, interval_minutes: int):
 
 # ── Email notifications ────────────────────────────────────────────────────────
 
-def _send_login_required_email():
-    """Notify that the CERN SSO session has expired and manual login is needed."""
+def _send_login_required_email(url: str = ""):
+    """Notify that the CERN SSO session has expired, including the login URL."""
+    log.info("Login required. Open %s on your phone.", url or f"http://localhost:{LOGIN_SERVER_PORT}")
     if not GMAIL_CRED_PATH.exists():
         return
-    subject = "[ACTION REQUIRED] CERN Hostel: session expired, login needed"
+    subject = "[ACTION REQUIRED] CERN Hostel: login required"
     body = (
-        "The CERN Hostel Gap Filler is running but your CERN SSO session has expired.\n\n"
-        "Please open the terminal where the script is running and log in again "
-        "(CERN SSO + Google Authenticator 2FA), then press ENTER to resume.\n\n"
-        "The script will continue automatically after you log in."
+        "The CERN Hostel Gap Filler needs you to log in to CERN SSO.\n\n"
+        f"Open this link on your phone:\n\n    {url}\n\n"
+        "Enter your CERN username, password, and Google Authenticator code.\n"
+        "Get the 2FA code LAST, just before tapping Submit — it expires in 30 s.\n\n"
+        "The script will continue automatically once you submit the form."
     )
     try:
         notifier = GmailNotifier(str(GMAIL_CRED_PATH))
@@ -681,8 +824,12 @@ def _send_notification(gap_summaries, remaining_gaps, final_reservations, dry_ru
         log.info("No Gmail credentials found at %s – skipping email.", GMAIL_CRED_PATH)
         return
 
-    any_extended      = any(gs["result"] in ("filled", "partially filled") for gs in gap_summaries)
-    any_non_adjacent  = any(gs["result"] == "available_not_adjacent"       for gs in gap_summaries)
+    any_extended     = any(gs["result"] in ("filled", "partially filled",
+                                            "partially filled + manual needed")
+                          for gs in gap_summaries)
+    any_non_adjacent = any(gs["result"] in ("available_not_adjacent",
+                                            "partially filled + manual needed")
+                          for gs in gap_summaries)
 
     if not any_extended and not any_non_adjacent:
         log.info("No availability found this run – skipping email.")
@@ -707,6 +854,12 @@ def _send_notification(gap_summaries, remaining_gaps, final_reservations, dry_ru
         for gs in gap_summaries:
             if gs["result"] == "available_not_adjacent":
                 lines.append(f"  • Gap {gs['label']}")
+            elif gs["result"] == "partially filled + manual needed":
+                nights = gs.get("manual_nights", [])
+                lines.append(
+                    f"  • Gap {gs['label']}  (partially extended; "
+                    f"book manually: {format_date_ranges(nights)})"
+                )
         lines.append("")
 
     if any_extended:
@@ -741,6 +894,136 @@ def _send_notification(gap_summaries, remaining_gaps, final_reservations, dry_ru
         log.error("Failed to send notification email: %s", e)
 
 
+# ── Timeline plot ─────────────────────────────────────────────────────────────
+
+def _show_plot(final_reservations, gap_summaries, remaining_gaps):
+    try:
+        import matplotlib.pyplot as plt
+        import matplotlib.patches as mpatches
+        import matplotlib.dates as mdates
+        from datetime import datetime as _dt
+    except ImportError:
+        log.error("matplotlib not found — install it: pip install matplotlib")
+        return
+
+    def to_mdate(d: date):
+        return mdates.date2num(_dt(d.year, d.month, d.day))
+
+    # Nights covered by final reservations
+    covered: set[date] = set()
+    for r in final_reservations:
+        for d in date_range(r["from"], r["to"]):
+            if TARGET_START <= d < TARGET_END:
+                covered.add(d)
+
+    # Nights flagged as possibly manually bookable
+    manual_nights: set[date] = set()
+    for gs in gap_summaries:
+        manual_nights.update(gs.get("manual_nights", []))
+
+    def night_color(d: date) -> str:
+        if d in covered:
+            return "#2a7ab5"   # blue  – booked
+        if d in manual_nights:
+            return "#e88c1a"   # orange – possibly bookable manually
+        return "#cc4444"       # red   – unavailable / unfilled
+
+    # Group consecutive nights with the same color into (start, width_days, color) spans
+    def make_spans(nights):
+        spans = []
+        if not nights:
+            return spans
+        seg_start = nights[0]
+        seg_color = night_color(nights[0])
+        for d in nights[1:]:
+            c = night_color(d)
+            if c != seg_color:
+                spans.append((seg_start, (d - seg_start).days, seg_color))
+                seg_start, seg_color = d, c
+        spans.append((seg_start, (nights[-1] - seg_start).days + 1, seg_color))
+        return spans
+
+    all_nights = list(date_range(TARGET_START, TARGET_END))
+    coverage_spans = make_spans(all_nights)
+
+    # ── Layout: top panel = coverage band, bottom panels = per-reservation rows ──
+    n_res = len(final_reservations)
+    fig_height = 2.8 + n_res * 0.55
+    fig, (ax_top, ax_bot) = plt.subplots(
+        2, 1,
+        figsize=(15, fig_height),
+        gridspec_kw={"height_ratios": [1.6, max(n_res, 1)]},
+        sharex=True,
+    )
+
+    # ── Top: coverage band ────────────────────────────────────────────────────
+    for seg_start, width_days, color in coverage_spans:
+        ax_top.broken_barh(
+            [(to_mdate(seg_start), width_days)],
+            (0.1, 0.8),
+            facecolors=color, edgecolors="white", linewidth=0.3,
+        )
+
+    ax_top.set_ylim(0, 1)
+    ax_top.set_yticks([0.5])
+    ax_top.set_yticklabels(["Coverage"])
+    ax_top.set_title(
+        f"CERN Hostel Timeline  ·  {TARGET_START} – {TARGET_END - timedelta(days=1)}",
+        fontweight="bold", pad=8,
+    )
+
+    # Legend
+    legend_handles = [
+        mpatches.Patch(color="#2a7ab5", label="Booked"),
+        mpatches.Patch(color="#e8c61a", label="Possibly bookable (manual)"),
+        mpatches.Patch(color="#cc4444", label="Unavailable / unfilled"),
+    ]
+    ax_top.legend(handles=legend_handles, loc="upper right", fontsize=8, framealpha=0.9)
+
+    # ── Bottom: one row per reservation ──────────────────────────────────────
+    for i, r in enumerate(final_reservations):
+        vis_start = max(r["from"], TARGET_START)
+        vis_end   = min(r["to"],   TARGET_END)
+        if vis_start >= vis_end:
+            continue
+        width = (vis_end - vis_start).days
+        ax_bot.broken_barh(
+            [(to_mdate(vis_start), width)],
+            (i + 0.1, 0.8),
+            facecolors="#2a7ab5", edgecolors="white", linewidth=0.5,
+        )
+        # Label: reservation ID centred in the bar
+        label_x = to_mdate(vis_start) + width / 2
+        ax_bot.text(
+            label_x, i + 0.5,
+            f"#{r['id']}\n{r['from']}–{r['to']}",
+            ha="center", va="center",
+            color="white", fontsize=7, fontweight="bold",
+        )
+
+    # Mark remaining-gap spans in the reservation panel too (faint red)
+    for g in remaining_gaps:
+        ax_bot.axvspan(
+            to_mdate(g["gap_start"]),
+            to_mdate(g["gap_end"] + timedelta(days=1)),
+            alpha=0.12, color="#cc4444",
+        )
+
+    ax_bot.set_ylim(0, max(n_res, 1))
+    ax_bot.set_yticks([i + 0.5 for i in range(n_res)])
+    ax_bot.set_yticklabels([f"#{r['id']}" for r in final_reservations], fontsize=8)
+    ax_bot.set_xlabel("Date")
+
+    # ── Shared x-axis formatting ──────────────────────────────────────────────
+    ax_bot.set_xlim(to_mdate(TARGET_START), to_mdate(TARGET_END))
+    ax_bot.xaxis.set_major_locator(mdates.WeekdayLocator(byweekday=mdates.MO))
+    ax_bot.xaxis.set_major_formatter(mdates.DateFormatter("%b %-d"))
+    plt.setp(ax_bot.get_xticklabels(), rotation=45, ha="right", fontsize=8)
+
+    plt.tight_layout()
+    plt.show()
+
+
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 def main():
@@ -750,17 +1033,22 @@ def main():
         help="Parse and detect gaps but do NOT submit any form changes.",
     )
     parser.add_argument(
-        "--headless", action="store_true",
-        help="Run browser in headless mode (no visible window). "
-             "Only use this after the session is already established.",
+        "--no-headless", dest="headless", action="store_false",
+        help="Show the browser window (useful for debugging login selectors).",
     )
+    parser.set_defaults(headless=True)
     parser.add_argument(
         "--interval", type=int, default=CHECK_INTERVAL_MINUTES, metavar="MINUTES",
         help=f"Minutes between checks (default: {CHECK_INTERVAL_MINUTES}).",
     )
+    parser.add_argument(
+        "--plot", action="store_true",
+        help="After each check, show a matplotlib timeline of reservations, gaps, and bookable dates.",
+    )
     args = parser.parse_args()
 
-    run(dry_run=args.dry_run, headless=args.headless, interval_minutes=args.interval)
+    run(dry_run=args.dry_run, headless=args.headless, interval_minutes=args.interval,
+        show_plot=args.plot)
 
 
 if __name__ == "__main__":
