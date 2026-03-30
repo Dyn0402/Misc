@@ -11,11 +11,9 @@ Usage:
 """
 
 import logging
-import re
 import socket
-import subprocess
 import threading
-import time
+import urllib.request
 from pathlib import Path
 
 from flask import Flask, request
@@ -298,36 +296,13 @@ def _read_creds_file(path: Path) -> tuple[str, str]:
     return lines[0].strip(), lines[1].strip()
 
 
-def _start_ssh_tunnel(port: int) -> str | None:
-    """
-    Open a reverse SSH tunnel via serveo.net and return the public HTTPS URL.
-    Returns None if the tunnel cannot be established within 10 seconds.
-    """
+def _get_public_ip() -> str | None:
+    """Return the machine's public IP via api.ipify.org, or None on failure."""
     try:
-        proc = subprocess.Popen(
-            ["ssh", "-o", "StrictHostKeyChecking=no",
-             "-o", "ServerAliveInterval=30",
-             "-R", f"80:localhost:{port}",
-             "serveo.net"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-        )
-        deadline = time.monotonic() + 10
-        for line in proc.stdout:  # type: ignore[union-attr]
-            if time.monotonic() > deadline:
-                break
-            m = re.search(r"https?://\S+\.serveo\.net", line)
-            if m:
-                log.info("SSH tunnel established: %s", m.group())
-                return m.group()
-        log.warning("Could not parse serveo.net tunnel URL within 10 s; falling back to LAN IP.")
-        return None
-    except FileNotFoundError:
-        log.warning("ssh not found; cannot open external tunnel.")
-        return None
+        with urllib.request.urlopen("https://api.ipify.org", timeout=5) as resp:
+            return resp.read().decode().strip()
     except Exception as exc:
-        log.warning("SSH tunnel failed: %s", exc)
+        log.warning("Could not fetch public IP: %s", exc)
         return None
 
 
@@ -352,8 +327,8 @@ def collect_credentials(
     creds_file : Path | None
         Path to a plain-text file containing the CERN username on line 1 and
         the password on line 2.  When provided, only the TOTP field is shown
-        and the server also tries to open an external SSH tunnel via
-        serveo.net so it is reachable from outside the local network.
+        and the URL advertised uses the machine's public IP (requires port
+        forwarding to be configured on your router).
 
     Returns
     -------
@@ -403,8 +378,8 @@ def collect_credentials(
     # Determine the URL to advertise.
     local_url = f"http://{_get_local_ip()}:{port}"
     if creds_file is not None:
-        public_url = _start_ssh_tunnel(port)
-        url = public_url or local_url
+        public_ip = _get_public_ip()
+        url = f"http://{public_ip}:{port}" if public_ip else local_url
     else:
         url = local_url
     log.info("Login server ready: %s", url)
