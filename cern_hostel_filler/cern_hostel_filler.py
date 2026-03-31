@@ -742,50 +742,86 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
         page = browser.pages[0] if browser.pages else browser.new_page()
 
         first_run = True
+        consecutive_failures = 0
+        MAX_RETRIES = 3
+        RETRY_DELAY_SECONDS = 60
+
         while True:
             if not first_run:
                 log.info("=" * 60)
                 log.info("Rechecking at %s", time.strftime("%Y-%m-%d %H:%M:%S"))
                 log.info("=" * 60)
 
-            # ── Step 1: navigate and handle login ────────────────────────────
-            log.info("Navigating to %s …", PORTAL_URL)
-            page.goto(PORTAL_URL, wait_until="domcontentloaded")
+            attempt = 0
+            success = False
+            last_error = None
+            while attempt < MAX_RETRIES:
+                try:
+                    # ── Step 1: navigate and handle login ────────────────────
+                    log.info("Navigating to %s …", PORTAL_URL)
+                    page.goto(PORTAL_URL, wait_until="domcontentloaded")
 
-            try:
-                wait_for_reservations_page(page, timeout=5_000)
-                log.info("Session active%s.", " – skipping login" if first_run else "")
-            except PlaywrightTimeoutError:
-                if not first_run:
-                    log.warning("Session expired – login required.")
-                else:
-                    log.info("Not logged in – starting login flow.")
+                    try:
+                        wait_for_reservations_page(page, timeout=5_000)
+                        log.info("Session active%s.", " – skipping login" if first_run else "")
+                    except PlaywrightTimeoutError:
+                        if not first_run:
+                            log.warning("Session expired – login required.")
+                        else:
+                            log.info("Not logged in – starting login flow.")
 
-                login_ok = False
-                while not login_ok:
-                    creds = login_server.collect_credentials(
-                        on_ready=_send_login_required_email,
-                        port=LOGIN_SERVER_PORT,
-                        creds_file=CERN_CREDS_PATH if CERN_CREDS_PATH.exists() else None,
+                        login_ok = False
+                        while not login_ok:
+                            creds = login_server.collect_credentials(
+                                on_ready=_send_login_required_email,
+                                port=LOGIN_SERVER_PORT,
+                                creds_file=CERN_CREDS_PATH if CERN_CREDS_PATH.exists() else None,
+                            )
+                            login_ok = perform_login(
+                                page,
+                                username=creds["username"],
+                                password=creds["password"],
+                                totp=creds["totp"],
+                            )
+                            if not login_ok:
+                                log.warning(
+                                    "Login automation failed — check selectors or re-try. "
+                                    "The login server will restart for another attempt."
+                                )
+
+                    first_run = False
+
+                    result = _run_check(page, dry_run)
+                    if show_plot and result:
+                        gap_summaries, remaining_gaps, final_reservations = result
+                        _show_plot(final_reservations, gap_summaries, remaining_gaps)
+
+                    success = True
+                    consecutive_failures = 0
+                    break
+
+                except KeyboardInterrupt:
+                    raise
+                except Exception as exc:
+                    attempt += 1
+                    last_error = exc
+                    log.error(
+                        "Error during check (attempt %d/%d): %s: %s",
+                        attempt, MAX_RETRIES, type(exc).__name__, exc,
                     )
-                    login_ok = perform_login(
-                        page,
-                        username=creds["username"],
-                        password=creds["password"],
-                        totp=creds["totp"],
-                    )
-                    if not login_ok:
-                        log.warning(
-                            "Login automation failed — check selectors or re-try. "
-                            "The login server will restart for another attempt."
-                        )
+                    if attempt < MAX_RETRIES:
+                        log.info("Retrying in %d seconds …", RETRY_DELAY_SECONDS)
+                        time.sleep(RETRY_DELAY_SECONDS)
+                    else:
+                        log.error("All %d attempts failed.", MAX_RETRIES)
 
-            first_run = False
-
-            result = _run_check(page, dry_run)
-            if show_plot and result:
-                gap_summaries, remaining_gaps, final_reservations = result
-                _show_plot(final_reservations, gap_summaries, remaining_gaps)
+            if not success:
+                consecutive_failures += 1
+                log.error(
+                    "Consecutive failure count: %d. Last error: %s: %s",
+                    consecutive_failures, type(last_error).__name__, last_error,
+                )
+                _send_error_email(consecutive_failures, last_error)
 
             log.info("Next check in %d minutes. Press Ctrl+C to stop.", interval_minutes)
             time.sleep(interval_minutes * 60)
@@ -816,6 +852,23 @@ def _send_login_required_email(url: str = ""):
         log.error("Failed to send login-required email: %s", e)
 
 
+def _send_error_email(consecutive_failures: int, error: Exception):
+    """Send an alert email when repeated check attempts all fail."""
+    if not GMAIL_CRED_PATH.exists():
+        return
+    subject = f"[ACTION REQUIRED] CERN Hostel: script error ({consecutive_failures} consecutive failure(s))"
+    body = (
+        f"The CERN Hostel Gap Filler has failed {consecutive_failures} consecutive check(s).\n\n"
+        f"Last error:\n  {type(error).__name__}: {error}\n\n"
+        "The script will keep retrying every 30 minutes. "
+        "You may need to check network connectivity or restart the script."
+    )
+    try:
+        notifier = GmailNotifier(str(GMAIL_CRED_PATH))
+        notifier.send_email(NOTIFY_EMAIL, subject, body)
+        log.info("Error alert email sent to %s.", NOTIFY_EMAIL)
+    except Exception as e:
+        log.error("Failed to send error alert email: %s", e)
 
 
 def _send_notification(gap_summaries, remaining_gaps, final_reservations, dry_run):
