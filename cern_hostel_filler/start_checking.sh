@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Change to the directory containing this script
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
 # Define the screen name
 SESSION_NAME="cern_filler"
 
