@@ -73,6 +73,9 @@ LOGIN_SERVER_PORT = 5000
 # Log file
 LOG_FILE = Path("cern_hostel_filler.log")
 
+# Availability plot — saved after every check cycle; also shown on the login page.
+PLOT_PATH = Path("availability_plot.png")
+
 # ─────────────────────────────────────────────
 #  END OF USER CONFIGURATION
 # ─────────────────────────────────────────────
@@ -755,6 +758,7 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
             attempt = 0
             success = False
             last_error = None
+            login_srv = None
             while attempt < MAX_RETRIES:
                 try:
                     # ── Step 1: navigate and handle login ────────────────────
@@ -770,13 +774,18 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                         else:
                             log.info("Not logged in – starting login flow.")
 
-                        login_ok = False
-                        while not login_ok:
-                            creds = login_server.collect_credentials(
-                                on_ready=_send_login_required_email,
+                        if login_srv is None:
+                            login_srv = login_server.LoginServer(
                                 port=LOGIN_SERVER_PORT,
                                 creds_file=CERN_CREDS_PATH if CERN_CREDS_PATH.exists() else None,
+                                plot_path=PLOT_PATH,
                             )
+                            login_srv.start(on_ready=_send_login_required_email)
+
+                        login_ok = False
+                        while not login_ok:
+                            creds = login_srv.wait_for_credentials()
+                            login_srv.push_status("Logging in to CERN SSO…")
                             login_ok = perform_login(
                                 page,
                                 username=creds["username"],
@@ -788,13 +797,44 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                                     "Login automation failed — check selectors or re-try. "
                                     "The login server will restart for another attempt."
                                 )
+                                login_srv.push_status(
+                                    "Login failed — please try again.", kind="error"
+                                )
+                                login_srv.reset()
+
+                        login_srv.push_status(
+                            "Login successful! Checking reservations…", kind="success"
+                        )
 
                     first_run = False
 
+                    if login_srv:
+                        login_srv.push_status("Scanning reservations…")
                     result = _run_check(page, dry_run)
-                    if show_plot and result:
+
+                    if result:
                         gap_summaries, remaining_gaps, final_reservations = result
-                        _show_plot(final_reservations, gap_summaries, remaining_gaps)
+                        _show_plot(
+                            final_reservations, gap_summaries, remaining_gaps,
+                            show=show_plot,
+                        )
+                        if login_srv:
+                            login_srv.push_status("", kind="plot_updated")
+                            if remaining_gaps:
+                                gaps_str = ", ".join(
+                                    f"{g['gap_start']} – {g['gap_end']}"
+                                    for g in remaining_gaps
+                                )
+                                login_srv.push_status(
+                                    f"Remaining gaps: {gaps_str}", kind="warning"
+                                )
+                            else:
+                                login_srv.push_status(
+                                    "Target range fully covered!", kind="success"
+                                )
+                            login_srv.push_status(
+                                f"Next check in {interval_minutes} minutes.", kind="done"
+                            )
 
                     success = True
                     consecutive_failures = 0
@@ -814,6 +854,15 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                         time.sleep(RETRY_DELAY_SECONDS)
                     else:
                         log.error("All %d attempts failed.", MAX_RETRIES)
+
+            if login_srv:
+                if not success:
+                    login_srv.push_status(
+                        "All check attempts failed — will retry next cycle.", kind="error"
+                    )
+                time.sleep(5)   # give the phone a moment to read the final status
+                login_srv.shutdown()
+                login_srv = None
 
             if not success:
                 consecutive_failures += 1
@@ -949,8 +998,17 @@ def _send_notification(gap_summaries, remaining_gaps, final_reservations, dry_ru
 
 # ── Timeline plot ─────────────────────────────────────────────────────────────
 
-def _show_plot(final_reservations, gap_summaries, remaining_gaps):
+_mpl_backend_set = False
+
+
+def _show_plot(final_reservations, gap_summaries, remaining_gaps, show: bool = False):
+    global _mpl_backend_set
     try:
+        import matplotlib
+        if not _mpl_backend_set:
+            if not show:
+                matplotlib.use("Agg")   # headless — savefig works, show() is a no-op
+            _mpl_backend_set = True
         import matplotlib.pyplot as plt
         import matplotlib.patches as mpatches
         import matplotlib.dates as mdates
@@ -1074,7 +1132,11 @@ def _show_plot(final_reservations, gap_summaries, remaining_gaps):
     plt.setp(ax_bot.get_xticklabels(), rotation=45, ha="right", fontsize=8)
 
     plt.tight_layout()
-    plt.show()
+    plt.savefig(PLOT_PATH, dpi=150, bbox_inches="tight")
+    log.info("Availability plot saved to %s", PLOT_PATH)
+    if show:
+        plt.show()
+    plt.close(fig)
 
 
 # ── Entry point ───────────────────────────────────────────────────────────────
