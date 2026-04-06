@@ -26,7 +26,7 @@ echo "Activating virtual environment and starting script..."
 # Source the venv
 screen -S "$SESSION_NAME" -p 0 -X stuff "source ../.venv/bin/activate$(printf \\r)"
 
-# Run the python script
-screen -S "$SESSION_NAME" -p 0 -X stuff "python cern_hostel_filler.py$(printf \\r)"
+# Run the python script in a restart loop so it auto-recovers from crashes
+screen -S "$SESSION_NAME" -p 0 -X stuff "while true; do echo \"[\\$(date '+%Y-%m-%d %H:%M:%S')] Starting cern_hostel_filler.py...\"; python cern_hostel_filler.py; echo \"[\\$(date '+%Y-%m-%d %H:%M:%S')] Script exited (code \$?), restarting in 30s...\"; sleep 30; done$(printf \\r)"
 
 echo "Done! You can attach to the session using: screen -r $SESSION_NAME"

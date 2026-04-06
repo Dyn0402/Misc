@@ -420,7 +420,7 @@ def perform_login(page, username: str, password: str, totp: str) -> bool:
     try:
         # ── Page 1: username + password ───────────────────────────────────────
         log.info("Login: waiting for username/password page…")
-        page.wait_for_selector("#username", timeout=15_000)
+        page.wait_for_selector("#username", timeout=30_000)
         page.fill("#username", username)
         page.fill("#password", password)
         page.click("#kc-login")
