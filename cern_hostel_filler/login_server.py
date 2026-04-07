@@ -290,6 +290,11 @@ _STATUS_HTML = """<!DOCTYPE html>
         plotImg.style.display = 'block';
         return;
       }
+      if (d.kind === 'redirect') {
+        src.close();
+        setTimeout(() => { window.location = d.text || '/'; }, 2000);
+        return;
+      }
       addMsg(d.kind, d.text);
       if (d.kind === 'success' && d.text.includes('Login successful')) {
         subtitle.textContent = 'Logged in \u2713 \u2014 scraping reservations\u2026';

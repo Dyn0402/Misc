@@ -800,6 +800,7 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                                 login_srv.push_status(
                                     "Login failed — please try again.", kind="error"
                                 )
+                                login_srv.push_status("/", kind="redirect")
                                 login_srv.reset()
 
                         login_srv.push_status(
