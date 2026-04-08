@@ -431,7 +431,7 @@ def perform_login(page, username: str, password: str, totp: str) -> bool:
 
         # ── Page 2: OTP ───────────────────────────────────────────────────────
         log.info("Login: waiting for OTP page…")
-        page.wait_for_selector("#otp", timeout=10_000)
+        page.wait_for_selector("#otp", timeout=30_000)
         page.fill("#otp", totp)
         page.click("#kc-login")
         log.info("Login: OTP submitted.")
@@ -786,6 +786,9 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                         while not login_ok:
                             creds = login_srv.wait_for_credentials()
                             login_srv.push_status("Logging in to CERN SSO…")
+                            # Re-navigate so the auth page is fresh (avoids stale
+                            # CSRF tokens when the user took a long time to respond).
+                            page.goto(PORTAL_URL, wait_until="domcontentloaded")
                             login_ok = perform_login(
                                 page,
                                 username=creds["username"],
