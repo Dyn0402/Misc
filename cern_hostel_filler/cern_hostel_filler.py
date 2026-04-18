@@ -863,7 +863,7 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                                     f"Browser error: {exc} — please try Connect again.",
                                     kind="error",
                                 )
-                                login_srv.push_status("/", kind="redirect")
+                                login_srv.push_redirect_home()
                                 browser, page = _close_browser(browser)
                                 continue  # back to wait_for_connect
 
@@ -885,7 +885,7 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                                     "Timed out waiting for 2FA — please click Connect again.",
                                     kind="error",
                                 )
-                                login_srv.push_status("/", kind="redirect")
+                                login_srv.push_redirect_home()
                                 browser, page = _close_browser(browser)
                                 continue  # back to wait_for_connect
 
@@ -906,7 +906,7 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                                     "Login automation failed — please click Connect again.",
                                     kind="error",
                                 )
-                                login_srv.push_status("/", kind="redirect")
+                                login_srv.push_redirect_home()
                                 browser, page = _close_browser(browser)
                                 continue  # back to wait_for_connect
 

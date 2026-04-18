@@ -458,6 +458,7 @@ class LoginServer:
         self._creds: dict        = {}
         self._creds_ready        = threading.Event()
         self._connect_event      = threading.Event()
+        self._phase              = "connect"   # "connect" | "2fa"
 
         self._messages: list[dict] = []   # {'kind': str, 'text': str}
         self._msg_lock             = threading.Lock()
@@ -475,9 +476,19 @@ class LoginServer:
         logging.getLogger("werkzeug").setLevel(logging.ERROR)
         srv = self   # capture for route closures
 
-        # ── GET / — Connect button page ────────────────────────────────────────
+        # ── GET / — phase-aware landing page ──────────────────────────────────
         @app.route("/", methods=["GET"])
         def connect_page():
+            # If we're already waiting for 2FA, go straight to the form so
+            # reloading or navigating back always shows the right page.
+            if srv._phase == "2fa":
+                if srv._prefilled_username:
+                    return (
+                        _TOTP_ONLY_HTML
+                        .replace("{username}", srv._prefilled_username)
+                        .replace("{password}", srv._prefilled_password)
+                    )
+                return _FORM_HTML
             return _CONNECT_HTML
 
         # ── POST /connect — user clicked Connect ───────────────────────────────
@@ -588,10 +599,21 @@ class LoginServer:
 
     def signal_session_ready(self) -> None:
         """
-        Push an SSE redirect to /2fa — call this after playwright has navigated
-        to the portal and the browser session is ready for 2FA.
+        Mark the server as being in 2FA phase and push an SSE redirect to /2fa.
+        Call this after playwright has navigated to the portal.
+        From this point on, GET / will serve the TOTP form directly so the user
+        can reload at any time and still see the right page.
         """
+        self._phase = "2fa"
         self.push_status("/2fa", kind="redirect")
+
+    def push_redirect_home(self) -> None:
+        """
+        Reset to the Connect phase and redirect the user back to /.
+        Call this on any login failure so reloading shows the Connect button again.
+        """
+        self._phase = "connect"
+        self.push_status("/", kind="redirect")
 
     # ── Credential handshake ───────────────────────────────────────────────────
 
@@ -612,6 +634,7 @@ class LoginServer:
         self._creds.clear()
         self._creds_ready.clear()
         self._connect_event.clear()
+        self._phase = "connect"
 
     # ── Status broadcasting ────────────────────────────────────────────────────
 
