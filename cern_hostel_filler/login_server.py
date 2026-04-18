@@ -555,7 +555,7 @@ class LoginServer:
             srv._creds.clear()
             return _ERROR_HTML.format(reason=reason)
 
-        self._wsgi_server   = make_server("0.0.0.0", self._port, app)
+        self._wsgi_server   = make_server("0.0.0.0", self._port, app, threaded=True)
         self._server_thread = threading.Thread(
             target=self._wsgi_server.serve_forever, daemon=True
         )
