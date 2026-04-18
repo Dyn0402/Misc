@@ -5,9 +5,11 @@ broadcasting to the user's phone browser.
 Public API:
     LoginServer(port, creds_file, plot_path)
         .start(on_ready)            → starts server, returns URL
-        .wait_for_credentials()     → blocks until form submitted, returns dict
+        .wait_for_connect(timeout)  → blocks until user clicks Connect button
+        .signal_session_ready()     → push SSE redirect to /2fa (call after playwright ready)
+        .wait_for_credentials(timeout) → blocks until 2FA form submitted; None on timeout
         .push_status(text, kind)    → push a line to the SSE status feed
-        .reset()                    → clear pending creds (for login retry)
+        .reset()                    → clear pending state (for login retry)
         .shutdown()                 → stop the server
 
     collect_credentials(...)        → convenience one-shot wrapper (legacy)
@@ -117,7 +119,34 @@ _PLOT_IMG = (
     'onload="this.style.display=\'block\'" onerror="this.style.display=\'none\'">'
 )
 
-# ── Login form pages (pre-formatted with CSS at module load) ───────────────────
+# ── Connect page — first page shown on session expiry ─────────────────────────
+
+_CONNECT_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CERN Hostel — Reconnect</title>
+  <style>{css}</style>
+</head>
+<body>
+  <div class="card">
+    <h2>&#128683; Session Expired</h2>
+    <p class="subtitle">Your CERN session has expired and must be renewed.</p>
+    <div class="notice">
+      Clicking <strong>Connect</strong> starts a fresh browser session and
+      takes you to the 2FA page. Have your <strong>Google Authenticator</strong>
+      app ready — enter the code <em>just</em> before tapping Submit.
+    </div>
+    <form method="post" action="/connect">
+      <button type="submit">Connect &amp; Start Login</button>
+    </form>
+    {plot_img}
+  </div>
+</body>
+</html>""".format(css=_SHARED_CSS, plot_img=_PLOT_IMG)
+
+# ── 2FA form pages (served at /2fa) ───────────────────────────────────────────
 
 # Full form: username + password + TOTP
 _FORM_HTML = """<!DOCTYPE html>
@@ -136,7 +165,7 @@ _FORM_HTML = """<!DOCTYPE html>
       Get your <strong>Google Authenticator code last</strong>, just before
       tapping Submit — TOTP codes expire after 30 seconds.
     </div>
-    <form method="post" autocomplete="on">
+    <form method="post" action="/2fa" autocomplete="on">
       <div class="field">
         <label for="username">CERN Username</label>
         <input id="username" name="username" type="text"
@@ -164,7 +193,7 @@ _FORM_HTML = """<!DOCTYPE html>
 </html>""".format(css=_SHARED_CSS, plot_img=_PLOT_IMG)
 
 # TOTP-only form — shown when username/password are pre-loaded from creds file.
-# {username} and {password} are filled in at request time via str.replace().
+# {{username}} and {{password}} are filled in at request time via str.replace().
 _TOTP_ONLY_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -181,7 +210,7 @@ _TOTP_ONLY_HTML = """<!DOCTYPE html>
       Open your authenticator app <strong>last</strong>, just before tapping
       Submit — TOTP codes expire after 30 seconds.
     </div>
-    <form method="post" autocomplete="off">
+    <form method="post" action="/2fa" autocomplete="off">
       <input type="hidden" name="username" value="{{username}}">
       <input type="hidden" name="password" value="{{password}}">
       <div class="field">
@@ -199,8 +228,7 @@ _TOTP_ONLY_HTML = """<!DOCTYPE html>
 </body>
 </html>""".format(css=_SHARED_CSS, plot_img=_PLOT_IMG)
 
-# ── Status page (shown immediately after form submit; streams live updates) ────
-# Inline CSS — no .format() call needed so braces don't need escaping.
+# ── Status page (shown after form submit; streams live updates) ────────────────
 
 _STATUS_HTML = """<!DOCTYPE html>
 <html lang="en">
@@ -255,8 +283,8 @@ _STATUS_HTML = """<!DOCTYPE html>
 </head>
 <body>
   <div class="card">
-    <h2>&#128274; Credentials received</h2>
-    <p id="subtitle"><span class="spinner"></span>Logging in to CERN SSO&hellip;</p>
+    <h2>&#128274; CERN Hostel</h2>
+    <p id="subtitle"><span class="spinner"></span>Please wait&hellip;</p>
     <div class="feed" id="feed"></div>
     <div id="plot-wrap">
       <img id="plot-img" src="/plot.png?t=0"
@@ -292,7 +320,7 @@ _STATUS_HTML = """<!DOCTYPE html>
       }
       if (d.kind === 'redirect') {
         src.close();
-        setTimeout(() => { window.location = d.text || '/'; }, 2000);
+        setTimeout(() => { window.location = d.text || '/'; }, 1500);
         return;
       }
       addMsg(d.kind, d.text);
@@ -392,9 +420,19 @@ def _get_public_ip() -> str | None:
 class LoginServer:
     """
     Temporary Flask server that:
-      - Shows a login / 2FA form (with the latest availability plot if saved)
-      - After form submission, shows a live status feed via SSE
+      - Shows a Connect button page when session expires
+      - After Connect is clicked, signals the main thread to open a fresh
+        playwright session, then redirects the user to the 2FA form
+      - After 2FA is submitted, streams live login status via SSE
       - Serves the current plot at /plot.png (refreshable from the status page)
+
+    Flow:
+        GET /          → Connect button page
+        POST /connect  → signals wait_for_connect(); returns status page (SSE)
+        (main thread opens playwright, calls signal_session_ready())
+        GET /2fa       → TOTP form (or full form if no pre-loaded creds)
+        POST /2fa      → signals wait_for_credentials(); returns status page (SSE)
+        (main thread drives playwright login, pushes status via push_status())
     """
 
     def __init__(
@@ -419,6 +457,7 @@ class LoginServer:
 
         self._creds: dict        = {}
         self._creds_ready        = threading.Event()
+        self._connect_event      = threading.Event()
 
         self._messages: list[dict] = []   # {'kind': str, 'text': str}
         self._msg_lock             = threading.Lock()
@@ -436,17 +475,22 @@ class LoginServer:
         logging.getLogger("werkzeug").setLevel(logging.ERROR)
         srv = self   # capture for route closures
 
-        @app.route("/", methods=["GET", "POST"])
-        def form():
-            if request.method == "POST":
-                srv._creds = {
-                    "username": request.form.get("username", "").strip(),
-                    "password": request.form.get("password", ""),
-                    "totp":     request.form.get("totp", "").strip(),
-                }
-                srv._creds_ready.set()
-                return _STATUS_HTML
-            # GET — show the appropriate login form
+        # ── GET / — Connect button page ────────────────────────────────────────
+        @app.route("/", methods=["GET"])
+        def connect_page():
+            return _CONNECT_HTML
+
+        # ── POST /connect — user clicked Connect ───────────────────────────────
+        @app.route("/connect", methods=["POST"])
+        def connect():
+            srv._clear_messages()
+            srv.push_status("Starting fresh browser session — please wait…")
+            srv._connect_event.set()
+            return _STATUS_HTML
+
+        # ── GET /2fa — TOTP form (served after playwright is ready) ───────────
+        @app.route("/2fa", methods=["GET"])
+        def totp_form():
             if srv._prefilled_username:
                 return (
                     _TOTP_ONLY_HTML
@@ -455,6 +499,20 @@ class LoginServer:
                 )
             return _FORM_HTML
 
+        # ── POST /2fa — user submitted credentials ─────────────────────────────
+        @app.route("/2fa", methods=["POST"])
+        def totp_submit():
+            srv._clear_messages()
+            srv.push_status("Credentials received — logging in to CERN SSO…")
+            srv._creds = {
+                "username": request.form.get("username", "").strip(),
+                "password": request.form.get("password", ""),
+                "totp":     request.form.get("totp", "").strip(),
+            }
+            srv._creds_ready.set()
+            return _STATUS_HTML
+
+        # ── GET /plot.png ──────────────────────────────────────────────────────
         @app.route("/plot.png")
         def plot_image():
             if srv._plot_path and srv._plot_path.exists():
@@ -465,10 +523,15 @@ class LoginServer:
                 )
             return "No plot yet", 404
 
+        # ── GET /events — SSE status feed ─────────────────────────────────────
         @app.route("/events")
         def events():
+            # Start from current message count so each status page only sees
+            # messages pushed after it loaded (avoids replaying stale redirects).
+            start_idx = len(srv._messages)
+
             def generate():
-                idx = 0
+                idx = start_idx
                 while not srv._shutdown_flag:
                     with srv._msg_lock:
                         batch    = srv._messages[idx:]
@@ -484,6 +547,7 @@ class LoginServer:
                 headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
             )
 
+        # ── GET /failed — error landing page ──────────────────────────────────
         @app.route("/failed")
         def failed():
             reason = request.args.get("reason", "Unknown error — check the script log.")
@@ -510,18 +574,44 @@ class LoginServer:
 
         return self._url
 
+    # ── Connect handshake ──────────────────────────────────────────────────────
+
+    def wait_for_connect(self, timeout: float | None = None) -> bool:
+        """
+        Block until the user clicks the Connect button.
+        Returns True if the user connected, False on timeout.
+        Automatically re-arms for the next call.
+        """
+        result = self._connect_event.wait(timeout=timeout)
+        self._connect_event.clear()
+        return result
+
+    def signal_session_ready(self) -> None:
+        """
+        Push an SSE redirect to /2fa — call this after playwright has navigated
+        to the portal and the browser session is ready for 2FA.
+        """
+        self.push_status("/2fa", kind="redirect")
+
     # ── Credential handshake ───────────────────────────────────────────────────
 
-    def wait_for_credentials(self) -> dict:
-        """Block until the user submits the form. Server stays alive."""
-        self._creds_ready.wait()
+    def wait_for_credentials(self, timeout: float | None = None) -> dict | None:
+        """
+        Block until the user submits the 2FA form.
+        Returns the credential dict, or None on timeout.
+        Automatically re-arms for the next call.
+        """
+        result = self._creds_ready.wait(timeout=timeout)
         self._creds_ready.clear()
+        if not result:
+            return None
         return dict(self._creds)
 
     def reset(self) -> None:
-        """Clear pending credentials so wait_for_credentials() will block again."""
+        """Clear all pending state so the server can be reused for another attempt."""
         self._creds.clear()
         self._creds_ready.clear()
+        self._connect_event.clear()
 
     # ── Status broadcasting ────────────────────────────────────────────────────
 
@@ -532,9 +622,15 @@ class LoginServer:
         kind values: 'info' | 'success' | 'warning' | 'error' | 'done' | 'plot_updated'
         Using kind='done' tells the browser to close the SSE connection.
         Using kind='plot_updated' triggers a plot image refresh (text is ignored).
+        Using kind='redirect' navigates the browser to `text` as a URL.
         """
         with self._msg_lock:
             self._messages.append({"kind": kind, "text": text})
+
+    def _clear_messages(self) -> None:
+        """Discard all queued SSE messages (called at start of each login phase)."""
+        with self._msg_lock:
+            self._messages.clear()
 
     # ── Shutdown ───────────────────────────────────────────────────────────────
 

@@ -21,6 +21,7 @@ Dependencies:
 import argparse
 import json
 import logging
+import os
 import re
 import sys
 import time
@@ -726,6 +727,22 @@ def _run_check(page, dry_run: bool):
     return gap_summaries, remaining_gaps, final_reservations
 
 
+# ── Script restart ────────────────────────────────────────────────────────────
+
+def _restart_script():
+    """
+    Replace the current process with a fresh instance of itself.
+    Called as a last resort when the login/check cycle is stuck beyond recovery.
+    Does not return.
+    """
+    log.warning("Restarting script completely via os.execv…")
+    try:
+        os.execv(sys.executable, [sys.executable] + sys.argv)
+    except Exception as exc:
+        log.error("os.execv failed (%s) — exiting instead.", exc)
+        sys.exit(1)
+
+
 # ── Main loop ─────────────────────────────────────────────────────────────────
 
 def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = False):
@@ -736,13 +753,30 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
 
     PROFILE_DIR.mkdir(parents=True, exist_ok=True)
 
-    with sync_playwright() as pw:
-        browser = pw.chromium.launch_persistent_context(
+    # How long to wait (seconds) for the user to click Connect before restarting.
+    CONNECT_TIMEOUT_SECONDS = 4 * 3600   # 4 hours
+    # How long to wait (seconds) for the user to enter their TOTP after Connect.
+    TOTP_TIMEOUT_SECONDS    = 5 * 60     # 5 minutes
+
+    def _open_browser(pw):
+        b = pw.chromium.launch_persistent_context(
             str(PROFILE_DIR),
             headless=headless,
             slow_mo=200,
         )
-        page = browser.pages[0] if browser.pages else browser.new_page()
+        p = b.pages[0] if b.pages else b.new_page()
+        return b, p
+
+    def _close_browser(browser):
+        if browser is not None:
+            try:
+                browser.close()
+            except Exception as e:
+                log.warning("Error closing browser: %s", e)
+        return None, None
+
+    with sync_playwright() as pw:
+        browser, page = _open_browser(pw)
 
         first_run = True
         consecutive_failures = 0
@@ -759,21 +793,30 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
             success = False
             last_error = None
             login_srv = None
+
             while attempt < MAX_RETRIES:
                 try:
                     # ── Step 1: navigate and handle login ────────────────────
+                    if browser is None:
+                        browser, page = _open_browser(pw)
+
                     log.info("Navigating to %s …", PORTAL_URL)
                     page.goto(PORTAL_URL, wait_until="domcontentloaded")
 
                     try:
                         wait_for_reservations_page(page, timeout=5_000)
                         log.info("Session active%s.", " – skipping login" if first_run else "")
+
                     except PlaywrightTimeoutError:
                         if not first_run:
                             log.warning("Session expired – login required.")
                         else:
                             log.info("Not logged in – starting login flow.")
 
+                        # ── Close stale browser session ───────────────────────
+                        browser, page = _close_browser(browser)
+
+                        # ── Start login server (shows Connect button) ─────────
                         if login_srv is None:
                             login_srv = login_server.LoginServer(
                                 port=LOGIN_SERVER_PORT,
@@ -782,13 +825,72 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                             )
                             login_srv.start(on_ready=_send_login_required_email)
 
-                        login_ok = False
-                        while not login_ok:
-                            creds = login_srv.wait_for_credentials()
+                        # ── Inner loop: Connect → fresh browser → 2FA → login ─
+                        login_succeeded = False
+                        while not login_succeeded:
+                            # Wait for user to click the Connect button
+                            log.info(
+                                "Waiting for user to click Connect "
+                                "(timeout: %d h)…", CONNECT_TIMEOUT_SECONDS // 3600
+                            )
+                            connected = login_srv.wait_for_connect(
+                                timeout=CONNECT_TIMEOUT_SECONDS
+                            )
+                            if not connected:
+                                log.error(
+                                    "Timed out waiting for Connect after %d hours — "
+                                    "restarting script.", CONNECT_TIMEOUT_SECONDS // 3600
+                                )
+                                login_srv.push_status(
+                                    "Timed out — restarting the system.", kind="error"
+                                )
+                                login_srv.shutdown()
+                                _restart_script()  # does not return
+
+                            # Open a fresh playwright browser
+                            log.info("User clicked Connect — opening fresh browser session…")
+                            login_srv.push_status("Opening browser session…")
+                            try:
+                                browser, page = _open_browser(pw)
+                                page.goto(PORTAL_URL, wait_until="domcontentloaded")
+                                login_srv.push_status(
+                                    "Browser ready — enter your 2FA code now."
+                                )
+                                login_srv.signal_session_ready()  # redirect → /2fa
+                            except Exception as exc:
+                                log.error("Failed to open browser session: %s", exc)
+                                login_srv.push_status(
+                                    f"Browser error: {exc} — please try Connect again.",
+                                    kind="error",
+                                )
+                                login_srv.push_status("/", kind="redirect")
+                                browser, page = _close_browser(browser)
+                                continue  # back to wait_for_connect
+
+                            # Wait for 2FA code (short timeout — code expires in 30 s)
+                            log.info(
+                                "Waiting for 2FA submission (timeout: %ds)…",
+                                TOTP_TIMEOUT_SECONDS,
+                            )
+                            creds = login_srv.wait_for_credentials(
+                                timeout=TOTP_TIMEOUT_SECONDS
+                            )
+                            if creds is None:
+                                log.warning(
+                                    "Timed out waiting for 2FA (%ds) — "
+                                    "closing browser and asking user to reconnect.",
+                                    TOTP_TIMEOUT_SECONDS,
+                                )
+                                login_srv.push_status(
+                                    "Timed out waiting for 2FA — please click Connect again.",
+                                    kind="error",
+                                )
+                                login_srv.push_status("/", kind="redirect")
+                                browser, page = _close_browser(browser)
+                                continue  # back to wait_for_connect
+
+                            # Drive playwright through CERN SSO login
                             login_srv.push_status("Logging in to CERN SSO…")
-                            # Re-navigate so the auth page is fresh (avoids stale
-                            # CSRF tokens when the user took a long time to respond).
-                            page.goto(PORTAL_URL, wait_until="domcontentloaded")
                             login_ok = perform_login(
                                 page,
                                 username=creds["username"],
@@ -797,18 +899,22 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                             )
                             if not login_ok:
                                 log.warning(
-                                    "Login automation failed — check selectors or re-try. "
-                                    "The login server will restart for another attempt."
+                                    "Login automation failed — closing browser and "
+                                    "asking user to reconnect."
                                 )
                                 login_srv.push_status(
-                                    "Login failed — please try again.", kind="error"
+                                    "Login automation failed — please click Connect again.",
+                                    kind="error",
                                 )
                                 login_srv.push_status("/", kind="redirect")
-                                login_srv.reset()
+                                browser, page = _close_browser(browser)
+                                continue  # back to wait_for_connect
 
-                        login_srv.push_status(
-                            "Login successful! Checking reservations…", kind="success"
-                        )
+                            login_succeeded = True
+                            login_srv.push_status(
+                                "Login successful! Checking reservations…", kind="success"
+                            )
+                        # ── end inner login loop ──────────────────────────────
 
                     first_run = False
 
@@ -853,6 +959,8 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                         "Error during check (attempt %d/%d): %s: %s",
                         attempt, MAX_RETRIES, type(exc).__name__, exc,
                     )
+                    # Close browser so the next attempt starts fresh
+                    browser, page = _close_browser(browser)
                     if attempt < MAX_RETRIES:
                         log.info("Retrying in %d seconds …", RETRY_DELAY_SECONDS)
                         time.sleep(RETRY_DELAY_SECONDS)
@@ -875,11 +983,25 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                     consecutive_failures, type(last_error).__name__, last_error,
                 )
                 _send_error_email(consecutive_failures, last_error)
+                # After enough consecutive failures, restart entirely to clear any
+                # stuck state (browser process leaks, broken playwright context, etc.)
+                if consecutive_failures >= MAX_RETRIES * 2:
+                    log.error(
+                        "%d consecutive failures — restarting script.", consecutive_failures
+                    )
+                    _restart_script()
+
+            # Ensure browser is open for next check cycle
+            if browser is None:
+                try:
+                    browser, page = _open_browser(pw)
+                except Exception as exc:
+                    log.error("Could not reopen browser before sleep: %s", exc)
 
             log.info("Next check in %d minutes. Press Ctrl+C to stop.", interval_minutes)
             time.sleep(interval_minutes * 60)
 
-        browser.close()
+        _close_browser(browser)
 
 
 # ── Email notifications ────────────────────────────────────────────────────────
@@ -893,9 +1015,11 @@ def _send_login_required_email(url: str = ""):
     body = (
         "The CERN Hostel Gap Filler needs you to log in to CERN SSO.\n\n"
         f"Open this link on your phone:\n\n    {url}\n\n"
-        "Enter your CERN username, password, and Google Authenticator code.\n"
-        "Get the 2FA code LAST, just before tapping Submit — it expires in 30 s.\n\n"
-        "The script will continue automatically once you submit the form."
+        "1. Tap the Connect button — this starts a fresh browser session.\n"
+        "2. On the 2FA page, open Google Authenticator LAST (code expires in 30 s),\n"
+        "   then tap Submit.\n\n"
+        "The script will continue automatically once you submit the 2FA form.\n"
+        "If login fails, the page will return you to the Connect button to retry."
     )
     try:
         notifier = GmailNotifier(str(GMAIL_CRED_PATH))
