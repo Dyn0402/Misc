@@ -409,45 +409,50 @@ def find_furthest_available(
     return best_result, all_seen_unavail
 
 
-# ── Automated CERN SSO login ──────────────────────────────────────────────────
+# ── Automated CERN SSO login (two-step) ──────────────────────────────────────
 
-def perform_login(page, username: str, password: str, totp: str) -> bool:
+def perform_login_step1(page, username: str, password: str) -> bool:
     """
-    Drive Playwright through the CERN SSO (Keycloak) login flow.
-
-    Page 1 (auth.cern.ch): username + password on the same page → click Sign In
-    Page 2 (auth.cern.ch): OTP field (#otp) → click Sign In
-    Then redirects back to the hostel portal.
-
-    Returns True on success, False if any step times out.
+    Step 1: fill username + password on the CERN SSO page and wait until the
+    OTP input appears.  Returns True once the OTP page is ready.
+    Call signal_session_ready() after this so the user sees the TOTP form.
     """
     try:
-        # ── Page 1: username + password ───────────────────────────────────────
-        log.info("Login: waiting for username/password page…")
+        log.info("Login step 1: waiting for username/password page…")
         page.wait_for_selector("#username", timeout=30_000)
         page.fill("#username", username)
         page.fill("#password", password)
         page.click("#kc-login")
-        log.info("Login: credentials submitted.")
-
-        # ── Page 2: OTP ───────────────────────────────────────────────────────
-        log.info("Login: waiting for OTP page…")
+        log.info("Login step 1: credentials submitted — waiting for OTP page…")
         page.wait_for_selector("#otp", timeout=30_000)
-        page.fill("#otp", totp)
-        page.click("#kc-login")
-        log.info("Login: OTP submitted.")
-
-        # ── Redirect back to portal ───────────────────────────────────────────
-        log.info("Login: waiting for portal redirect…")
-        wait_for_reservations_page(page, timeout=20_000)
-        log.info("Login: success — session saved to %s", PROFILE_DIR)
+        log.info("Login step 1: OTP page reached.")
         return True
-
     except PlaywrightTimeoutError as exc:
-        log.error("Login: timed out — %s", exc)
+        log.error("Login step 1: timed out — %s", exc)
         return False
     except Exception as exc:
-        log.error("Login: unexpected error — %s", exc)
+        log.error("Login step 1: unexpected error — %s", exc)
+        return False
+
+
+def perform_login_step2(page, totp: str) -> bool:
+    """
+    Step 2: fill the OTP field and wait for the portal redirect.
+    Call this after wait_for_credentials() returns the TOTP.
+    """
+    try:
+        log.info("Login step 2: filling OTP…")
+        page.fill("#otp", totp)
+        page.click("#kc-login")
+        log.info("Login step 2: OTP submitted — waiting for portal redirect…")
+        wait_for_reservations_page(page, timeout=20_000)
+        log.info("Login step 2: success — session saved to %s", PROFILE_DIR)
+        return True
+    except PlaywrightTimeoutError as exc:
+        log.error("Login step 2: timed out — %s", exc)
+        return False
+    except Exception as exc:
+        log.error("Login step 2: unexpected error — %s", exc)
         return False
 
 
@@ -825,18 +830,18 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                             )
                             login_srv.start(on_ready=_send_login_required_email)
 
-                        # ── Inner loop: Connect → fresh browser → 2FA → login ─
+                        # ── Inner loop: Connect → step-1 login → 2FA → step-2 ─
                         login_succeeded = False
                         while not login_succeeded:
-                            # Wait for user to click the Connect button
+                            # Wait for user to click the Connect button (with creds)
                             log.info(
                                 "Waiting for user to click Connect "
                                 "(timeout: %d h)…", CONNECT_TIMEOUT_SECONDS // 3600
                             )
-                            connected = login_srv.wait_for_connect(
+                            connect_creds = login_srv.wait_for_connect(
                                 timeout=CONNECT_TIMEOUT_SECONDS
                             )
-                            if not connected:
+                            if not connect_creds:
                                 log.error(
                                     "Timed out waiting for Connect after %d hours — "
                                     "restarting script.", CONNECT_TIMEOUT_SECONDS // 3600
@@ -847,16 +852,12 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                                 login_srv.shutdown()
                                 _restart_script()  # does not return
 
-                            # Open a fresh playwright browser
+                            # Open a fresh playwright browser and navigate to portal
                             log.info("User clicked Connect — opening fresh browser session…")
                             login_srv.push_status("Opening browser session…")
                             try:
                                 browser, page = _open_browser(pw)
                                 page.goto(PORTAL_URL, wait_until="domcontentloaded")
-                                login_srv.push_status(
-                                    "Browser ready — enter your 2FA code now."
-                                )
-                                login_srv.signal_session_ready()  # redirect → /2fa
                             except Exception as exc:
                                 log.error("Failed to open browser session: %s", exc)
                                 login_srv.push_status(
@@ -867,7 +868,33 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                                 browser, page = _close_browser(browser)
                                 continue  # back to wait_for_connect
 
-                            # Wait for 2FA code (short timeout — code expires in 30 s)
+                            # Step 1: enter username + password immediately
+                            login_srv.push_status("Entering username and password…")
+                            step1_ok = perform_login_step1(
+                                page,
+                                username=connect_creds["username"],
+                                password=connect_creds["password"],
+                            )
+                            if not step1_ok:
+                                log.warning(
+                                    "Login step 1 failed — closing browser and "
+                                    "asking user to reconnect."
+                                )
+                                login_srv.push_status(
+                                    "Credential entry failed — please try Connect again.",
+                                    kind="error",
+                                )
+                                login_srv.push_redirect_home()
+                                browser, page = _close_browser(browser)
+                                continue  # back to wait_for_connect
+
+                            # Step 1 done — OTP page is now loaded; redirect user to /2fa
+                            login_srv.push_status(
+                                "Credentials accepted — enter your 2FA code now."
+                            )
+                            login_srv.signal_session_ready()  # redirect → /2fa
+
+                            # Wait for TOTP from user
                             log.info(
                                 "Waiting for 2FA submission (timeout: %ds)…",
                                 TOTP_TIMEOUT_SECONDS,
@@ -889,21 +916,15 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                                 browser, page = _close_browser(browser)
                                 continue  # back to wait_for_connect
 
-                            # Drive playwright through CERN SSO login
-                            login_srv.push_status("Logging in to CERN SSO…")
-                            login_ok = perform_login(
-                                page,
-                                username=creds["username"],
-                                password=creds["password"],
-                                totp=creds["totp"],
-                            )
+                            # Step 2: enter OTP and wait for portal
+                            login_ok = perform_login_step2(page, totp=creds["totp"])
                             if not login_ok:
                                 log.warning(
-                                    "Login automation failed — closing browser and "
+                                    "Login step 2 failed — closing browser and "
                                     "asking user to reconnect."
                                 )
                                 login_srv.push_status(
-                                    "Login automation failed — please click Connect again.",
+                                    "Login failed — please click Connect again.",
                                     kind="error",
                                 )
                                 login_srv.push_redirect_home()

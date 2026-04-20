@@ -5,9 +5,10 @@ broadcasting to the user's phone browser.
 Public API:
     LoginServer(port, creds_file, plot_path)
         .start(on_ready)            → starts server, returns URL
-        .wait_for_connect(timeout)  → blocks until user clicks Connect button
-        .signal_session_ready()     → push SSE redirect to /2fa (call after playwright ready)
-        .wait_for_credentials(timeout) → blocks until 2FA form submitted; None on timeout
+        .wait_for_connect(timeout)  → blocks until user clicks Connect; returns
+                                      {"username": str, "password": str} or None on timeout
+        .signal_session_ready()     → push SSE redirect to /2fa (call after step-1 login done)
+        .wait_for_credentials(timeout) → blocks until TOTP form submitted; None on timeout
         .push_status(text, kind)    → push a line to the SSE status feed
         .reset()                    → clear pending state (for login retry)
         .shutdown()                 → stop the server
@@ -119,7 +120,7 @@ _PLOT_IMG = (
     'onload="this.style.display=\'block\'" onerror="this.style.display=\'none\'">'
 )
 
-# ── Connect page — first page shown on session expiry ─────────────────────────
+# ── Connect page — credentials pre-loaded (just a button) ─────────────────────
 
 _CONNECT_HTML = """<!DOCTYPE html>
 <html lang="en">
@@ -134,9 +135,9 @@ _CONNECT_HTML = """<!DOCTYPE html>
     <h2>&#128683; Session Expired</h2>
     <p class="subtitle">Your CERN session has expired and must be renewed.</p>
     <div class="notice">
-      Clicking <strong>Connect</strong> starts a fresh browser session and
-      takes you to the 2FA page. Have your <strong>Google Authenticator</strong>
-      app ready — enter the code <em>just</em> before tapping Submit.
+      Clicking <strong>Connect</strong> will immediately enter your saved
+      credentials in the browser. You will then be taken to the
+      <strong>2FA page</strong> to enter your Google Authenticator code.
     </div>
     <form method="post" action="/connect">
       <button type="submit">Connect &amp; Start Login</button>
@@ -146,26 +147,26 @@ _CONNECT_HTML = """<!DOCTYPE html>
 </body>
 </html>""".format(css=_SHARED_CSS, plot_img=_PLOT_IMG)
 
-# ── 2FA form pages (served at /2fa) ───────────────────────────────────────────
+# ── Connect page — no saved credentials (ask for username + password) ──────────
 
-# Full form: username + password + TOTP
-_FORM_HTML = """<!DOCTYPE html>
+_CONNECT_CREDS_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CERN Login</title>
+  <title>CERN Hostel — Reconnect</title>
   <style>{css}</style>
 </head>
 <body>
   <div class="card">
-    <h2>CERN Hostel Login</h2>
-    <p class="subtitle">Session expired — enter your credentials below.</p>
+    <h2>&#128683; Session Expired</h2>
+    <p class="subtitle">Enter your credentials, then click Connect.</p>
     <div class="notice">
-      Get your <strong>Google Authenticator code last</strong>, just before
-      tapping Submit — TOTP codes expire after 30 seconds.
+      Your username and password will be entered in the browser immediately.
+      You will then be taken to the <strong>2FA page</strong> to enter your
+      Google Authenticator code.
     </div>
-    <form method="post" action="/2fa" autocomplete="on">
+    <form method="post" action="/connect" autocomplete="on">
       <div class="field">
         <label for="username">CERN Username</label>
         <input id="username" name="username" type="text"
@@ -177,24 +178,16 @@ _FORM_HTML = """<!DOCTYPE html>
         <input id="password" name="password" type="password"
           autocomplete="current-password" required>
       </div>
-      <div class="field">
-        <label for="totp">Google Authenticator Code</label>
-        <div class="totp-wrap">
-          <input id="totp" name="totp" type="number"
-            inputmode="numeric" pattern="[0-9]{{6}}"
-            maxlength="6" placeholder="000000" required>
-        </div>
-      </div>
-      <button type="submit">Submit &amp; Log In</button>
+      <button type="submit">Connect &amp; Start Login</button>
     </form>
     {plot_img}
   </div>
 </body>
 </html>""".format(css=_SHARED_CSS, plot_img=_PLOT_IMG)
 
-# TOTP-only form — shown when username/password are pre-loaded from creds file.
-# {{username}} and {{password}} are filled in at request time via str.replace().
-_TOTP_ONLY_HTML = """<!DOCTYPE html>
+# ── TOTP form (served at /2fa after step-1 login completes) ───────────────────
+
+_TOTP_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -205,14 +198,12 @@ _TOTP_ONLY_HTML = """<!DOCTYPE html>
 <body>
   <div class="card">
     <h2>CERN Hostel — 2FA</h2>
-    <p class="subtitle">Credentials loaded. Enter your Google Authenticator code.</p>
+    <p class="subtitle">Credentials accepted. Enter your Google Authenticator code.</p>
     <div class="notice">
       Open your authenticator app <strong>last</strong>, just before tapping
       Submit — TOTP codes expire after 30 seconds.
     </div>
     <form method="post" action="/2fa" autocomplete="off">
-      <input type="hidden" name="username" value="{{username}}">
-      <input type="hidden" name="password" value="{{password}}">
       <div class="field">
         <label for="totp">Google Authenticator Code</label>
         <div class="totp-wrap">
@@ -420,19 +411,21 @@ def _get_public_ip() -> str | None:
 class LoginServer:
     """
     Temporary Flask server that:
-      - Shows a Connect button page when session expires
-      - After Connect is clicked, signals the main thread to open a fresh
-        playwright session, then redirects the user to the 2FA form
-      - After 2FA is submitted, streams live login status via SSE
-      - Serves the current plot at /plot.png (refreshable from the status page)
+      - Shows a Connect button page (with optional username/password fields) when
+        the session expires
+      - After Connect is clicked, signals the main thread to open a fresh playwright
+        session and immediately enter username + password (step 1)
+      - Once step 1 completes (OTP page reached), redirects the user to the TOTP form
+      - After TOTP is submitted, streams live login status via SSE
 
     Flow:
-        GET /          → Connect button page
+        GET /          → Connect page (button only if creds pre-loaded, else with fields)
         POST /connect  → signals wait_for_connect(); returns status page (SSE)
-        (main thread opens playwright, calls signal_session_ready())
-        GET /2fa       → TOTP form (or full form if no pre-loaded creds)
+        (main thread opens playwright, enters username/password — step 1)
+        (main thread calls signal_session_ready() once OTP page is reached)
+        GET /2fa       → TOTP-only form
         POST /2fa      → signals wait_for_credentials(); returns status page (SSE)
-        (main thread drives playwright login, pushes status via push_status())
+        (main thread enters TOTP — step 2, pushes status via push_status())
     """
 
     def __init__(
@@ -455,6 +448,7 @@ class LoginServer:
                 creds_file, self._prefilled_username,
             )
 
+        self._connect_creds: dict = {}   # {"username": str, "password": str}
         self._creds: dict        = {}
         self._creds_ready        = threading.Event()
         self._connect_event      = threading.Event()
@@ -479,47 +473,35 @@ class LoginServer:
         # ── GET / — phase-aware landing page ──────────────────────────────────
         @app.route("/", methods=["GET"])
         def connect_page():
-            # If we're already waiting for 2FA, go straight to the form so
-            # reloading or navigating back always shows the right page.
             if srv._phase == "2fa":
-                if srv._prefilled_username:
-                    return (
-                        _TOTP_ONLY_HTML
-                        .replace("{username}", srv._prefilled_username)
-                        .replace("{password}", srv._prefilled_password)
-                    )
-                return _FORM_HTML
-            return _CONNECT_HTML
+                return _TOTP_HTML
+            if srv._prefilled_username:
+                return _CONNECT_HTML
+            return _CONNECT_CREDS_HTML
 
         # ── POST /connect — user clicked Connect ───────────────────────────────
         @app.route("/connect", methods=["POST"])
         def connect():
             srv._clear_messages()
-            srv.push_status("Starting fresh browser session — please wait…")
+            srv.push_status("Starting browser session — entering credentials…")
+            srv._connect_creds = {
+                "username": request.form.get("username", "").strip() or srv._prefilled_username,
+                "password": request.form.get("password", "") or srv._prefilled_password,
+            }
             srv._connect_event.set()
             return _STATUS_HTML
 
-        # ── GET /2fa — TOTP form (served after playwright is ready) ───────────
+        # ── GET /2fa — TOTP form (served after step-1 login completes) ────────
         @app.route("/2fa", methods=["GET"])
         def totp_form():
-            if srv._prefilled_username:
-                return (
-                    _TOTP_ONLY_HTML
-                    .replace("{username}", srv._prefilled_username)
-                    .replace("{password}", srv._prefilled_password)
-                )
-            return _FORM_HTML
+            return _TOTP_HTML
 
-        # ── POST /2fa — user submitted credentials ─────────────────────────────
+        # ── POST /2fa — user submitted TOTP ───────────────────────────────────
         @app.route("/2fa", methods=["POST"])
         def totp_submit():
             srv._clear_messages()
-            srv.push_status("Credentials received — logging in to CERN SSO…")
-            srv._creds = {
-                "username": request.form.get("username", "").strip(),
-                "password": request.form.get("password", ""),
-                "totp":     request.form.get("totp", "").strip(),
-            }
+            srv.push_status("2FA code received — completing login…")
+            srv._creds = {"totp": request.form.get("totp", "").strip()}
             srv._creds_ready.set()
             return _STATUS_HTML
 
@@ -587,15 +569,17 @@ class LoginServer:
 
     # ── Connect handshake ──────────────────────────────────────────────────────
 
-    def wait_for_connect(self, timeout: float | None = None) -> bool:
+    def wait_for_connect(self, timeout: float | None = None) -> dict | None:
         """
         Block until the user clicks the Connect button.
-        Returns True if the user connected, False on timeout.
+        Returns {"username": str, "password": str} on success, None on timeout.
         Automatically re-arms for the next call.
         """
         result = self._connect_event.wait(timeout=timeout)
         self._connect_event.clear()
-        return result
+        if not result:
+            return None
+        return dict(self._connect_creds)
 
     def signal_session_ready(self) -> None:
         """
@@ -631,6 +615,7 @@ class LoginServer:
 
     def reset(self) -> None:
         """Clear all pending state so the server can be reused for another attempt."""
+        self._connect_creds.clear()
         self._creds.clear()
         self._creds_ready.clear()
         self._connect_event.clear()
