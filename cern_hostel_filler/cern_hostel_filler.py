@@ -367,11 +367,19 @@ def find_furthest_available(
                 break
             mid = lo + (hi - lo) // 2
             new_from, new_to = base_date, mid
+            # mid == initial_boundary means no change to the 'to' date — skip to avoid a no-op submit
+            if new_to == initial_boundary:
+                hi = mid
+                continue
         else:
             if lo >= hi:
                 break
             mid = lo + (hi - lo) // 2
             new_from, new_to = mid, base_date
+            # mid == initial_boundary means no change to the 'from' date — skip to avoid a no-op submit
+            if new_from == initial_boundary:
+                lo = mid + timedelta(days=1)
+                continue
 
         err = submit_modify(page, res["id"], new_from, new_to, dry_run)
         unavail = parse_error_dates(err) if err else set()
