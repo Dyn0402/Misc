@@ -74,6 +74,9 @@ LOGIN_SERVER_PORT = 5000
 # Log file
 LOG_FILE = Path("cern_hostel_filler.log")
 
+# CSV log of sent notifications — used to suppress duplicate emails
+NOTIFICATION_LOG_PATH = Path("notification_log.csv")
+
 # Availability plot — saved after every check cycle; also shown on the login page.
 PLOT_PATH = Path("availability_plot.png")
 
@@ -383,17 +386,26 @@ def find_furthest_available(
 
         err = submit_modify(page, res["id"], new_from, new_to, dry_run)
         unavail = parse_error_dates(err) if err else set()
+        if err and not unavail:
+            # General error with no specific dates (e.g. "Validation error: Not enough available rooms")
+            # Mark the new nights being attempted as unavailable so the caller doesn't flag them as bookable.
+            if extend_which == "to":
+                unavail = set(date_range(res["to"], mid))
+            else:
+                unavail = set(date_range(mid, res["from"]))
+            log.info("  General (no-date) error — treating new nights as unavailable: %s", sorted(unavail))
         all_seen_unavail |= unavail
 
         if extend_which == "to":
-            if not (unavail & set(date_range(res["to"], mid))):
-                # success up to mid
+            new_nights = set(date_range(res["to"], mid))
+            if not err or (unavail and not (unavail & new_nights)):
                 best = mid
                 lo = mid + timedelta(days=1)
             else:
                 hi = mid
         else:
-            if not (unavail & set(date_range(mid, res["from"]))):
+            new_nights = set(date_range(mid, res["from"]))
+            if not err or (unavail and not (unavail & new_nights)):
                 best = mid
                 hi = mid
             else:
@@ -549,12 +561,16 @@ def _run_check(page, dry_run: bool):
 
             # Partial failure – find furthest reachable date
             unavail = parse_error_dates(err)
+            attempted_nights = set(date_range(gap_start, ideal_to))
+            if not unavail:
+                # General error with no specific dates (e.g. "Validation error") — treat all as unavailable
+                log.info("  General (no-date) error — treating all gap nights as unavailable.")
+                unavail = attempted_nights
             all_unavail_dates |= unavail
             log.info("  Partial failure. Unavailable dates: %s", sorted(unavail))
 
             # The available dates are those in [gap_start, ideal_to) NOT in unavail
-            attempted_nights = set(date_range(gap_start, ideal_to))
-            available_new    = attempted_nights - unavail
+            available_new = attempted_nights - unavail
 
             if available_new:
                 furthest = max(available_new)
@@ -628,6 +644,10 @@ def _run_check(page, dry_run: bool):
                 cur_gap["result"] = "filled"
             else:
                 unavail2 = parse_error_dates(err2)
+                if not unavail2:
+                    # General error with no specific dates — treat all remaining nights as unavailable
+                    log.info("  General (no-date) error on next_res — treating remaining nights as unavailable.")
+                    unavail2 = set(remaining_gap_nights)
                 all_unavail_dates |= unavail2
                 available2 = remaining_gap_nights - unavail2
                 if available2:
@@ -1033,6 +1053,46 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
         _close_browser(browser)
 
 
+# ── Notification deduplication ───────────────────────────────────────────────
+
+def _notification_key(gap_summaries: list[dict]) -> str:
+    """Stable string fingerprint of actionable gap results for dedup comparison."""
+    parts = []
+    for gs in sorted(gap_summaries, key=lambda g: g["label"]):
+        if gs["result"] not in ("no change",):
+            nights_str = ",".join(str(d) for d in sorted(gs.get("manual_nights", [])))
+            parts.append(f"{gs['label']}|{gs['result']}|{nights_str}")
+    return ";".join(parts)
+
+
+def _was_recently_notified(key: str) -> bool:
+    """Return True if the last row in the notification CSV has the same key."""
+    if not NOTIFICATION_LOG_PATH.exists():
+        return False
+    import csv as _csv
+    try:
+        with open(NOTIFICATION_LOG_PATH, newline="", encoding="utf-8") as f:
+            rows = list(_csv.DictReader(f))
+        return bool(rows) and rows[-1].get("key") == key
+    except Exception:
+        return False
+
+
+def _log_notification(key: str, subject: str) -> None:
+    """Append one row to the notification CSV log."""
+    import csv as _csv
+    write_header = not NOTIFICATION_LOG_PATH.exists()
+    with open(NOTIFICATION_LOG_PATH, "a", newline="", encoding="utf-8") as f:
+        writer = _csv.DictWriter(f, fieldnames=["timestamp", "key", "subject"])
+        if write_header:
+            writer.writeheader()
+        writer.writerow({
+            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "key":       key,
+            "subject":   subject,
+        })
+
+
 # ── Email notifications ────────────────────────────────────────────────────────
 
 def _send_login_required_email(url: str = ""):
@@ -1102,6 +1162,12 @@ def _send_notification(gap_summaries, remaining_gaps, final_reservations, dry_ru
     if dry_run:
         subject = "[DRY-RUN] " + subject
 
+    # Deduplication: skip if the last notification had identical actionable content
+    key = _notification_key(gap_summaries)
+    if _was_recently_notified(key):
+        log.info("Notification suppressed — same content as last email; skipping. (key: %s)", key)
+        return
+
     lines = []
 
     if any_non_adjacent:
@@ -1149,6 +1215,7 @@ def _send_notification(gap_summaries, remaining_gaps, final_reservations, dry_ru
         notifier = GmailNotifier(str(GMAIL_CRED_PATH))
         notifier.send_email(NOTIFY_EMAIL, subject, body)
         log.info("Notification email sent to %s.", NOTIFY_EMAIL)
+        _log_notification(key, subject)
     except Exception as e:
         log.error("Failed to send notification email: %s", e)
 
