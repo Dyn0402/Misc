@@ -2,8 +2,8 @@
 """
 Palaiseau Appointment Checker
 ==============================
-Polls the RDV-préfecture slot page for Palaiseau (demarche 2246) and alerts
-you when an appointment slot becomes available.
+Polls the RDV-préfecture slot pages for Palaiseau (demarches 2246 and 2282)
+and alerts you when an appointment slot becomes available.
 
 Usage:
     python palaiseau_appointment_checker.py [--interval MINUTES]
@@ -35,7 +35,10 @@ from gmail_notifier import GmailNotifier
 
 # ── User configuration ────────────────────────────────────────────────────────
 
-TARGET_URL = "https://www.rdv-prefecture.interieur.gouv.fr/rdvpref/reservation/demarche/2246/creneau/"
+TARGET_URLS = [
+    "https://www.rdv-prefecture.interieur.gouv.fr/rdvpref/reservation/demarche/2246/creneau/",
+    "https://www.rdv-prefecture.interieur.gouv.fr/rdvpref/reservation/demarche/2282/creneau/",
+]
 
 NOTIFY_EMAIL    = "dyn040294@gmail.com"
 GMAIL_CRED_PATH = Path.home() / "Desktop/creds/gmail_cred.txt"
@@ -64,7 +67,8 @@ log = logging.getLogger(__name__)
 
 STEALTH = Stealth(navigator_platform_override="Linux x86_64")
 
-NO_SLOTS_TEXT   = "Aucun créneau disponible"
+NO_SLOTS_TEXT        = "Aucun créneau disponible"
+SLOTS_AVAILABLE_TEXT = "Choisissez votre créneau"
 CAPTCHA_URL_PAT = re.compile(r"/cgu/")
 SLOTS_URL_PAT   = re.compile(r"/creneau/")
 
@@ -136,68 +140,56 @@ def _extract_last_update(body: str) -> str:
 
 
 def _slots_available(body: str) -> bool:
-    return NO_SLOTS_TEXT not in body
+    return SLOTS_AVAILABLE_TEXT in body
 
 
 # ── CAPTCHA handling ──────────────────────────────────────────────────────────
 
-def _wait_for_captcha_solve(page) -> bool:
+def _wait_for_captcha_solve(page, url: str) -> bool:
     """
-    Navigate to TARGET_URL and pause until the user solves the CAPTCHA.
-    A gentle reminder tone plays every CAPTCHA_REMINDER_INTERVAL seconds.
-    Returns True when we land on creneau/.
+    Navigate to url and wait (automatically) until the CAPTCHA is solved
+    and the browser lands on creneau/. Plays a gentle reminder tone every
+    CAPTCHA_REMINDER_INTERVAL seconds while waiting.
     """
-    log.info("Navigating to %s", TARGET_URL)
-    page.goto(TARGET_URL, wait_until="domcontentloaded")
+    log.info("[%s] Navigating to slot page…", url)
+    page.goto(url, wait_until="domcontentloaded")
     time.sleep(1)
 
     if _on_slots_page(page):
-        log.info("Already on slots page — no CAPTCHA needed.")
+        log.info("[%s] Already on slots page — no CAPTCHA needed.", url)
         return True
 
     if _on_captcha_page(page):
-        log.info("CAPTCHA page detected (%s).", page.url)
+        log.info("[%s] CAPTCHA detected — solve it in the browser window.", url)
     else:
-        log.warning("Unexpected landing page: %s", page.url)
+        log.warning("[%s] Unexpected landing page: %s", url, page.url)
 
-    print("\n" + "=" * 60)
-    print("  Solve the CAPTCHA in the browser window.")
-    print("  Once you see 'Aucun créneau disponible' or actual slots,")
-    print("  press Enter here.")
-    print("=" * 60)
-
-    # Start gentle reminder tones while we wait
     reminder_thread, reminder_stop = _make_repeating_thread(_SOUND_GENTLE, CAPTCHA_REMINDER_INTERVAL)
     reminder_thread.start()
 
-    input("\n  [Press Enter when ready] ")
+    # Poll until the browser reaches creneau/
+    while not _on_slots_page(page):
+        try:
+            page.wait_for_url("**/creneau/**", timeout=60_000)
+        except PlaywrightTimeoutError:
+            log.info("[%s] Still waiting for CAPTCHA to be solved…", url)
+
     reminder_stop.set()
-
-    # Wait up to 10 s for the redirect to creneau/ to settle
-    try:
-        page.wait_for_url("**/creneau/**", timeout=10_000)
-    except PlaywrightTimeoutError:
-        log.warning("Still not on creneau/ after 10 s — current URL: %s", page.url)
-
-    if _on_slots_page(page):
-        log.info("CAPTCHA solved — now on slots page.")
-        return True
-
-    log.error("Did not reach slots page after CAPTCHA. URL: %s", page.url)
-    return False
+    log.info("[%s] CAPTCHA solved — now on slots page.", url)
+    return True
 
 
 # ── Single check ──────────────────────────────────────────────────────────────
 
-def _check_slots(page) -> tuple[bool, str] | None:
+def _check_slots(page, url: str) -> tuple[bool, str] | None:
     """
-    Reload the page and check for available slots.
+    Navigate to url and check for available slots.
 
     Returns:
         (available: bool, body: str) — normal result
         None                         — session expired / CAPTCHA required again
     """
-    page.reload(wait_until="domcontentloaded")
+    page.goto(url, wait_until="domcontentloaded")
     time.sleep(1)
 
     if _on_captcha_page(page):
@@ -227,30 +219,25 @@ def _send_email(subject: str, body: str):
         log.error("Failed to send email: %s", exc)
 
 
-def _notify_slots_available(page_url: str, last_update: str):
+def _notify_slots_available(target_url: str, last_update: str):
     subject = "[ACTION REQUIRED] Palaiseau appointment slot available!"
     body = (
-        "An appointment slot has become available for:\n"
-        "  Remise de titre — Palaiseau Hall A, Guichet 12\n\n"
-        f"  Book now: {page_url}\n\n"
+        f"An appointment slot has become available:\n\n"
+        f"  Book now: {target_url}\n\n"
         f"  Detected at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
         f"  {last_update}\n"
     )
     _send_email(subject, body)
 
 
-# ── Main loop ─────────────────────────────────────────────────────────────────
+# ── Per-URL browser loop ──────────────────────────────────────────────────────
 
-def run(interval_minutes: int):
-    log.info("=" * 60)
-    log.info("Palaiseau Appointment Checker  |  interval=%dm", interval_minutes)
-    log.info("=" * 60)
-
-    last_notified_available = False
-    last_update_seen        = ""
+def _run_single_url(url: str, interval_minutes: int):
+    """Owns one browser instance and polls one URL indefinitely."""
+    last_notified    = False
+    last_update_seen = ""
     session_start: datetime | None = None
 
-    # Alarm state (slots available)
     alarm_thread: threading.Thread | None = None
     alarm_stop:   threading.Event  | None = None
 
@@ -277,68 +264,73 @@ def run(interval_minutes: int):
         )
         page = _make_page(ctx)
 
-        # Initial navigation + CAPTCHA solve
-        if not _wait_for_captcha_solve(page):
-            log.error("Could not reach slots page — exiting.")
-            browser.close()
-            return
+        _wait_for_captcha_solve(page, url)
         session_start = datetime.now()
-        log.info("Session started at %s", session_start.strftime("%Y-%m-%d %H:%M:%S"))
+        log.info("[%s] Session started at %s", url, session_start.strftime("%Y-%m-%d %H:%M:%S"))
 
-        # Main polling loop
         while True:
-            result = _check_slots(page)
+            result = _check_slots(page, url)
 
             if result is None:
-                # Session expired
                 _stop_alarm()
                 if session_start:
                     duration = datetime.now() - session_start
                     mins = int(duration.total_seconds() // 60)
                     secs = int(duration.total_seconds() % 60)
-                    log.info(
-                        "Session expired after %dm %ds (started %s)",
-                        mins, secs, session_start.strftime("%H:%M:%S"),
-                    )
+                    log.info("[%s] Session expired after %dm %ds", url, mins, secs)
                     session_start = None
-
-                log.info("Waiting for CAPTCHA to be solved again…")
-                if not _wait_for_captcha_solve(page):
-                    log.error("Could not recover — exiting.")
-                    break
+                _wait_for_captcha_solve(page, url)
                 session_start = datetime.now()
-                log.info("New session started at %s", session_start.strftime("%Y-%m-%d %H:%M:%S"))
-                last_notified_available = False
+                log.info("[%s] New session at %s", url, session_start.strftime("%Y-%m-%d %H:%M:%S"))
+                last_notified = False
                 continue
 
             available, body = result
             last_update = _extract_last_update(body)
 
-            # Log when the site's own "last updated" timestamp changes
             if last_update and last_update != last_update_seen:
-                log.info("Slot data updated: %s", last_update)
+                log.info("[%s] Slot data updated: %s", url, last_update)
                 last_update_seen = last_update
 
             if available:
-                log.info("*** SLOTS AVAILABLE ***  %s", last_update)
+                log.info("[%s] *** SLOTS AVAILABLE ***  %s", url, last_update)
                 _start_alarm()
-                if not last_notified_available:
-                    _notify_slots_available(page.url, last_update)
-                    last_notified_available = True
+                if not last_notified:
+                    _notify_slots_available(url, last_update)
+                    last_notified = True
                 else:
-                    log.info("(alarm already sounding — skipping repeat email)")
+                    log.info("[%s] (alarm already sounding — skipping repeat email)", url)
             else:
-                log.info(
-                    "No slots.  %s",
-                    last_update or "(no update timestamp found)",
-                )
+                log.info("[%s] No slots.  %s", url, last_update or "(no update timestamp found)")
                 _stop_alarm()
-                last_notified_available = False
+                last_notified = False
 
-            log.info("Next check in %d minute(s).", interval_minutes)
+            log.info("[%s] Next check in %d minute(s).", url, interval_minutes)
             time.sleep(interval_minutes * 60)
 
         browser.close()
+
+
+# ── Main entry ────────────────────────────────────────────────────────────────
+
+def run(interval_minutes: int):
+    log.info("=" * 60)
+    log.info("Palaiseau Appointment Checker  |  interval=%dm  |  %d URL(s)", interval_minutes, len(TARGET_URLS))
+    log.info("=" * 60)
+
+    threads = [
+        threading.Thread(
+            target=_run_single_url,
+            args=(url, interval_minutes),
+            daemon=True,
+            name=f"checker-{i}",
+        )
+        for i, url in enumerate(TARGET_URLS)
+    ]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
 
 
 def main():
