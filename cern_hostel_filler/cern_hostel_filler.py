@@ -531,7 +531,7 @@ def perform_login_step2(page, totp: str) -> bool:
         page.fill("#otp", totp)
         page.click("#kc-login")
         log.info("Login step 2: OTP submitted — waiting for portal redirect…")
-        wait_for_reservations_page(page, timeout=20_000)
+        wait_for_reservations_page(page, timeout=60_000)
         log.info("Login step 2: success — session saved.")
         return True
     except PlaywrightTimeoutError as exc:
@@ -855,8 +855,9 @@ def _close_browser(browser):
 
 def _enter_needs_login(account: Account, state: AccountState, login_srv) -> None:
     state.status = "needs_login"
-    state.last_login_reminder_at = None   # send the first reminder right away
+    state.last_login_reminder_at = None
     login_srv.begin_login(account.slug)
+    login_srv.update_dashboard(account.slug, status="needs_login", next_check_at=None)
 
 
 def _maybe_send_login_reminder(account: Account, state: AccountState, login_srv) -> None:
@@ -893,6 +894,18 @@ def _run_check_and_report(account: Account, page, dry_run: bool, show_plot: bool
 
     login_srv.push_status(slug, f"Next check in {interval_minutes} minutes.", kind="done")
     login_srv.set_idle(slug, idle_text)
+    now_iso = datetime.now().isoformat(timespec="seconds")
+    if result:
+        _gs, _rem, _res = result
+        login_srv.update_dashboard(
+            slug,
+            status="ready",
+            last_check_at=now_iso,
+            reservations=[{"id": r["id"], "from": str(r["from"]), "to": str(r["to"])} for r in _res],
+            remaining_gaps=[{"gap_start": str(g["gap_start"]), "gap_end": str(g["gap_end"])} for g in _rem],
+        )
+    else:
+        login_srv.update_dashboard(slug, status="ready", last_check_at=now_iso)
     return result
 
 
@@ -978,11 +991,15 @@ def _run_account_check(pw, account: Account, state: AccountState, dry_run: bool,
         _run_check_and_report(account, page, dry_run, show_plot, login_srv, interval_minutes)
         _close_browser(browser)
         state.consecutive_failures = 0
+        login_srv.update_dashboard(account.slug, consecutive_failures=0)
 
     except Exception as exc:
         log.error("[%s] Error during check: %s: %s", account.display_name, type(exc).__name__, exc)
         _close_browser(browser)
         state.consecutive_failures += 1
+        login_srv.update_dashboard(account.slug,
+                                   consecutive_failures=state.consecutive_failures,
+                                   status="error")
         _send_error_email(account, state.consecutive_failures, exc)
 
 
@@ -999,7 +1016,8 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
     for acc in ACCOUNTS:
         acc.profile_dir.mkdir(parents=True, exist_ok=True)
 
-    login_srv = login_server.LoginServer(port=LOGIN_SERVER_PORT, accounts=ACCOUNTS, primary_slug=ACCOUNTS[0].slug)
+    login_srv = login_server.LoginServer(port=LOGIN_SERVER_PORT, accounts=ACCOUNTS,
+                                         primary_slug=ACCOUNTS[0].slug, log_path=LOG_FILE)
     base_url = login_srv.start()
     log.info("Login/status server running at %s — personal pages:", base_url)
     for acc in ACCOUNTS:
@@ -1023,6 +1041,8 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                                 state.status = "ready"
                                 state.next_check_time = time.monotonic() + interval_minutes * 60
                                 state.last_login_reminder_at = None
+                                _nxt = (datetime.now() + timedelta(minutes=interval_minutes)).isoformat(timespec="seconds")
+                                login_srv.update_dashboard(slug, next_check_at=_nxt)
                                 log.info("[%s] Next check in %d minutes.", account.display_name, interval_minutes)
                             # on failure: stays "needs_login"; user was already redirected to retry
                         else:
@@ -1036,6 +1056,8 @@ def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = 
                         if state.status != "needs_login":
                             state.status = "ready"
                             state.next_check_time = time.monotonic() + interval_minutes * 60
+                            _nxt = (datetime.now() + timedelta(minutes=interval_minutes)).isoformat(timespec="seconds")
+                            login_srv.update_dashboard(slug, next_check_at=_nxt)
                             log.info("[%s] Next check in %d minutes. Press Ctrl+C to stop.",
                                      account.display_name, interval_minutes)
 

@@ -25,12 +25,14 @@ so no import of cern_hostel_filler.Account is required):
     slug, display_name, cern_username, cern_creds_path, plot_path
 """
 
+import html as _html
 import json
 import logging
 import socket
 import threading
 import time
 import urllib.request
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from flask import Flask, request, Response, abort, redirect, send_file as flask_send_file
@@ -196,6 +198,257 @@ _ERROR_CSS = """
       text-decoration: none; font-size: 1rem;
     }
 """
+
+
+_DASHBOARD_CSS = """
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+           background: #f0f4f8; margin: 0; padding: 16px; }
+    .dashboard { max-width: 1200px; margin: 0 auto; }
+    .dash-header { display: flex; justify-content: space-between; align-items: baseline;
+                   margin-bottom: 20px; flex-wrap: wrap; gap: 8px; }
+    .dash-header h1 { margin: 0; font-size: 1.5rem; color: #1a1a2e; }
+    .updated { color: #6b7280; font-size: 0.85rem; }
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+    .user-card { background: #fff; border-radius: 12px;
+                 box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden; }
+    .card-top { padding: 20px 20px 14px; }
+    .card-title { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .dot.pulse { animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    .name { font-size: 1.15rem; font-weight: 700; color: #1a1a2e; }
+    .badge { padding: 3px 9px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .badge-green { background: #dcfce7; color: #15803d; }
+    .badge-amber { background: #fef3c7; color: #92400e; }
+    .badge-red   { background: #fee2e2; color: #b91c1c; }
+    .badge-gray  { background: #f3f4f6; color: #6b7280; }
+    .card-meta { display: flex; flex-wrap: wrap; gap: 4px 16px;
+                 font-size: 0.8rem; color: #6b7280; margin-bottom: 8px; }
+    .status-text { font-size: 0.85rem; color: #374151; background: #f9fafb;
+                   border-radius: 6px; padding: 8px 10px; line-height: 1.4; }
+    details { border-top: 1px solid #f3f4f6; }
+    summary { padding: 11px 20px; font-size: 0.88rem; font-weight: 600; color: #374151;
+              cursor: pointer; user-select: none; list-style: none;
+              display: flex; justify-content: space-between; align-items: center; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "▾"; font-size: 0.9rem; color: #9ca3af; }
+    details[open] summary::after { content: "▴"; }
+    .detail-body { padding: 2px 20px 14px; }
+    .detail-body h4 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;
+                      color: #9ca3af; margin: 10px 0 5px; }
+    .detail-body ul { margin: 0; padding: 0 0 0 16px; font-size: 0.85rem; color: #374151; }
+    .detail-body li { padding: 2px 0; }
+    .gaps li { color: #b91c1c; font-weight: 500; }
+    .all-good { color: #15803d; font-size: 0.85rem; font-weight: 600; margin: 4px 0; }
+    .empty { color: #9ca3af; font-size: 0.85rem; margin: 4px 0; font-style: italic; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0; }
+    .stat-box { background: #f9fafb; border-radius: 8px; padding: 10px 8px; text-align: center; }
+    .stat-box .num { display: block; font-size: 1.25rem; font-weight: 700; color: #1a1a2e; }
+    .stat-box .lbl { display: block; font-size: 0.68rem; color: #6b7280; margin-top: 2px; }
+    .log-scroll { background: #111827; border-radius: 8px; padding: 10px 12px;
+                  max-height: 220px; overflow-y: auto; margin-top: 6px; }
+    .log-line { font-family: monospace; font-size: 0.72rem; color: #d1fae5;
+                line-height: 1.55; white-space: pre-wrap; word-break: break-all; }
+    .log-line.warn { color: #fde68a; }
+    .log-line.err  { color: #fca5a5; }
+"""
+
+
+def _parse_log_stats(log_path, display_name: str) -> dict:
+    """Scan the log file and return per-account check/fill/login counts + recent lines."""
+    if not log_path:
+        return {}
+    log_path = Path(log_path)
+    if not log_path.exists():
+        return {}
+    now = datetime.now()
+    cutoff_24h = now - timedelta(hours=24)
+    cutoff_7d  = now - timedelta(days=7)
+    checks_24h = checks_7d = fills_24h = fills_7d = logins_24h = logins_7d = 0
+    recent: list[tuple[datetime, str]] = []
+    prefix = f"[{display_name}]"
+    try:
+        with open(log_path, encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                if prefix not in line:
+                    continue
+                try:
+                    ts = datetime.strptime(line[:19], "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    continue
+                if ts < cutoff_7d:
+                    continue
+                recent.append((ts, line.rstrip()))
+                in_24h = ts >= cutoff_24h
+                low = line.lower()
+                if "checking…" in low or "checking..." in low:
+                    checks_7d += 1
+                    if in_24h: checks_24h += 1
+                if "gap fully filled" in low or "fully covered" in low:
+                    fills_7d += 1
+                    if in_24h: fills_24h += 1
+                if "session expired" in low:
+                    logins_7d += 1
+                    if in_24h: logins_24h += 1
+    except OSError:
+        return {}
+    recent.sort(key=lambda x: x[0])
+    return {
+        "checks_24h": checks_24h, "checks_7d": checks_7d,
+        "fills_24h":  fills_24h,  "fills_7d":  fills_7d,
+        "logins_24h": logins_24h, "logins_7d": logins_7d,
+        "recent_lines": [ln for _, ln in recent[-20:]],
+    }
+
+
+def _rel_time(iso_str: str | None) -> str:
+    if not iso_str:
+        return "—"
+    try:
+        dt = datetime.fromisoformat(iso_str)
+    except (ValueError, TypeError):
+        return iso_str
+    secs = int((datetime.now() - dt).total_seconds())
+    if secs < 60:   return f"{secs}s ago"
+    if secs < 3600: return f"{secs // 60}m ago"
+    return f"{secs // 3600}h {(secs % 3600) // 60}m ago"
+
+
+def _until_time(iso_str: str | None) -> str:
+    if not iso_str:
+        return "—"
+    try:
+        dt = datetime.fromisoformat(iso_str)
+    except (ValueError, TypeError):
+        return iso_str
+    secs = int((dt - datetime.now()).total_seconds())
+    if secs <= 0:   return "soon"
+    if secs < 3600: return f"in {secs // 60}m {secs % 60}s"
+    return f"in {secs // 3600}h {(secs % 3600) // 60}m"
+
+
+def _status_dashboard_html(accounts_data: list[dict], log_path, now_str: str) -> str:
+    cards = []
+    for d in accounts_data:
+        slug        = d["slug"]
+        name        = d["display_name"]
+        status      = d.get("status", "unknown")
+        failures    = d.get("consecutive_failures", 0)
+        status_text = _html.escape(d.get("status_text", "") or "")
+        target_s    = _html.escape(str(d.get("target_start", "")))
+        target_e    = _html.escape(str(d.get("target_end", "")))
+        last_check  = _rel_time(d.get("last_check_at"))
+        next_check  = _until_time(d.get("next_check_at"))
+
+        if failures > 0:
+            dot_color, badge_text, badge_cls = "#dc2626", f"Error ({failures}\xd7)", "badge-red"
+            pulse_cls = ""
+        elif status == "ready":
+            dot_color, badge_text, badge_cls = "#16a34a", "Running", "badge-green"
+            pulse_cls = " pulse"
+        elif status == "needs_login":
+            dot_color, badge_text, badge_cls = "#d97706", "Needs Login", "badge-amber"
+            pulse_cls = ""
+        else:
+            dot_color, badge_text, badge_cls = "#6b7280", "Unknown", "badge-gray"
+            pulse_cls = ""
+
+        reservations = d.get("reservations", [])
+        gaps         = d.get("remaining_gaps", [])
+
+        res_html = ("<ul>" + "".join(
+            f"<li>#{_html.escape(r['id'])}&nbsp;&nbsp;"
+            f"{_html.escape(r['from'])} &rarr; {_html.escape(r['to'])}</li>"
+            for r in reservations
+        ) + "</ul>") if reservations else "<p class='empty'>No data yet</p>"
+
+        if gaps:
+            gaps_html = ("<ul class='gaps'>" + "".join(
+                f"<li>{_html.escape(g['gap_start'])} &ndash; {_html.escape(g['gap_end'])}</li>"
+                for g in gaps
+            ) + "</ul>")
+            gap_badge = f"⚠ {len(gaps)} gap{'s' if len(gaps) > 1 else ''}"
+        elif reservations:
+            gaps_html = "<p class='all-good'>&#10003; Target range fully covered!</p>"
+            gap_badge = "&#10003; Covered"
+        else:
+            gaps_html = "<p class='empty'>No data yet</p>"
+            gap_badge = ""
+
+        stats = _parse_log_stats(log_path, name)
+        def _s(k): return stats.get(k, "—")  # noqa: E731
+        stats_html = f"""<div class="stats-grid">
+          <div class="stat-box"><span class="num">{_s('checks_24h')}</span><span class="lbl">checks&nbsp;(24h)</span></div>
+          <div class="stat-box"><span class="num">{_s('checks_7d')}</span><span class="lbl">checks&nbsp;(7d)</span></div>
+          <div class="stat-box"><span class="num">{_s('fills_24h')}</span><span class="lbl">fills&nbsp;(24h)</span></div>
+          <div class="stat-box"><span class="num">{_s('fills_7d')}</span><span class="lbl">fills&nbsp;(7d)</span></div>
+          <div class="stat-box"><span class="num">{_s('logins_24h')}</span><span class="lbl">logins&nbsp;(24h)</span></div>
+          <div class="stat-box"><span class="num">{_s('logins_7d')}</span><span class="lbl">logins&nbsp;(7d)</span></div>
+        </div>"""
+
+        recent_lines = stats.get("recent_lines", [])
+
+        def _line_cls(ln: str) -> str:
+            ll = ln.lower()
+            if "error" in ll:   return "err"
+            if "warning" in ll: return "warn"
+            return ""
+
+        log_html = ("<div class='log-scroll'>" + "".join(
+            f"<div class='log-line {_line_cls(ln)}'>{_html.escape(ln)}</div>"
+            for ln in recent_lines
+        ) + "</div>") if recent_lines else "<p class='empty'>No log entries yet</p>"
+
+        cards.append(f"""
+        <div class="user-card">
+          <div class="card-top">
+            <div class="card-title">
+              <span class="dot{pulse_cls}" style="background:{dot_color}"></span>
+              <span class="name">{_html.escape(name)}</span>
+              <span class="badge {badge_cls}">{badge_text}</span>
+            </div>
+            <div class="card-meta">
+              <span>Target: {target_s} &ndash; {target_e}</span>
+              <span>Last: {last_check}</span>
+              <span>Next: {next_check}</span>
+            </div>
+            <div class="status-text">{status_text or '&nbsp;'}</div>
+          </div>
+          <details>
+            <summary>Booking status <span style="font-weight:400;color:#6b7280;font-size:0.8rem">{gap_badge}</span></summary>
+            <div class="detail-body">
+              <h4>Reservations</h4>{res_html}
+              <h4>Remaining gaps</h4>{gaps_html}
+            </div>
+          </details>
+          <details>
+            <summary>Activity stats</summary>
+            <div class="detail-body">
+              {stats_html}
+              <h4>Recent log entries</h4>{log_html}
+            </div>
+          </details>
+          <details>
+            <summary>Availability plot</summary>
+            <div class="detail-body" style="padding-top:10px">
+              <img src="/{slug}/plot.png?t={int(time.time())}"
+                   style="width:100%;border-radius:6px;border:1px solid #e5e7eb"
+                   onerror="this.outerHTML='<p class=empty>No plot available yet</p>'">
+            </div>
+          </details>
+        </div>""")
+
+    body = f"""
+    <div class="dashboard">
+      <div class="dash-header">
+        <h1>&#127968; CERN Hostel Status</h1>
+        <span class="updated">Updated: {now_str} &middot; auto-refreshes every 30s</span>
+      </div>
+      <div class="cards-grid">{''.join(cards)}</div>
+    </div>"""
+    return _page_shell("CERN Hostel — Status", _DASHBOARD_CSS,
+                       '<meta http-equiv="refresh" content="30">' + body)
 
 
 # ── Per-page HTML builders (slug-aware; built per-request, not precomputed) ────
@@ -453,11 +706,14 @@ class LoginServer:
         (scheduler enters TOTP — step 2, pushes status via push_status())
     """
 
-    def __init__(self, port: int, accounts: list, primary_slug: str | None = None):
+    def __init__(self, port: int, accounts: list, primary_slug: str | None = None,
+                 log_path=None):
         self._port         = port
         self._primary_slug = primary_slug or (accounts[0].slug if accounts else None)
+        self._log_path     = Path(log_path) if log_path else None
 
-        self._accounts: dict[str, _AccountLogin] = {}
+        self._accounts:  dict[str, _AccountLogin] = {}
+        self._dashboard: dict[str, dict]           = {}
         for acc in accounts:
             prefilled_user = ""
             prefilled_pass = ""
@@ -480,6 +736,18 @@ class LoginServer:
             # public surface.
             self._accounts[acc.slug]._has_password = has_password
 
+            self._dashboard[acc.slug] = {
+                "slug":                 acc.slug,
+                "display_name":         acc.display_name,
+                "status":               "unknown",
+                "consecutive_failures": 0,
+                "last_check_at":        None,
+                "next_check_at":        None,
+                "reservations":         [],
+                "remaining_gaps":       [],
+                "target_start":         str(getattr(acc, "target_start", "")),
+                "target_end":           str(getattr(acc, "target_end",   "")),
+            }
             log.info(
                 "Registered login page for %-10s → /%s/  (%s)",
                 acc.display_name, acc.slug,
@@ -587,6 +855,18 @@ class LoginServer:
                 headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
             )
 
+        @app.route("/status")
+        def status_dashboard():
+            now_str = time.strftime("%Y-%m-%d %H:%M:%S")
+            data = []
+            for slug_, d in srv._dashboard.items():
+                merged = dict(d)
+                acc = srv._accounts.get(slug_)
+                if acc:
+                    merged["status_text"] = acc.status_text
+                data.append(merged)
+            return _status_dashboard_html(data, srv._log_path, now_str)
+
         @app.route("/<slug>/failed")
         def failed(slug):
             acc = srv._account(slug)
@@ -687,6 +967,14 @@ class LoginServer:
         kind values: 'info' | 'success' | 'warning' | 'error' | 'done' | 'plot_updated' | 'redirect'
         """
         self._account(slug).push(text, kind)
+
+    # ── Dashboard state ────────────────────────────────────────────────────────
+
+    def update_dashboard(self, slug: str, **fields) -> None:
+        """Merge fields into the named account's dashboard state."""
+        d = self._dashboard.get(slug)
+        if d is not None:
+            d.update(fields)
 
     # ── Shutdown ───────────────────────────────────────────────────────────────
 
