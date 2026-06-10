@@ -497,6 +497,33 @@ def find_furthest_available(
 
 # ── Automated CERN SSO login (two-step) ──────────────────────────────────────
 
+def _save_screenshot(page, label: str) -> None:
+    try:
+        path = Path(f"screenshot_{label}_{time.strftime('%Y%m%d_%H%M%S')}.png")
+        page.screenshot(path=str(path), full_page=True)
+        log.info("Screenshot saved: %s", path.resolve())
+    except Exception as exc:
+        log.warning("Could not save screenshot: %s", exc)
+
+
+def _log_page_state(page, prefix: str) -> None:
+    """Log current URL, title, and visible input IDs — useful for diagnosing unexpected pages."""
+    try:
+        url   = page.url
+        title = page.title()
+        # Grab all visible input ids/names so we can see what form fields exist
+        inputs = page.evaluate("""
+            () => [...document.querySelectorAll('input')].map(
+                el => el.id || el.name || el.type || '?'
+            )
+        """)
+        log.info("%s URL:    %s", prefix, url)
+        log.info("%s Title:  %r", prefix, title)
+        log.info("%s Inputs: %s", prefix, inputs)
+    except Exception as exc:
+        log.warning("%s (could not read page state: %s)", prefix, exc)
+
+
 def perform_login_step1(page, username: str, password: str) -> bool:
     """
     Step 1: fill username + password on the CERN SSO page and wait until the
@@ -504,8 +531,10 @@ def perform_login_step1(page, username: str, password: str) -> bool:
     Call signal_session_ready() after this so the user sees the TOTP form.
     """
     try:
-        log.info("Login step 1: waiting for username/password page…")
+        _log_page_state(page, "Login step 1 start —")
+        log.info("Login step 1: waiting for #username…")
         page.wait_for_selector("#username", timeout=30_000)
+        log.info("Login step 1: #username found — URL: %s", page.url)
         page.fill("#username", username)
         page.fill("#password", password)
         page.click("#kc-login")
@@ -515,9 +544,13 @@ def perform_login_step1(page, username: str, password: str) -> bool:
         return True
     except PlaywrightTimeoutError as exc:
         log.error("Login step 1: timed out — %s", exc)
+        _log_page_state(page, "Login step 1 timeout —")
+        _save_screenshot(page, "step1_timeout")
         return False
     except Exception as exc:
         log.error("Login step 1: unexpected error — %s", exc)
+        _log_page_state(page, "Login step 1 error —")
+        _save_screenshot(page, "step1_error")
         return False
 
 
@@ -536,9 +569,13 @@ def perform_login_step2(page, totp: str) -> bool:
         return True
     except PlaywrightTimeoutError as exc:
         log.error("Login step 2: timed out — %s", exc)
+        _log_page_state(page, "Login step 2 timeout —")
+        _save_screenshot(page, "step2_timeout")
         return False
     except Exception as exc:
         log.error("Login step 2: unexpected error — %s", exc)
+        _log_page_state(page, "Login step 2 error —")
+        _save_screenshot(page, "step2_error")
         return False
 
 
@@ -925,6 +962,7 @@ def _perform_full_login(pw, account: Account, connect_creds: dict, login_srv, he
     try:
         browser, page = _open_browser(pw, account, headless)
         page.goto(PORTAL_URL, wait_until="domcontentloaded")
+        _log_page_state(page, f"[{account.display_name}] After goto —")
     except Exception as exc:
         log.error("[%s] Failed to open browser session: %s", account.display_name, exc)
         login_srv.push_status(slug, f"Browser error: {exc} — please try Connect again.", kind="error")
