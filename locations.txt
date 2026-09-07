@@ -1,0 +1,212 @@
+[
+    {
+        "name": "Adams",
+        "address": "12200 N Pecos St Ste 100 Westminster CO 80234",
+        "latitude": 39.9187168,
+        "longitude": -105.003768
+    },
+    {
+        "name": "Alamosa",
+        "address": "702 Del Sol Dr Alamosa CO 81101",
+        "latitude": 37.4804497,
+        "longitude": -105.9019045
+    },
+    {
+        "name": "Aurora",
+        "address": "14391 E 4th Ave Aurora CO 80011",
+        "latitude": 39.7224372,
+        "longitude": -104.8208154
+    },
+    {
+        "name": "Boulder",
+        "address": "2850 Iris Ave Ste F Boulder CO 80301",
+        "latitude": 40.0350033,
+        "longitude": -105.2567827
+    },
+    {
+        "name": "Canon City",
+        "address": "127 Justice Center Rd Ste K Canon City CO 81212",
+        "latitude": 38.4459493,
+        "longitude": -105.1844695
+    },
+    {
+        "name": "Centennial",
+        "address": "5120 E Arapahoe Rd Centennial CO 80122",
+        "latitude": 39.5935136,
+        "longitude": -104.9282292
+    },
+    {
+        "name": "Colorado Springs",
+        "address": "2447 N Union Blvd Co Springs CO 80909",
+        "latitude": 38.8673345,
+        "longitude": -104.7925899
+    },
+    {
+        "name": "Cortez",
+        "address": "2210 E Main St Cortez CO 81321",
+        "latitude": 37.34942849999999,
+        "longitude": -108.557735
+    },
+    {
+        "name": "Craig",
+        "address": "555 Breeze #130 Craig CO 81625",
+        "latitude": 40.515173,
+        "longitude": -107.5482624
+    },
+    {
+        "name": "Delta",
+        "address": "501 Palmer St Ste 210 Delta CO 81416",
+        "latitude": 38.7400122,
+        "longitude": -108.0726945
+    },
+    {
+        "name": "Denver NE",
+        "address": "4685 Peoria St Ste 115 Denver CO 80239",
+        "latitude": 39.7811922,
+        "longitude": -104.8486988
+    },
+    {
+        "name": "Denver Westgate",
+        "address": "3265 S Wadsworth Blvd #3A Lakewood CO 80227",
+        "latitude": 39.6572501,
+        "longitude": -105.0832489
+    },
+    {
+        "name": "Durango",
+        "address": "329-A S Camino Del Rio Durango CO 81303",
+        "latitude": 37.271365,
+        "longitude": -107.8841963
+    },
+    {
+        "name": "Fort Collins",
+        "address": "3030 S College Ave Ste 100 Fort Collins CO 80525",
+        "latitude": 40.5461188,
+        "longitude": -105.0765846
+    },
+    {
+        "name": "Fort Morgan",
+        "address": "231 Prospect St Ft Morgan CO 80701",
+        "latitude": 40.24958669999999,
+        "longitude": -103.7990957
+    },
+    {
+        "name": "Frisco",
+        "address": "37 County Rd 1005 Frisco CO 80443",
+        "latitude": 39.5715733,
+        "longitude": -106.0812962
+    },
+    {
+        "name": "Glenwood Springs",
+        "address": "51027 Hwy 6 and 24 Glenwood Springs CO 81601",
+        "latitude": 39.5625438,
+        "longitude": -107.363817
+    },
+    {
+        "name": "Golden",
+        "address": "16950 W Colfax Ave Ste 104 Golden CO 80401",
+        "latitude": 39.7236238,
+        "longitude": -105.1914981
+    },
+    {
+        "name": "Grand Junction",
+        "address": "222 S 6th Ste 111 Grand Junction CO 81501",
+        "latitude": 39.0655219,
+        "longitude": -108.5623446
+    },
+    {
+        "name": "Greeley",
+        "address": "2320 Reservoir Rd Ste A Greeley CO 80634",
+        "latitude": 40.4000597,
+        "longitude": -104.7172836
+    },
+    {
+        "name": "Gunnison",
+        "address": "302 N Main St Gunnison CO 80216",
+        "latitude": 38.5468708,
+        "longitude": -106.9266677
+    },
+    {
+        "name": "La Junta",
+        "address": "13 W 3rd St Ste 101 La Junta CO 81050",
+        "latitude": 37.9850091,
+        "longitude": -103.5438321
+    },
+    {
+        "name": "Lakewood",
+        "address": "1881 Pierce St Lakewood CO 80214",
+        "latitude": 39.7456311,
+        "longitude": -105.073042
+    },
+    {
+        "name": "Lamar",
+        "address": "3505 S Main St Lamar CO 81052",
+        "latitude": 38.05356039999999,
+        "longitude": -102.615656
+    },
+    {
+        "name": "Longmont",
+        "address": "917 S Main St Ste 600 Longmont CO 80501",
+        "latitude": 40.1482674,
+        "longitude": -105.1034979
+    },
+    {
+        "name": "Loveland",
+        "address": "118 E 29th St Ste F Loveland CO 80538",
+        "latitude": 40.4205838,
+        "longitude": -105.0770236
+    },
+    {
+        "name": "Meeker",
+        "address": "555 Main St   Meeker CO 81641",
+        "latitude": 40.0380636,
+        "longitude": -107.9131412
+    },
+    {
+        "name": "Montrose",
+        "address": "2305 S Townsend Ave Unit C Montrose CO 81401",
+        "latitude": 38.4609172,
+        "longitude": -107.8652641
+    },
+    {
+        "name": "Parker",
+        "address": "17924 Cottonwood Dr Parker CO 80134",
+        "latitude": 39.5579,
+        "longitude": -104.7802715
+    },
+    {
+        "name": "Pueblo",
+        "address": "827 W 4th St Pueblo CO 81003",
+        "latitude": 38.2708106,
+        "longitude": -104.6191308
+    },
+    {
+        "name": "Salida",
+        "address": "448 E 1st St Salida CO 81201",
+        "latitude": 38.5343131,
+        "longitude": -105.9876608
+    },
+    {
+        "name": "Steamboat Springs",
+        "address": "425 Anglers Dr Ste C Bldg H Steamboat Springs CO 80488",
+        "latitude": 40.4665667,
+        "longitude": -106.8230274
+    },
+    {
+        "name": "Sterling",
+        "address": "714 W Main St Sterling CO 80751",
+        "latitude": 40.6255737,
+        "longitude": -103.2217948
+    },
+    {
+        "name": "Trinidad",
+        "address": "200 E First St Rm 100 Trinidad CO 81082",
+        "latitude": 37.1682264,
+        "longitude": -104.503086
+    },
+    {
+        "name": "Westminster",
+        "address": "8464 Federal Blvd Westminster CO 80031",
+        "latitude": 39.8510382,
+        "longitude": -105.0233523
+    }
+]

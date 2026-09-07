@@ -1,0 +1,1647 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    
+        <script>
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        </script>
+    
+    <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
+    <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_92bf8427ffdde3c56446efb1206896ef {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_92bf8427ffdde3c56446efb1206896ef" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_92bf8427ffdde3c56446efb1206896ef = L.map(
+                "map_92bf8427ffdde3c56446efb1206896ef",
+                {
+                    center: [39.5501, -105.7821],
+                    crs: L.CRS.EPSG3857,
+                    zoom: 7,
+                    zoomControl: true,
+                    preferCanvas: false,
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_15b77a0bd143ff2998a8c0d496a888ef = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {"attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors", "detectRetina": false, "maxNativeZoom": 19, "maxZoom": 19, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
+            );
+        
+    
+            tile_layer_15b77a0bd143ff2998a8c0d496a888ef.addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var marker_27fd7ed377cf7fe80fac010bbf698a0c = L.marker(
+                [39.9187168, -105.003768],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_d39b17cf365272e3bcea90f03e0af78c = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_27fd7ed377cf7fe80fac010bbf698a0c.setIcon(icon_d39b17cf365272e3bcea90f03e0af78c);
+        
+    
+        var popup_fbea003308f0dc715f9f866fcb7d25e2 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_63b338be942d035367543d99ed4140e2 = $(`<div id="html_63b338be942d035367543d99ed4140e2" style="width: 100.0%; height: 100.0%;">Adams<br>12200 N Pecos St Ste 100 Westminster CO 80234</div>`)[0];
+                popup_fbea003308f0dc715f9f866fcb7d25e2.setContent(html_63b338be942d035367543d99ed4140e2);
+            
+        
+
+        marker_27fd7ed377cf7fe80fac010bbf698a0c.bindPopup(popup_fbea003308f0dc715f9f866fcb7d25e2)
+        ;
+
+        
+    
+    
+            marker_27fd7ed377cf7fe80fac010bbf698a0c.bindTooltip(
+                `<div>
+                     Adams
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_a915cc7588680e50268c5f96683890b3 = L.marker(
+                [39.9187168, -105.003768],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_16600d57c4d9d6304a8385457fd92978 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eAdams\u003c/div\u003e"});
+            marker_a915cc7588680e50268c5f96683890b3.setIcon(div_icon_16600d57c4d9d6304a8385457fd92978);
+        
+    
+            var marker_d5d2bd75560e4f62e451ebd4ce8cbf48 = L.marker(
+                [37.4804497, -105.9019045],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_8809e2db702f1e0a7a03622fde44e7a4 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_d5d2bd75560e4f62e451ebd4ce8cbf48.setIcon(icon_8809e2db702f1e0a7a03622fde44e7a4);
+        
+    
+        var popup_d9c566c7fd2526c364e404f7880127a0 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_5bcf6273eaccb92fd7e087f322f92886 = $(`<div id="html_5bcf6273eaccb92fd7e087f322f92886" style="width: 100.0%; height: 100.0%;">Alamosa<br>702 Del Sol Dr Alamosa CO 81101</div>`)[0];
+                popup_d9c566c7fd2526c364e404f7880127a0.setContent(html_5bcf6273eaccb92fd7e087f322f92886);
+            
+        
+
+        marker_d5d2bd75560e4f62e451ebd4ce8cbf48.bindPopup(popup_d9c566c7fd2526c364e404f7880127a0)
+        ;
+
+        
+    
+    
+            marker_d5d2bd75560e4f62e451ebd4ce8cbf48.bindTooltip(
+                `<div>
+                     Alamosa
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_58de6ad98e4719feeaaccd574d902c0d = L.marker(
+                [37.4804497, -105.9019045],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_37fa113e08db4d835b4cf336034c3718 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eAlamosa\u003c/div\u003e"});
+            marker_58de6ad98e4719feeaaccd574d902c0d.setIcon(div_icon_37fa113e08db4d835b4cf336034c3718);
+        
+    
+            var marker_dc01f9de4a1aa1f3ccec105b98b2d814 = L.marker(
+                [39.7224372, -104.8208154],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_9e4e2a1b5c27826c0f917b28e67162a3 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_dc01f9de4a1aa1f3ccec105b98b2d814.setIcon(icon_9e4e2a1b5c27826c0f917b28e67162a3);
+        
+    
+        var popup_daf0bc18596933535bf2deb25317ac68 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_fc6f1cd0ca748d30b5939ab06bd87539 = $(`<div id="html_fc6f1cd0ca748d30b5939ab06bd87539" style="width: 100.0%; height: 100.0%;">Aurora<br>14391 E 4th Ave Aurora CO 80011</div>`)[0];
+                popup_daf0bc18596933535bf2deb25317ac68.setContent(html_fc6f1cd0ca748d30b5939ab06bd87539);
+            
+        
+
+        marker_dc01f9de4a1aa1f3ccec105b98b2d814.bindPopup(popup_daf0bc18596933535bf2deb25317ac68)
+        ;
+
+        
+    
+    
+            marker_dc01f9de4a1aa1f3ccec105b98b2d814.bindTooltip(
+                `<div>
+                     Aurora
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_5d8a6551022e5e0481eaaabb05a69d33 = L.marker(
+                [39.7224372, -104.8208154],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_696baa4bb60e0bc78c89c5d1a1964a43 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eAurora\u003c/div\u003e"});
+            marker_5d8a6551022e5e0481eaaabb05a69d33.setIcon(div_icon_696baa4bb60e0bc78c89c5d1a1964a43);
+        
+    
+            var marker_064855427067cd6de06e942d2b37d426 = L.marker(
+                [40.0350033, -105.2567827],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_b6936c106a0ec3a10d1ab83104864876 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_064855427067cd6de06e942d2b37d426.setIcon(icon_b6936c106a0ec3a10d1ab83104864876);
+        
+    
+        var popup_84caac3f7dd81f6d4a3168354a6045f3 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_24d655ba1174b16ca34c7d5ba27f6f0c = $(`<div id="html_24d655ba1174b16ca34c7d5ba27f6f0c" style="width: 100.0%; height: 100.0%;">Boulder<br>2850 Iris Ave Ste F Boulder CO 80301</div>`)[0];
+                popup_84caac3f7dd81f6d4a3168354a6045f3.setContent(html_24d655ba1174b16ca34c7d5ba27f6f0c);
+            
+        
+
+        marker_064855427067cd6de06e942d2b37d426.bindPopup(popup_84caac3f7dd81f6d4a3168354a6045f3)
+        ;
+
+        
+    
+    
+            marker_064855427067cd6de06e942d2b37d426.bindTooltip(
+                `<div>
+                     Boulder
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_361ee7f60a0a720ea8e784419efdff62 = L.marker(
+                [40.0350033, -105.2567827],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_4576bb8f06f473f0e74073df9f8f7a5f = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eBoulder\u003c/div\u003e"});
+            marker_361ee7f60a0a720ea8e784419efdff62.setIcon(div_icon_4576bb8f06f473f0e74073df9f8f7a5f);
+        
+    
+            var marker_f94d4e91ce9f0b278a43a2d93d7d1f77 = L.marker(
+                [38.4459493, -105.1844695],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_8f7013af76ca0117b8473d01fb6e9b43 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_f94d4e91ce9f0b278a43a2d93d7d1f77.setIcon(icon_8f7013af76ca0117b8473d01fb6e9b43);
+        
+    
+        var popup_aa72dab2b1d34a3f1aac3a843c1928b4 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_7f13c0cc6f5b8da392093cc5b3e5856e = $(`<div id="html_7f13c0cc6f5b8da392093cc5b3e5856e" style="width: 100.0%; height: 100.0%;">Canon City<br>127 Justice Center Rd Ste K Canon City CO 81212</div>`)[0];
+                popup_aa72dab2b1d34a3f1aac3a843c1928b4.setContent(html_7f13c0cc6f5b8da392093cc5b3e5856e);
+            
+        
+
+        marker_f94d4e91ce9f0b278a43a2d93d7d1f77.bindPopup(popup_aa72dab2b1d34a3f1aac3a843c1928b4)
+        ;
+
+        
+    
+    
+            marker_f94d4e91ce9f0b278a43a2d93d7d1f77.bindTooltip(
+                `<div>
+                     Canon City
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_99fe40a04b20986fa07bde0d8629bc2f = L.marker(
+                [38.4459493, -105.1844695],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_b3a2e01533fb1e88c55cfbde20e67f1c = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eCanon City\u003c/div\u003e"});
+            marker_99fe40a04b20986fa07bde0d8629bc2f.setIcon(div_icon_b3a2e01533fb1e88c55cfbde20e67f1c);
+        
+    
+            var marker_d4f52b21d352e2066862003508feae95 = L.marker(
+                [39.5935136, -104.9282292],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_d8070500c97e84b3e2e860cede3f9dbf = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_d4f52b21d352e2066862003508feae95.setIcon(icon_d8070500c97e84b3e2e860cede3f9dbf);
+        
+    
+        var popup_950d087ecbf739bd63bca2ac853f8f7d = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_39bc649c7d191198eb8167f6f3c6137b = $(`<div id="html_39bc649c7d191198eb8167f6f3c6137b" style="width: 100.0%; height: 100.0%;">Centennial<br>5120 E Arapahoe Rd Centennial CO 80122</div>`)[0];
+                popup_950d087ecbf739bd63bca2ac853f8f7d.setContent(html_39bc649c7d191198eb8167f6f3c6137b);
+            
+        
+
+        marker_d4f52b21d352e2066862003508feae95.bindPopup(popup_950d087ecbf739bd63bca2ac853f8f7d)
+        ;
+
+        
+    
+    
+            marker_d4f52b21d352e2066862003508feae95.bindTooltip(
+                `<div>
+                     Centennial
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_64dec7e249fe5ef84863d76985aa8306 = L.marker(
+                [39.5935136, -104.9282292],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_fb659332cfc765704414a2967fa12cd3 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eCentennial\u003c/div\u003e"});
+            marker_64dec7e249fe5ef84863d76985aa8306.setIcon(div_icon_fb659332cfc765704414a2967fa12cd3);
+        
+    
+            var marker_cdad0229c2ae4579ceaea8b8eec7fc0c = L.marker(
+                [38.8673345, -104.7925899],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_b4f3127de7c60d897944d91d04e75220 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_cdad0229c2ae4579ceaea8b8eec7fc0c.setIcon(icon_b4f3127de7c60d897944d91d04e75220);
+        
+    
+        var popup_4786a2edb8ac9349c61db3c50bf64429 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_c8bbf0cfd8b74d8ec85bdf67874663c4 = $(`<div id="html_c8bbf0cfd8b74d8ec85bdf67874663c4" style="width: 100.0%; height: 100.0%;">Colorado Springs<br>2447 N Union Blvd Co Springs CO 80909</div>`)[0];
+                popup_4786a2edb8ac9349c61db3c50bf64429.setContent(html_c8bbf0cfd8b74d8ec85bdf67874663c4);
+            
+        
+
+        marker_cdad0229c2ae4579ceaea8b8eec7fc0c.bindPopup(popup_4786a2edb8ac9349c61db3c50bf64429)
+        ;
+
+        
+    
+    
+            marker_cdad0229c2ae4579ceaea8b8eec7fc0c.bindTooltip(
+                `<div>
+                     Colorado Springs
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_cdc40ece7d4e0318efce43a4e62a810c = L.marker(
+                [38.8673345, -104.7925899],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_80d3513c7a53b4ff20ae17f2b96bbb3b = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eColorado Springs\u003c/div\u003e"});
+            marker_cdc40ece7d4e0318efce43a4e62a810c.setIcon(div_icon_80d3513c7a53b4ff20ae17f2b96bbb3b);
+        
+    
+            var marker_7bc18a1f8fb8ec17eed4214b35a896a0 = L.marker(
+                [37.34942849999999, -108.557735],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_f7b6045d7ae3c883e3ae162ed3d2dcec = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_7bc18a1f8fb8ec17eed4214b35a896a0.setIcon(icon_f7b6045d7ae3c883e3ae162ed3d2dcec);
+        
+    
+        var popup_8c8c797b4bc4529e786f2018c27d8cb7 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_757c5807a9fa5098ec89b597790ad0f2 = $(`<div id="html_757c5807a9fa5098ec89b597790ad0f2" style="width: 100.0%; height: 100.0%;">Cortez<br>2210 E Main St Cortez CO 81321</div>`)[0];
+                popup_8c8c797b4bc4529e786f2018c27d8cb7.setContent(html_757c5807a9fa5098ec89b597790ad0f2);
+            
+        
+
+        marker_7bc18a1f8fb8ec17eed4214b35a896a0.bindPopup(popup_8c8c797b4bc4529e786f2018c27d8cb7)
+        ;
+
+        
+    
+    
+            marker_7bc18a1f8fb8ec17eed4214b35a896a0.bindTooltip(
+                `<div>
+                     Cortez
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_c9494be3ca61b28ad329aaca0ef03ce0 = L.marker(
+                [37.34942849999999, -108.557735],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_6e903c76430bf9f26fb584bb33200c23 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eCortez\u003c/div\u003e"});
+            marker_c9494be3ca61b28ad329aaca0ef03ce0.setIcon(div_icon_6e903c76430bf9f26fb584bb33200c23);
+        
+    
+            var marker_b70fe70aa6ca15835f7c14b7a7ce774e = L.marker(
+                [40.515173, -107.5482624],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_bd1c52787ccdd21654ca5b4b73d77534 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_b70fe70aa6ca15835f7c14b7a7ce774e.setIcon(icon_bd1c52787ccdd21654ca5b4b73d77534);
+        
+    
+        var popup_c72d73ef529006fcc846d1e08610d238 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_98996b7990ab2890cd439dbeddb04c44 = $(`<div id="html_98996b7990ab2890cd439dbeddb04c44" style="width: 100.0%; height: 100.0%;">Craig<br>555 Breeze #130 Craig CO 81625</div>`)[0];
+                popup_c72d73ef529006fcc846d1e08610d238.setContent(html_98996b7990ab2890cd439dbeddb04c44);
+            
+        
+
+        marker_b70fe70aa6ca15835f7c14b7a7ce774e.bindPopup(popup_c72d73ef529006fcc846d1e08610d238)
+        ;
+
+        
+    
+    
+            marker_b70fe70aa6ca15835f7c14b7a7ce774e.bindTooltip(
+                `<div>
+                     Craig
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_aea8b62d34dc94013855a4c1191daede = L.marker(
+                [40.515173, -107.5482624],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_f5a632647a87caa4624b129b13ea1eae = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eCraig\u003c/div\u003e"});
+            marker_aea8b62d34dc94013855a4c1191daede.setIcon(div_icon_f5a632647a87caa4624b129b13ea1eae);
+        
+    
+            var marker_51a5eefb91422595544189d7647a5f88 = L.marker(
+                [38.7400122, -108.0726945],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_9db22528a54634368dc48bf272d87564 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_51a5eefb91422595544189d7647a5f88.setIcon(icon_9db22528a54634368dc48bf272d87564);
+        
+    
+        var popup_cd332a6e9ec6e0b2adb622498f696ce1 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_0fcd26b4b34f48ead59aa4e6bcc75c92 = $(`<div id="html_0fcd26b4b34f48ead59aa4e6bcc75c92" style="width: 100.0%; height: 100.0%;">Delta<br>501 Palmer St Ste 210 Delta CO 81416</div>`)[0];
+                popup_cd332a6e9ec6e0b2adb622498f696ce1.setContent(html_0fcd26b4b34f48ead59aa4e6bcc75c92);
+            
+        
+
+        marker_51a5eefb91422595544189d7647a5f88.bindPopup(popup_cd332a6e9ec6e0b2adb622498f696ce1)
+        ;
+
+        
+    
+    
+            marker_51a5eefb91422595544189d7647a5f88.bindTooltip(
+                `<div>
+                     Delta
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_eeb14f2cae9905a889a3c35e70df0edf = L.marker(
+                [38.7400122, -108.0726945],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_3a260d24bbca187b745181e6eba92ff7 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eDelta\u003c/div\u003e"});
+            marker_eeb14f2cae9905a889a3c35e70df0edf.setIcon(div_icon_3a260d24bbca187b745181e6eba92ff7);
+        
+    
+            var marker_6d5e1882d245fd41742a771c2437eade = L.marker(
+                [39.7811922, -104.8486988],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_bf68db2dd43617a24c5f563d78680383 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_6d5e1882d245fd41742a771c2437eade.setIcon(icon_bf68db2dd43617a24c5f563d78680383);
+        
+    
+        var popup_52f5d42d2929776887aab875c71309b1 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_cd3b84ba9a4e65992f99e98501d17623 = $(`<div id="html_cd3b84ba9a4e65992f99e98501d17623" style="width: 100.0%; height: 100.0%;">Denver NE<br>4685 Peoria St Ste 115 Denver CO 80239</div>`)[0];
+                popup_52f5d42d2929776887aab875c71309b1.setContent(html_cd3b84ba9a4e65992f99e98501d17623);
+            
+        
+
+        marker_6d5e1882d245fd41742a771c2437eade.bindPopup(popup_52f5d42d2929776887aab875c71309b1)
+        ;
+
+        
+    
+    
+            marker_6d5e1882d245fd41742a771c2437eade.bindTooltip(
+                `<div>
+                     Denver NE
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_3a47e2daca1ea87e69d8dc2504d3047a = L.marker(
+                [39.7811922, -104.8486988],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_8ff9d013cfbf6303f3ddea264c50202b = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eDenver NE\u003c/div\u003e"});
+            marker_3a47e2daca1ea87e69d8dc2504d3047a.setIcon(div_icon_8ff9d013cfbf6303f3ddea264c50202b);
+        
+    
+            var marker_c58a7d651a4daa7d5dd5028b19cd87dc = L.marker(
+                [39.6572501, -105.0832489],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_2bba81b55734c5e53a4326f928dcbe20 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_c58a7d651a4daa7d5dd5028b19cd87dc.setIcon(icon_2bba81b55734c5e53a4326f928dcbe20);
+        
+    
+        var popup_d9597f19db25353931e1d66759b9e1bc = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_ad60e21486c484e2b68e9f9102284bdd = $(`<div id="html_ad60e21486c484e2b68e9f9102284bdd" style="width: 100.0%; height: 100.0%;">Denver Westgate<br>3265 S Wadsworth Blvd #3A Lakewood CO 80227</div>`)[0];
+                popup_d9597f19db25353931e1d66759b9e1bc.setContent(html_ad60e21486c484e2b68e9f9102284bdd);
+            
+        
+
+        marker_c58a7d651a4daa7d5dd5028b19cd87dc.bindPopup(popup_d9597f19db25353931e1d66759b9e1bc)
+        ;
+
+        
+    
+    
+            marker_c58a7d651a4daa7d5dd5028b19cd87dc.bindTooltip(
+                `<div>
+                     Denver Westgate
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_65a2c8966407c1ef1eb6f2b7ee72a2c1 = L.marker(
+                [39.6572501, -105.0832489],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_31437e93ee9e243f650724a75b9e0b8c = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eDenver Westgate\u003c/div\u003e"});
+            marker_65a2c8966407c1ef1eb6f2b7ee72a2c1.setIcon(div_icon_31437e93ee9e243f650724a75b9e0b8c);
+        
+    
+            var marker_ff672937b688e38a4002d84b81b57495 = L.marker(
+                [37.271365, -107.8841963],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_4d38a95d4a91249531489d3581144add = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_ff672937b688e38a4002d84b81b57495.setIcon(icon_4d38a95d4a91249531489d3581144add);
+        
+    
+        var popup_ffebb35a3ec0b1927718d00df6d43092 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_7d6362fc6dda4246a87d12e09c2bdd55 = $(`<div id="html_7d6362fc6dda4246a87d12e09c2bdd55" style="width: 100.0%; height: 100.0%;">Durango<br>329-A S Camino Del Rio Durango CO 81303</div>`)[0];
+                popup_ffebb35a3ec0b1927718d00df6d43092.setContent(html_7d6362fc6dda4246a87d12e09c2bdd55);
+            
+        
+
+        marker_ff672937b688e38a4002d84b81b57495.bindPopup(popup_ffebb35a3ec0b1927718d00df6d43092)
+        ;
+
+        
+    
+    
+            marker_ff672937b688e38a4002d84b81b57495.bindTooltip(
+                `<div>
+                     Durango
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_676be9104ccdfb6cb671529feeb2e00b = L.marker(
+                [37.271365, -107.8841963],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_f7444bcd0b4323592258759c89303658 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eDurango\u003c/div\u003e"});
+            marker_676be9104ccdfb6cb671529feeb2e00b.setIcon(div_icon_f7444bcd0b4323592258759c89303658);
+        
+    
+            var marker_9d45304ccff8eadd18ad15741edc28be = L.marker(
+                [40.5461188, -105.0765846],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_aa9adeeefb966a233b9c4af126d48979 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_9d45304ccff8eadd18ad15741edc28be.setIcon(icon_aa9adeeefb966a233b9c4af126d48979);
+        
+    
+        var popup_4e4940086562c152aee2bb8953e54c72 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_735589c6b0f0acde5feab3a246b0e897 = $(`<div id="html_735589c6b0f0acde5feab3a246b0e897" style="width: 100.0%; height: 100.0%;">Fort Collins<br>3030 S College Ave Ste 100 Fort Collins CO 80525</div>`)[0];
+                popup_4e4940086562c152aee2bb8953e54c72.setContent(html_735589c6b0f0acde5feab3a246b0e897);
+            
+        
+
+        marker_9d45304ccff8eadd18ad15741edc28be.bindPopup(popup_4e4940086562c152aee2bb8953e54c72)
+        ;
+
+        
+    
+    
+            marker_9d45304ccff8eadd18ad15741edc28be.bindTooltip(
+                `<div>
+                     Fort Collins
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_ee12fb4a6237414f26ce1495a3acda4b = L.marker(
+                [40.5461188, -105.0765846],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_5cf8fb7a30617c0df7403ffc209d184d = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eFort Collins\u003c/div\u003e"});
+            marker_ee12fb4a6237414f26ce1495a3acda4b.setIcon(div_icon_5cf8fb7a30617c0df7403ffc209d184d);
+        
+    
+            var marker_5d1f5e011e65cd0d23f9834a63ee6456 = L.marker(
+                [40.24958669999999, -103.7990957],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_75c653d5d637b621837932624f9bd139 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_5d1f5e011e65cd0d23f9834a63ee6456.setIcon(icon_75c653d5d637b621837932624f9bd139);
+        
+    
+        var popup_bb8a9db5c7088f3246d36467aec8394c = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_3b647659d97bc32ea3c74375992143c3 = $(`<div id="html_3b647659d97bc32ea3c74375992143c3" style="width: 100.0%; height: 100.0%;">Fort Morgan<br>231 Prospect St Ft Morgan CO 80701</div>`)[0];
+                popup_bb8a9db5c7088f3246d36467aec8394c.setContent(html_3b647659d97bc32ea3c74375992143c3);
+            
+        
+
+        marker_5d1f5e011e65cd0d23f9834a63ee6456.bindPopup(popup_bb8a9db5c7088f3246d36467aec8394c)
+        ;
+
+        
+    
+    
+            marker_5d1f5e011e65cd0d23f9834a63ee6456.bindTooltip(
+                `<div>
+                     Fort Morgan
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_7a69c835e5f06064e6b0931b75c221f1 = L.marker(
+                [40.24958669999999, -103.7990957],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_6e09551f3db7a11ae21e5f00c8569c87 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eFort Morgan\u003c/div\u003e"});
+            marker_7a69c835e5f06064e6b0931b75c221f1.setIcon(div_icon_6e09551f3db7a11ae21e5f00c8569c87);
+        
+    
+            var marker_e92a7d9f94ef70bc3dae979885f20c92 = L.marker(
+                [39.5715733, -106.0812962],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_daf7d2ce6c27ad6dbfdd24fdfcdf2275 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_e92a7d9f94ef70bc3dae979885f20c92.setIcon(icon_daf7d2ce6c27ad6dbfdd24fdfcdf2275);
+        
+    
+        var popup_bee0d9fb4b0ad11e3f8b9f0e5b2baf46 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_b0418b1ca3f6b81940d51b507395eed1 = $(`<div id="html_b0418b1ca3f6b81940d51b507395eed1" style="width: 100.0%; height: 100.0%;">Frisco<br>37 County Rd 1005 Frisco CO 80443</div>`)[0];
+                popup_bee0d9fb4b0ad11e3f8b9f0e5b2baf46.setContent(html_b0418b1ca3f6b81940d51b507395eed1);
+            
+        
+
+        marker_e92a7d9f94ef70bc3dae979885f20c92.bindPopup(popup_bee0d9fb4b0ad11e3f8b9f0e5b2baf46)
+        ;
+
+        
+    
+    
+            marker_e92a7d9f94ef70bc3dae979885f20c92.bindTooltip(
+                `<div>
+                     Frisco
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_75033bfd3a5553c391fc19c69b3ea058 = L.marker(
+                [39.5715733, -106.0812962],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_56bda03ef5d30489a25a474d85bde514 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eFrisco\u003c/div\u003e"});
+            marker_75033bfd3a5553c391fc19c69b3ea058.setIcon(div_icon_56bda03ef5d30489a25a474d85bde514);
+        
+    
+            var marker_7f3e2386c55c6757dc6b7b0e4fdeb65b = L.marker(
+                [39.5625438, -107.363817],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_d4a30c01966ee75f016186fd77a846bf = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_7f3e2386c55c6757dc6b7b0e4fdeb65b.setIcon(icon_d4a30c01966ee75f016186fd77a846bf);
+        
+    
+        var popup_448e3fd8d0928cc65f299de26b2f2b3b = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_cc99ad57deb85bbb605371be50ab36d9 = $(`<div id="html_cc99ad57deb85bbb605371be50ab36d9" style="width: 100.0%; height: 100.0%;">Glenwood Springs<br>51027 Hwy 6 and 24 Glenwood Springs CO 81601</div>`)[0];
+                popup_448e3fd8d0928cc65f299de26b2f2b3b.setContent(html_cc99ad57deb85bbb605371be50ab36d9);
+            
+        
+
+        marker_7f3e2386c55c6757dc6b7b0e4fdeb65b.bindPopup(popup_448e3fd8d0928cc65f299de26b2f2b3b)
+        ;
+
+        
+    
+    
+            marker_7f3e2386c55c6757dc6b7b0e4fdeb65b.bindTooltip(
+                `<div>
+                     Glenwood Springs
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_1af06e35a3097ece4d42c50049d251df = L.marker(
+                [39.5625438, -107.363817],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_2c5d7a27d7d7d3c626095a00ef6018a5 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eGlenwood Springs\u003c/div\u003e"});
+            marker_1af06e35a3097ece4d42c50049d251df.setIcon(div_icon_2c5d7a27d7d7d3c626095a00ef6018a5);
+        
+    
+            var marker_a514b0b41279ae0ed20f8931f5f269de = L.marker(
+                [39.7236238, -105.1914981],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_ba767a58df6cefe948d0978d47d9c5c2 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_a514b0b41279ae0ed20f8931f5f269de.setIcon(icon_ba767a58df6cefe948d0978d47d9c5c2);
+        
+    
+        var popup_f25f41f3a7c89ce51aa78eacbc7098a8 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_9d5f746a2ce1c3dc3a645cb0395dafbb = $(`<div id="html_9d5f746a2ce1c3dc3a645cb0395dafbb" style="width: 100.0%; height: 100.0%;">Golden<br>16950 W Colfax Ave Ste 104 Golden CO 80401</div>`)[0];
+                popup_f25f41f3a7c89ce51aa78eacbc7098a8.setContent(html_9d5f746a2ce1c3dc3a645cb0395dafbb);
+            
+        
+
+        marker_a514b0b41279ae0ed20f8931f5f269de.bindPopup(popup_f25f41f3a7c89ce51aa78eacbc7098a8)
+        ;
+
+        
+    
+    
+            marker_a514b0b41279ae0ed20f8931f5f269de.bindTooltip(
+                `<div>
+                     Golden
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_60292ad9e294a27dbe3a693ae7892900 = L.marker(
+                [39.7236238, -105.1914981],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_00c2092fc9af015f9c33736bdd1cb36d = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eGolden\u003c/div\u003e"});
+            marker_60292ad9e294a27dbe3a693ae7892900.setIcon(div_icon_00c2092fc9af015f9c33736bdd1cb36d);
+        
+    
+            var marker_da6ba2a5a94016f1e0016adc13d4458b = L.marker(
+                [39.0655219, -108.5623446],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_724044e86998bad4df1d65b184ca1216 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_da6ba2a5a94016f1e0016adc13d4458b.setIcon(icon_724044e86998bad4df1d65b184ca1216);
+        
+    
+        var popup_2d1aafcf1b883f284f4d4c248baeb915 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_95d9d82eb36f94463d6427e03ed12462 = $(`<div id="html_95d9d82eb36f94463d6427e03ed12462" style="width: 100.0%; height: 100.0%;">Grand Junction<br>222 S 6th Ste 111 Grand Junction CO 81501</div>`)[0];
+                popup_2d1aafcf1b883f284f4d4c248baeb915.setContent(html_95d9d82eb36f94463d6427e03ed12462);
+            
+        
+
+        marker_da6ba2a5a94016f1e0016adc13d4458b.bindPopup(popup_2d1aafcf1b883f284f4d4c248baeb915)
+        ;
+
+        
+    
+    
+            marker_da6ba2a5a94016f1e0016adc13d4458b.bindTooltip(
+                `<div>
+                     Grand Junction
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_9d0869485819354ac7ed899e62ad2517 = L.marker(
+                [39.0655219, -108.5623446],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_ea1064e5e69bb61f3506b15da4880947 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eGrand Junction\u003c/div\u003e"});
+            marker_9d0869485819354ac7ed899e62ad2517.setIcon(div_icon_ea1064e5e69bb61f3506b15da4880947);
+        
+    
+            var marker_c4155f1f6987eab1c975b75fa62961ce = L.marker(
+                [40.4000597, -104.7172836],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_9540865f29fc88a14e7e6e4a25e73baf = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_c4155f1f6987eab1c975b75fa62961ce.setIcon(icon_9540865f29fc88a14e7e6e4a25e73baf);
+        
+    
+        var popup_f73e447791e29ecd8ee96e829879e367 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_ec5dae8e471422e89f21cf7e1778fdc3 = $(`<div id="html_ec5dae8e471422e89f21cf7e1778fdc3" style="width: 100.0%; height: 100.0%;">Greeley<br>2320 Reservoir Rd Ste A Greeley CO 80634</div>`)[0];
+                popup_f73e447791e29ecd8ee96e829879e367.setContent(html_ec5dae8e471422e89f21cf7e1778fdc3);
+            
+        
+
+        marker_c4155f1f6987eab1c975b75fa62961ce.bindPopup(popup_f73e447791e29ecd8ee96e829879e367)
+        ;
+
+        
+    
+    
+            marker_c4155f1f6987eab1c975b75fa62961ce.bindTooltip(
+                `<div>
+                     Greeley
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_9e7143d6b0ccda124718daefdef17de5 = L.marker(
+                [40.4000597, -104.7172836],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_bba2060de8a673c5c50988fe6cda7395 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eGreeley\u003c/div\u003e"});
+            marker_9e7143d6b0ccda124718daefdef17de5.setIcon(div_icon_bba2060de8a673c5c50988fe6cda7395);
+        
+    
+            var marker_ab7e5395e6ca1910b044b69e4bf7938e = L.marker(
+                [38.5468708, -106.9266677],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_57fd73ea047fd19e0a50025b30819452 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_ab7e5395e6ca1910b044b69e4bf7938e.setIcon(icon_57fd73ea047fd19e0a50025b30819452);
+        
+    
+        var popup_4c8250e61049677f9ba8bc245451079d = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_36db5fa529753182473aabe008ebaffe = $(`<div id="html_36db5fa529753182473aabe008ebaffe" style="width: 100.0%; height: 100.0%;">Gunnison<br>302 N Main St Gunnison CO 80216</div>`)[0];
+                popup_4c8250e61049677f9ba8bc245451079d.setContent(html_36db5fa529753182473aabe008ebaffe);
+            
+        
+
+        marker_ab7e5395e6ca1910b044b69e4bf7938e.bindPopup(popup_4c8250e61049677f9ba8bc245451079d)
+        ;
+
+        
+    
+    
+            marker_ab7e5395e6ca1910b044b69e4bf7938e.bindTooltip(
+                `<div>
+                     Gunnison
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_77bdc42bfeb478694a7cf80940166041 = L.marker(
+                [38.5468708, -106.9266677],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_e2d898209fddc2511e5b552e871f6dfa = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eGunnison\u003c/div\u003e"});
+            marker_77bdc42bfeb478694a7cf80940166041.setIcon(div_icon_e2d898209fddc2511e5b552e871f6dfa);
+        
+    
+            var marker_00c4cb62e1b1afdbee693d36a215e6f7 = L.marker(
+                [37.9850091, -103.5438321],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_83d4720f9cf53df80527b93eb3ee7611 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_00c4cb62e1b1afdbee693d36a215e6f7.setIcon(icon_83d4720f9cf53df80527b93eb3ee7611);
+        
+    
+        var popup_bf43a9f164cdbb6129da61a6fc80caa0 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_e99d9d152a3099476f524aceea799697 = $(`<div id="html_e99d9d152a3099476f524aceea799697" style="width: 100.0%; height: 100.0%;">La Junta<br>13 W 3rd St Ste 101 La Junta CO 81050</div>`)[0];
+                popup_bf43a9f164cdbb6129da61a6fc80caa0.setContent(html_e99d9d152a3099476f524aceea799697);
+            
+        
+
+        marker_00c4cb62e1b1afdbee693d36a215e6f7.bindPopup(popup_bf43a9f164cdbb6129da61a6fc80caa0)
+        ;
+
+        
+    
+    
+            marker_00c4cb62e1b1afdbee693d36a215e6f7.bindTooltip(
+                `<div>
+                     La Junta
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_51c1c2585a72000f6dcce4bfc07c61d3 = L.marker(
+                [37.9850091, -103.5438321],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_879debc9d08f2caf188ef9f5b2f21f2c = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eLa Junta\u003c/div\u003e"});
+            marker_51c1c2585a72000f6dcce4bfc07c61d3.setIcon(div_icon_879debc9d08f2caf188ef9f5b2f21f2c);
+        
+    
+            var marker_da194674ee751c25325f3ce4456af47e = L.marker(
+                [39.7456311, -105.073042],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_481ce6475bd201edc252ccf1f4f08b53 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_da194674ee751c25325f3ce4456af47e.setIcon(icon_481ce6475bd201edc252ccf1f4f08b53);
+        
+    
+        var popup_0d748f960c74d277dc66c109db209cc5 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_b061d34c7d7546441cd6b5ffd0508912 = $(`<div id="html_b061d34c7d7546441cd6b5ffd0508912" style="width: 100.0%; height: 100.0%;">Lakewood<br>1881 Pierce St Lakewood CO 80214</div>`)[0];
+                popup_0d748f960c74d277dc66c109db209cc5.setContent(html_b061d34c7d7546441cd6b5ffd0508912);
+            
+        
+
+        marker_da194674ee751c25325f3ce4456af47e.bindPopup(popup_0d748f960c74d277dc66c109db209cc5)
+        ;
+
+        
+    
+    
+            marker_da194674ee751c25325f3ce4456af47e.bindTooltip(
+                `<div>
+                     Lakewood
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_8da4e5ee04734d183804b3f8242e7cb3 = L.marker(
+                [39.7456311, -105.073042],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_ee031ad41a5380bed6a9a2958c4c9647 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eLakewood\u003c/div\u003e"});
+            marker_8da4e5ee04734d183804b3f8242e7cb3.setIcon(div_icon_ee031ad41a5380bed6a9a2958c4c9647);
+        
+    
+            var marker_17811b845685a94b2d26153ecc8dde54 = L.marker(
+                [38.05356039999999, -102.615656],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_951f34be6a0fbc3b5f29b49702702e3c = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_17811b845685a94b2d26153ecc8dde54.setIcon(icon_951f34be6a0fbc3b5f29b49702702e3c);
+        
+    
+        var popup_81eb99ecbad1ec9340dd283b473cb5c7 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_f8944119c853bb1b6101079a929f8dd7 = $(`<div id="html_f8944119c853bb1b6101079a929f8dd7" style="width: 100.0%; height: 100.0%;">Lamar<br>3505 S Main St Lamar CO 81052</div>`)[0];
+                popup_81eb99ecbad1ec9340dd283b473cb5c7.setContent(html_f8944119c853bb1b6101079a929f8dd7);
+            
+        
+
+        marker_17811b845685a94b2d26153ecc8dde54.bindPopup(popup_81eb99ecbad1ec9340dd283b473cb5c7)
+        ;
+
+        
+    
+    
+            marker_17811b845685a94b2d26153ecc8dde54.bindTooltip(
+                `<div>
+                     Lamar
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_f85b131c1f2378c11a891d997aba0eb4 = L.marker(
+                [38.05356039999999, -102.615656],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_e43c0d33ebf048588a947bccfbcf3631 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eLamar\u003c/div\u003e"});
+            marker_f85b131c1f2378c11a891d997aba0eb4.setIcon(div_icon_e43c0d33ebf048588a947bccfbcf3631);
+        
+    
+            var marker_d40b8eb3b00c64cdd42d8b99e22d2d3b = L.marker(
+                [40.1482674, -105.1034979],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_66004d193fb100dd6bd46d69e01680ba = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_d40b8eb3b00c64cdd42d8b99e22d2d3b.setIcon(icon_66004d193fb100dd6bd46d69e01680ba);
+        
+    
+        var popup_1f7d2572027819cb7335d319d161e6fa = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_e25d0b2fb42909740c780a375d826c73 = $(`<div id="html_e25d0b2fb42909740c780a375d826c73" style="width: 100.0%; height: 100.0%;">Longmont<br>917 S Main St Ste 600 Longmont CO 80501</div>`)[0];
+                popup_1f7d2572027819cb7335d319d161e6fa.setContent(html_e25d0b2fb42909740c780a375d826c73);
+            
+        
+
+        marker_d40b8eb3b00c64cdd42d8b99e22d2d3b.bindPopup(popup_1f7d2572027819cb7335d319d161e6fa)
+        ;
+
+        
+    
+    
+            marker_d40b8eb3b00c64cdd42d8b99e22d2d3b.bindTooltip(
+                `<div>
+                     Longmont
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_d710227b5895869d2995fdf685ab8c78 = L.marker(
+                [40.1482674, -105.1034979],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_faf3941451953591dd8c9513dfc62da8 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eLongmont\u003c/div\u003e"});
+            marker_d710227b5895869d2995fdf685ab8c78.setIcon(div_icon_faf3941451953591dd8c9513dfc62da8);
+        
+    
+            var marker_8b830d10c42a6c2dd9cca5e901ae2325 = L.marker(
+                [40.4205838, -105.0770236],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_8fb915e9b3bba9fed9425df214c17fc1 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_8b830d10c42a6c2dd9cca5e901ae2325.setIcon(icon_8fb915e9b3bba9fed9425df214c17fc1);
+        
+    
+        var popup_5842ed00982346759bb55f1fa4c69cbe = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_a32bbced6d94bf405393f7ed9bfebef1 = $(`<div id="html_a32bbced6d94bf405393f7ed9bfebef1" style="width: 100.0%; height: 100.0%;">Loveland<br>118 E 29th St Ste F Loveland CO 80538</div>`)[0];
+                popup_5842ed00982346759bb55f1fa4c69cbe.setContent(html_a32bbced6d94bf405393f7ed9bfebef1);
+            
+        
+
+        marker_8b830d10c42a6c2dd9cca5e901ae2325.bindPopup(popup_5842ed00982346759bb55f1fa4c69cbe)
+        ;
+
+        
+    
+    
+            marker_8b830d10c42a6c2dd9cca5e901ae2325.bindTooltip(
+                `<div>
+                     Loveland
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_67639532e87e644e24d2124ef7aeb6ce = L.marker(
+                [40.4205838, -105.0770236],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_68ad46a18c958aee6ea7700d96d254a9 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eLoveland\u003c/div\u003e"});
+            marker_67639532e87e644e24d2124ef7aeb6ce.setIcon(div_icon_68ad46a18c958aee6ea7700d96d254a9);
+        
+    
+            var marker_599da7273baee4b56edfb195c0378480 = L.marker(
+                [40.0380636, -107.9131412],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_2d90872605887d62c8df8721b08a8f98 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_599da7273baee4b56edfb195c0378480.setIcon(icon_2d90872605887d62c8df8721b08a8f98);
+        
+    
+        var popup_69d55feb197cd0a2d07aee49a25a4e22 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_5ee9d064e59d3b2b8da8ad7295fc5edd = $(`<div id="html_5ee9d064e59d3b2b8da8ad7295fc5edd" style="width: 100.0%; height: 100.0%;">Meeker<br>555 Main St   Meeker CO 81641</div>`)[0];
+                popup_69d55feb197cd0a2d07aee49a25a4e22.setContent(html_5ee9d064e59d3b2b8da8ad7295fc5edd);
+            
+        
+
+        marker_599da7273baee4b56edfb195c0378480.bindPopup(popup_69d55feb197cd0a2d07aee49a25a4e22)
+        ;
+
+        
+    
+    
+            marker_599da7273baee4b56edfb195c0378480.bindTooltip(
+                `<div>
+                     Meeker
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_1ea2f4720d3781c60c6fa29d362c68a8 = L.marker(
+                [40.0380636, -107.9131412],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_7d36380e890a319d7cfb03558e2ec8a4 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eMeeker\u003c/div\u003e"});
+            marker_1ea2f4720d3781c60c6fa29d362c68a8.setIcon(div_icon_7d36380e890a319d7cfb03558e2ec8a4);
+        
+    
+            var marker_149ffe3e0a0bb03d649a05292f58752a = L.marker(
+                [38.4609172, -107.8652641],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_00dc77efa9ba17336ddd1059f615e2ba = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_149ffe3e0a0bb03d649a05292f58752a.setIcon(icon_00dc77efa9ba17336ddd1059f615e2ba);
+        
+    
+        var popup_b19aaffc71068be68e0ebf3627da7b3c = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_4a464c738c89915520cbcc77242a014f = $(`<div id="html_4a464c738c89915520cbcc77242a014f" style="width: 100.0%; height: 100.0%;">Montrose<br>2305 S Townsend Ave Unit C Montrose CO 81401</div>`)[0];
+                popup_b19aaffc71068be68e0ebf3627da7b3c.setContent(html_4a464c738c89915520cbcc77242a014f);
+            
+        
+
+        marker_149ffe3e0a0bb03d649a05292f58752a.bindPopup(popup_b19aaffc71068be68e0ebf3627da7b3c)
+        ;
+
+        
+    
+    
+            marker_149ffe3e0a0bb03d649a05292f58752a.bindTooltip(
+                `<div>
+                     Montrose
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_ecfacaeff28fda88b163b656597be3d6 = L.marker(
+                [38.4609172, -107.8652641],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_546a89271edb9ff76f5d0080c8df96fb = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eMontrose\u003c/div\u003e"});
+            marker_ecfacaeff28fda88b163b656597be3d6.setIcon(div_icon_546a89271edb9ff76f5d0080c8df96fb);
+        
+    
+            var marker_e37ffc8b6fc512e4fb5c75345b2aa71b = L.marker(
+                [39.5579, -104.7802715],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_cf4d1be58c5fb9c8e3abb693158fd908 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_e37ffc8b6fc512e4fb5c75345b2aa71b.setIcon(icon_cf4d1be58c5fb9c8e3abb693158fd908);
+        
+    
+        var popup_1c8bf44490d262fbdb73b4a174ba0b1b = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_bebf6fadd2ca7bf66394fe02624daae4 = $(`<div id="html_bebf6fadd2ca7bf66394fe02624daae4" style="width: 100.0%; height: 100.0%;">Parker<br>17924 Cottonwood Dr Parker CO 80134</div>`)[0];
+                popup_1c8bf44490d262fbdb73b4a174ba0b1b.setContent(html_bebf6fadd2ca7bf66394fe02624daae4);
+            
+        
+
+        marker_e37ffc8b6fc512e4fb5c75345b2aa71b.bindPopup(popup_1c8bf44490d262fbdb73b4a174ba0b1b)
+        ;
+
+        
+    
+    
+            marker_e37ffc8b6fc512e4fb5c75345b2aa71b.bindTooltip(
+                `<div>
+                     Parker
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_4ed83603c6d9108d059d25368318bd66 = L.marker(
+                [39.5579, -104.7802715],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_4be164622d7f22eeeb38b06b3bf3d552 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eParker\u003c/div\u003e"});
+            marker_4ed83603c6d9108d059d25368318bd66.setIcon(div_icon_4be164622d7f22eeeb38b06b3bf3d552);
+        
+    
+            var marker_9d67b3f7c00a7d4a79539bc88709b83a = L.marker(
+                [38.2708106, -104.6191308],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_6c883c32c703be89ce0b1b4797baac18 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_9d67b3f7c00a7d4a79539bc88709b83a.setIcon(icon_6c883c32c703be89ce0b1b4797baac18);
+        
+    
+        var popup_f99c63e622e554a346197e913acba2ee = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_a602bfd180c6e22e697a66a7ff5edd84 = $(`<div id="html_a602bfd180c6e22e697a66a7ff5edd84" style="width: 100.0%; height: 100.0%;">Pueblo<br>827 W 4th St Pueblo CO 81003</div>`)[0];
+                popup_f99c63e622e554a346197e913acba2ee.setContent(html_a602bfd180c6e22e697a66a7ff5edd84);
+            
+        
+
+        marker_9d67b3f7c00a7d4a79539bc88709b83a.bindPopup(popup_f99c63e622e554a346197e913acba2ee)
+        ;
+
+        
+    
+    
+            marker_9d67b3f7c00a7d4a79539bc88709b83a.bindTooltip(
+                `<div>
+                     Pueblo
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_de040b4c416928358fe7dc7e132ff34d = L.marker(
+                [38.2708106, -104.6191308],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_0ba9bc6beead425b839f3d0d9fca920d = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003ePueblo\u003c/div\u003e"});
+            marker_de040b4c416928358fe7dc7e132ff34d.setIcon(div_icon_0ba9bc6beead425b839f3d0d9fca920d);
+        
+    
+            var marker_9af152bcb2a69be24301e1289ffb70ea = L.marker(
+                [38.5343131, -105.9876608],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_a8e279a730bdc650232cec97a12e4073 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_9af152bcb2a69be24301e1289ffb70ea.setIcon(icon_a8e279a730bdc650232cec97a12e4073);
+        
+    
+        var popup_f3f4f7a24b02a8f6eba4155e28763ca4 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_729302e6eecbceb6154ce08795abd767 = $(`<div id="html_729302e6eecbceb6154ce08795abd767" style="width: 100.0%; height: 100.0%;">Salida<br>448 E 1st St Salida CO 81201</div>`)[0];
+                popup_f3f4f7a24b02a8f6eba4155e28763ca4.setContent(html_729302e6eecbceb6154ce08795abd767);
+            
+        
+
+        marker_9af152bcb2a69be24301e1289ffb70ea.bindPopup(popup_f3f4f7a24b02a8f6eba4155e28763ca4)
+        ;
+
+        
+    
+    
+            marker_9af152bcb2a69be24301e1289ffb70ea.bindTooltip(
+                `<div>
+                     Salida
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_d0c0030ad0905ce8ff12299c187c35d9 = L.marker(
+                [38.5343131, -105.9876608],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_b1096f8e9f5ea2a0a5f3d9e26d6a9ebf = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eSalida\u003c/div\u003e"});
+            marker_d0c0030ad0905ce8ff12299c187c35d9.setIcon(div_icon_b1096f8e9f5ea2a0a5f3d9e26d6a9ebf);
+        
+    
+            var marker_a1b9765ff3e20a5d4fde010a327f1791 = L.marker(
+                [40.4665667, -106.8230274],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_bdc53dd4fef144ac06c00caff06efd1e = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_a1b9765ff3e20a5d4fde010a327f1791.setIcon(icon_bdc53dd4fef144ac06c00caff06efd1e);
+        
+    
+        var popup_f236caf13a4a9033bf45212d9ea387e1 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_6c7ca22ce56531659a7c294cf6fed486 = $(`<div id="html_6c7ca22ce56531659a7c294cf6fed486" style="width: 100.0%; height: 100.0%;">Steamboat Springs<br>425 Anglers Dr Ste C Bldg H Steamboat Springs CO 80488</div>`)[0];
+                popup_f236caf13a4a9033bf45212d9ea387e1.setContent(html_6c7ca22ce56531659a7c294cf6fed486);
+            
+        
+
+        marker_a1b9765ff3e20a5d4fde010a327f1791.bindPopup(popup_f236caf13a4a9033bf45212d9ea387e1)
+        ;
+
+        
+    
+    
+            marker_a1b9765ff3e20a5d4fde010a327f1791.bindTooltip(
+                `<div>
+                     Steamboat Springs
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_065a25a0b8c46b51823afb812f8ef491 = L.marker(
+                [40.4665667, -106.8230274],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_e9db93a1464b7af148e107df9044f828 = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eSteamboat Springs\u003c/div\u003e"});
+            marker_065a25a0b8c46b51823afb812f8ef491.setIcon(div_icon_e9db93a1464b7af148e107df9044f828);
+        
+    
+            var marker_b31129700000462ac215195e8735fb24 = L.marker(
+                [40.6255737, -103.2217948],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_c6876e98e6369009e3bbb9b30bc4585c = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_b31129700000462ac215195e8735fb24.setIcon(icon_c6876e98e6369009e3bbb9b30bc4585c);
+        
+    
+        var popup_11f81ba3ab89754733a49064c8b7eca3 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_78dd2e21ce3ca2843ccfe1d639300e69 = $(`<div id="html_78dd2e21ce3ca2843ccfe1d639300e69" style="width: 100.0%; height: 100.0%;">Sterling<br>714 W Main St Sterling CO 80751</div>`)[0];
+                popup_11f81ba3ab89754733a49064c8b7eca3.setContent(html_78dd2e21ce3ca2843ccfe1d639300e69);
+            
+        
+
+        marker_b31129700000462ac215195e8735fb24.bindPopup(popup_11f81ba3ab89754733a49064c8b7eca3)
+        ;
+
+        
+    
+    
+            marker_b31129700000462ac215195e8735fb24.bindTooltip(
+                `<div>
+                     Sterling
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_8c84dde27f0e0599d3213429d01990fe = L.marker(
+                [40.6255737, -103.2217948],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_48a2f57b9b4356ff8db4e4c6fe8871dd = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eSterling\u003c/div\u003e"});
+            marker_8c84dde27f0e0599d3213429d01990fe.setIcon(div_icon_48a2f57b9b4356ff8db4e4c6fe8871dd);
+        
+    
+            var marker_d2f9c57d9037ea048f93d03ce3c030b4 = L.marker(
+                [37.1682264, -104.503086],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_bb56f57acf4302f8d5ba8a6f69a455ce = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_d2f9c57d9037ea048f93d03ce3c030b4.setIcon(icon_bb56f57acf4302f8d5ba8a6f69a455ce);
+        
+    
+        var popup_1c32279db222717d7697ecc2bbe96ba4 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_d781816641cdc690b7e0413326ae219c = $(`<div id="html_d781816641cdc690b7e0413326ae219c" style="width: 100.0%; height: 100.0%;">Trinidad<br>200 E First St Rm 100 Trinidad CO 81082</div>`)[0];
+                popup_1c32279db222717d7697ecc2bbe96ba4.setContent(html_d781816641cdc690b7e0413326ae219c);
+            
+        
+
+        marker_d2f9c57d9037ea048f93d03ce3c030b4.bindPopup(popup_1c32279db222717d7697ecc2bbe96ba4)
+        ;
+
+        
+    
+    
+            marker_d2f9c57d9037ea048f93d03ce3c030b4.bindTooltip(
+                `<div>
+                     Trinidad
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_2467b71f2dab4ddb513601ea6413c0db = L.marker(
+                [37.1682264, -104.503086],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_2e710b9131c03f8333a9be08ef169cfd = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eTrinidad\u003c/div\u003e"});
+            marker_2467b71f2dab4ddb513601ea6413c0db.setIcon(div_icon_2e710b9131c03f8333a9be08ef169cfd);
+        
+    
+            var marker_7c680298a483a15bf995da7fdc1a16b0 = L.marker(
+                [39.8510382, -105.0233523],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var icon_c4efdac2b2fc52adcb1173f3a7a448db = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "info-sign", "iconColor": "white", "markerColor": "blue", "prefix": "glyphicon"}
+            );
+            marker_7c680298a483a15bf995da7fdc1a16b0.setIcon(icon_c4efdac2b2fc52adcb1173f3a7a448db);
+        
+    
+        var popup_c081bed4b684d29b0a06a09f60467774 = L.popup({"maxWidth": "100%"});
+
+        
+            
+                var html_be446458725ee02d791a8ce671b22570 = $(`<div id="html_be446458725ee02d791a8ce671b22570" style="width: 100.0%; height: 100.0%;">Westminster<br>8464 Federal Blvd Westminster CO 80031</div>`)[0];
+                popup_c081bed4b684d29b0a06a09f60467774.setContent(html_be446458725ee02d791a8ce671b22570);
+            
+        
+
+        marker_7c680298a483a15bf995da7fdc1a16b0.bindPopup(popup_c081bed4b684d29b0a06a09f60467774)
+        ;
+
+        
+    
+    
+            marker_7c680298a483a15bf995da7fdc1a16b0.bindTooltip(
+                `<div>
+                     Westminster
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_296308c440c94c890c5f6f23ddef17a6 = L.marker(
+                [39.8510382, -105.0233523],
+                {}
+            ).addTo(map_92bf8427ffdde3c56446efb1206896ef);
+        
+    
+            var div_icon_1c598d41dce6334741d11c458e3e790c = L.divIcon({"className": "empty", "html": "\u003cdiv style=\"font-size: 10pt; color : black\"\u003eWestminster\u003c/div\u003e"});
+            marker_296308c440c94c890c5f6f23ddef17a6.setIcon(div_icon_1c598d41dce6334741d11c458e3e790c);
+        
+</script>
+</html>
