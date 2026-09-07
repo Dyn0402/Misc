@@ -21,11 +21,11 @@ Dependencies:
 import argparse
 import json
 import logging
-import os
 import re
 import sys
 import time
-from datetime import date, timedelta
+from dataclasses import dataclass, field
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from bs4 import BeautifulSoup
@@ -38,47 +38,98 @@ import login_server
 #  USER CONFIGURATION  ← edit this section
 # ─────────────────────────────────────────────
 
-# The continuous date range you want to be covered at the hostel.
-# The script will auto-detect gaps between your existing reservations
-# that fall within this window and try to fill them.
-TARGET_START = date(2026, 6, 25)
-TARGET_END   = date(2026, 8, 30)
+@dataclass
+class Account:
+    """
+    One CERN hostel account to monitor. Each gets its own browser profile
+    (and thus its own saved session/cookies), its own target date window,
+    and its own notification email.
 
-# Email / notification settings
-NOTIFY_EMAIL    = "dyn040294@gmail.com"
+    Accounts without `cern_creds_path` get a personal login page at
+    http://<host>:LOGIN_SERVER_PORT/<slug>/ where the person enters their
+    own username, password, and 2FA code (we never see or store the password —
+    `cern_username`, if set, just prefills that one field for convenience).
+    """
+    slug:                  str             # URL-safe id → login page at /<slug>/
+    display_name:          str             # used in emails, logs, and on the login page
+    notify_email:          str
+    target_start:          date            # first night to try to cover (inclusive)
+    target_end:            date            # day AFTER the last night to cover (exclusive)
+    profile_dir:           Path            # persistent browser profile (cookies/session)
+    plot_path:             Path            # availability plot, regenerated after each check
+    notification_log_path: Path            # CSV dedup log for sent notification emails
+    cern_username:         str | None = None   # prefills the login page's username field
+    cern_creds_path:       Path | None = None  # file with username+password — skips manual entry
+
+
 # Path to a plain-text file with two lines: gmail address, then app password.
-# If the file doesn't exist, email notifications are silently skipped.
+# Used to send notifications for ALL accounts below (different recipients,
+# shared sender). If the file doesn't exist, email notifications are skipped.
 GMAIL_CRED_PATH = Path.home() / "Desktop/creds/gmail_cred.txt"
 
-# Path to a plain-text file with CERN username on line 1 and password on line 2.
-# When set, the login page will only ask for the 2FA code (username/password are
-# pre-loaded), and the server will try to open an external SSH tunnel so it is
-# reachable from outside your home network.
-CERN_CREDS_PATH = Path.home() / "Desktop/creds/cern.txt"
+# One entry per person being monitored. The script cycles through these
+# sequentially (only one browser is ever open at a time — the Pi doesn't have
+# the RAM for more), but independently: one account waiting on a slow human
+# login never delays another account's scheduled checks.
+ACCOUNTS: list[Account] = [
+    Account(
+        slug="dylan",
+        display_name="Dylan",
+        notify_email="dyn040294@gmail.com",
+        target_start=date(2026, 6, 25),
+        target_end=date(2026, 8, 30),
+        profile_dir=Path.home() / ".cern_hostel_profile",
+        plot_path=Path("availability_plot.png"),
+        notification_log_path=Path("notification_log.csv"),
+        # Pre-loaded creds: the login page only asks for the 2FA code.
+        cern_creds_path=Path.home() / "Desktop/creds/cern.txt",
+    ),
+    Account(
+        slug="staune",
+        display_name="Stephan",
+        notify_email="stephan.aune@gmail.com",
+        target_start=date(2026, 6, 26),
+        target_end=date(2026, 7, 3),
+        profile_dir=Path.home() / ".cern_hostel_profiles" / "staune",
+        plot_path=Path("availability_plot_staune.png"),
+        notification_log_path=Path("notification_log_staune.csv"),
+        # No pre-loaded password — Stephan does the full login himself.
+        cern_username="staune",
+    ),
+    Account(
+        slug="tdannely",
+        display_name="Timote",
+        notify_email="timote.dannely-lamborion@cea.fr",
+        target_start=date(2026, 6, 26),
+        target_end=date(2026, 7, 3),
+        profile_dir=Path.home() / ".cern_hostel_profiles" / "tdannely",
+        plot_path=Path("availability_plot_tdannely.png"),
+        notification_log_path=Path("notification_log_tdannely.csv"),
+        # No pre-loaded password — Timote does the full login himself.
+        cern_username="Tdannely",
+    ),
+]
 
-# How often to recheck (minutes)
+# How often to recheck each account (minutes)
 CHECK_INTERVAL_MINUTES = 30
+
+# How often to re-send the "login required" reminder email while an account
+# sits waiting for its user to log in (hours). Keep this fairly long — every
+# cycle below sends a fresh email, so short intervals become spammy fast.
+LOGIN_REMINDER_INTERVAL_HOURS = 12
 
 # How long to wait (seconds) for the page to load after submitting a form
 PAGE_LOAD_TIMEOUT = 15_000  # ms (Playwright uses ms)
 
-# Path where the browser profile (cookies/session) will be stored
-PROFILE_DIR = Path.home() / ".cern_hostel_profile"
-
 # The reservation portal URL
 PORTAL_URL = "https://hostel.cern.ch/Reservations"
 
-# Port for the temporary login web server (open this in your phone browser)
+# Port for the shared login web server — one port, one page per account
+# (e.g. http://<host>:5000/staune/, http://<host>:5000/tdannely/).
 LOGIN_SERVER_PORT = 5000
 
 # Log file
 LOG_FILE = Path("cern_hostel_filler.log")
-
-# CSV log of sent notifications — used to suppress duplicate emails
-NOTIFICATION_LOG_PATH = Path("notification_log.csv")
-
-# Availability plot — saved after every check cycle; also shown on the login page.
-PLOT_PATH = Path("availability_plot.png")
 
 # ─────────────────────────────────────────────
 #  END OF USER CONFIGURATION
@@ -93,6 +144,21 @@ logging.basicConfig(
     ],
 )
 log = logging.getLogger(__name__)
+
+
+# ── Per-account runtime state ─────────────────────────────────────────────────
+
+@dataclass
+class AccountState:
+    """
+    Mutable scheduler bookkeeping for one account — separate from the static
+    `Account` config so the same config can be reused across script restarts.
+    """
+    account:               Account
+    status:                str = "unknown"   # "unknown" | "ready" | "needs_login"
+    next_check_time:       float = field(default_factory=time.monotonic)
+    consecutive_failures:  int = 0
+    last_login_reminder_at: float | None = None
 
 
 # ── Date helpers ──────────────────────────────────────────────────────────────
@@ -431,6 +497,33 @@ def find_furthest_available(
 
 # ── Automated CERN SSO login (two-step) ──────────────────────────────────────
 
+def _save_screenshot(page, label: str) -> None:
+    try:
+        path = Path(f"screenshot_{label}_{time.strftime('%Y%m%d_%H%M%S')}.png")
+        page.screenshot(path=str(path), full_page=True)
+        log.info("Screenshot saved: %s", path.resolve())
+    except Exception as exc:
+        log.warning("Could not save screenshot: %s", exc)
+
+
+def _log_page_state(page, prefix: str) -> None:
+    """Log current URL, title, and visible input IDs — useful for diagnosing unexpected pages."""
+    try:
+        url   = page.url
+        title = page.title()
+        # Grab all visible input ids/names so we can see what form fields exist
+        inputs = page.evaluate("""
+            () => [...document.querySelectorAll('input')].map(
+                el => el.id || el.name || el.type || '?'
+            )
+        """)
+        log.info("%s URL:    %s", prefix, url)
+        log.info("%s Title:  %r", prefix, title)
+        log.info("%s Inputs: %s", prefix, inputs)
+    except Exception as exc:
+        log.warning("%s (could not read page state: %s)", prefix, exc)
+
+
 def perform_login_step1(page, username: str, password: str) -> bool:
     """
     Step 1: fill username + password on the CERN SSO page and wait until the
@@ -438,8 +531,10 @@ def perform_login_step1(page, username: str, password: str) -> bool:
     Call signal_session_ready() after this so the user sees the TOTP form.
     """
     try:
-        log.info("Login step 1: waiting for username/password page…")
+        _log_page_state(page, "Login step 1 start —")
+        log.info("Login step 1: waiting for #username…")
         page.wait_for_selector("#username", timeout=30_000)
+        log.info("Login step 1: #username found — URL: %s", page.url)
         page.fill("#username", username)
         page.fill("#password", password)
         page.click("#kc-login")
@@ -449,9 +544,13 @@ def perform_login_step1(page, username: str, password: str) -> bool:
         return True
     except PlaywrightTimeoutError as exc:
         log.error("Login step 1: timed out — %s", exc)
+        _log_page_state(page, "Login step 1 timeout —")
+        _save_screenshot(page, "step1_timeout")
         return False
     except Exception as exc:
         log.error("Login step 1: unexpected error — %s", exc)
+        _log_page_state(page, "Login step 1 error —")
+        _save_screenshot(page, "step1_error")
         return False
 
 
@@ -465,20 +564,24 @@ def perform_login_step2(page, totp: str) -> bool:
         page.fill("#otp", totp)
         page.click("#kc-login")
         log.info("Login step 2: OTP submitted — waiting for portal redirect…")
-        wait_for_reservations_page(page, timeout=20_000)
-        log.info("Login step 2: success — session saved to %s", PROFILE_DIR)
+        wait_for_reservations_page(page, timeout=60_000)
+        log.info("Login step 2: success — session saved.")
         return True
     except PlaywrightTimeoutError as exc:
         log.error("Login step 2: timed out — %s", exc)
+        _log_page_state(page, "Login step 2 timeout —")
+        _save_screenshot(page, "step2_timeout")
         return False
     except Exception as exc:
         log.error("Login step 2: unexpected error — %s", exc)
+        _log_page_state(page, "Login step 2 error —")
+        _save_screenshot(page, "step2_error")
         return False
 
 
 # ── Single check cycle ────────────────────────────────────────────────────────
 
-def _run_check(page, dry_run: bool):
+def _run_check(account: Account, page, dry_run: bool):
     """Parse reservations, fill gaps, print summary, send notification."""
     # ── Step 2: parse current reservations ───────────────────────────────
     html = page.content()
@@ -493,10 +596,10 @@ def _run_check(page, dry_run: bool):
         log.info("  #%s  %s → %s", r["id"], r["from"], r["to"])
 
     # ── Step 3: detect gaps ───────────────────────────────────────────────
-    gaps = find_gaps(reservations, TARGET_START, TARGET_END)
+    gaps = find_gaps(reservations, account.target_start, account.target_end)
 
     if not gaps:
-        log.info("No gaps found within %s – %s. Nothing to do.", TARGET_START, TARGET_END)
+        log.info("No gaps found within %s – %s. Nothing to do.", account.target_start, account.target_end)
         return
 
     log.info("Detected %d gap(s):", len(gaps))
@@ -745,7 +848,7 @@ def _run_check(page, dry_run: bool):
     for r in final_reservations:
         log.info("  #%s  %s → %s", r["id"], r["from"], r["to"])
 
-    remaining_gaps = find_gaps(final_reservations, TARGET_START, TARGET_END)
+    remaining_gaps = find_gaps(final_reservations, account.target_start, account.target_end)
     if remaining_gaps:
         log.info("")
         log.info("Remaining gaps (could not be filled):")
@@ -755,302 +858,250 @@ def _run_check(page, dry_run: bool):
         log.info("Target range fully covered! 🎉")
 
     # ── Step 6: email notification ────────────────────────────────────────
-    _send_notification(gap_summaries, remaining_gaps, final_reservations, dry_run)
+    _send_notification(account, gap_summaries, remaining_gaps, final_reservations, dry_run)
 
     return gap_summaries, remaining_gaps, final_reservations
 
+# ── Main scheduler loop ───────────────────────────────────────────────────────
 
-# ── Script restart ────────────────────────────────────────────────────────────
+# How long to wait (seconds) for the user to enter their TOTP after Connect.
+TOTP_TIMEOUT_SECONDS = 5 * 60   # 5 minutes
 
-def _restart_script():
+# How often the scheduler wakes to poll for due checks / pending logins.
+SCHEDULER_TICK_SECONDS = 30
+
+
+def _open_browser(pw, account: Account, headless: bool):
+    b = pw.chromium.launch_persistent_context(
+        str(account.profile_dir),
+        headless=headless,
+        slow_mo=200,
+    )
+    p = b.pages[0] if b.pages else b.new_page()
+    return b, p
+
+
+def _close_browser(browser):
+    if browser is not None:
+        try:
+            browser.close()
+        except Exception as e:
+            log.warning("Error closing browser: %s", e)
+    return None, None
+
+
+def _enter_needs_login(account: Account, state: AccountState, login_srv) -> None:
+    state.status = "needs_login"
+    state.last_login_reminder_at = None
+    login_srv.begin_login(account.slug)
+    login_srv.update_dashboard(account.slug, status="needs_login", next_check_at=None)
+
+
+def _maybe_send_login_reminder(account: Account, state: AccountState, login_srv) -> None:
+    """Re-send the 'login required' email on a fixed cadence while we wait."""
+    now = time.monotonic()
+    interval = LOGIN_REMINDER_INTERVAL_HOURS * 3600
+    if state.last_login_reminder_at is not None and (now - state.last_login_reminder_at) < interval:
+        return
+    _send_login_required_email(account, login_srv.url_for(account.slug))
+    state.last_login_reminder_at = now
+
+
+def _run_check_and_report(account: Account, page, dry_run: bool, show_plot: bool,
+                          login_srv, interval_minutes: int):
+    """Run one check cycle, refresh the plot, and report progress to the
+    account's live feed (if anyone's watching) and idle status (for later)."""
+    slug = account.slug
+    login_srv.push_status(slug, "Scanning reservations…")
+    result = _run_check(account, page, dry_run)
+
+    if result:
+        gap_summaries, remaining_gaps, final_reservations = result
+        _show_plot(account, final_reservations, gap_summaries, remaining_gaps, show=show_plot)
+        login_srv.push_status(slug, "", kind="plot_updated")
+        if remaining_gaps:
+            gaps_str = ", ".join(f"{g['gap_start']} – {g['gap_end']}" for g in remaining_gaps)
+            login_srv.push_status(slug, f"Remaining gaps: {gaps_str}", kind="warning")
+            idle_text = f"Running normally — remaining gaps: {gaps_str}"
+        else:
+            login_srv.push_status(slug, "Target range fully covered!", kind="success")
+            idle_text = "Running normally — target range fully covered!"
+    else:
+        idle_text = "Running normally."
+
+    login_srv.push_status(slug, f"Next check in {interval_minutes} minutes.", kind="done")
+    login_srv.set_idle(slug, idle_text)
+    now_iso = datetime.now().isoformat(timespec="seconds")
+    if result:
+        _gs, _rem, _res = result
+        login_srv.update_dashboard(
+            slug,
+            status="ready",
+            last_check_at=now_iso,
+            reservations=[{"id": r["id"], "from": str(r["from"]), "to": str(r["to"])} for r in _res],
+            remaining_gaps=[{"gap_start": str(g["gap_start"]), "gap_end": str(g["gap_end"])} for g in _rem],
+        )
+    else:
+        login_srv.update_dashboard(slug, status="ready", last_check_at=now_iso)
+    return result
+
+
+def _perform_full_login(pw, account: Account, connect_creds: dict, login_srv, headless: bool,
+                        dry_run: bool, show_plot: bool, interval_minutes: int) -> bool:
     """
-    Replace the current process with a fresh instance of itself.
-    Called as a last resort when the login/check cycle is stuck beyond recovery.
-    Does not return.
+    Run the full Connect → step-1 login → 2FA → step-2 sequence for one account,
+    then immediately run its first check while the browser is already open.
+    Opens its own browser and always closes it before returning. Returns True
+    on success.
     """
-    log.warning("Restarting script completely via os.execv…")
+    slug = account.slug
+    log.info("[%s] User clicked Connect — opening fresh browser session…", account.display_name)
+    login_srv.push_status(slug, "Opening browser session…")
+
+    browser = page = None
     try:
-        os.execv(sys.executable, [sys.executable] + sys.argv)
+        browser, page = _open_browser(pw, account, headless)
+        page.goto(PORTAL_URL, wait_until="domcontentloaded")
+        _log_page_state(page, f"[{account.display_name}] After goto —")
     except Exception as exc:
-        log.error("os.execv failed (%s) — exiting instead.", exc)
-        sys.exit(1)
+        log.error("[%s] Failed to open browser session: %s", account.display_name, exc)
+        login_srv.push_status(slug, f"Browser error: {exc} — please try Connect again.", kind="error")
+        login_srv.push_redirect_home(slug)
+        _close_browser(browser)
+        return False
+
+    login_srv.push_status(slug, "Entering username and password…")
+    if not perform_login_step1(page, username=connect_creds["username"], password=connect_creds["password"]):
+        log.warning("[%s] Login step 1 failed — asking user to reconnect.", account.display_name)
+        login_srv.push_status(slug, "Credential entry failed — please try Connect again.", kind="error")
+        login_srv.push_redirect_home(slug)
+        _close_browser(browser)
+        return False
+
+    # Step 1 done — OTP page is now loaded; redirect user to /<slug>/2fa
+    login_srv.push_status(slug, "Credentials accepted — enter your 2FA code now.")
+    login_srv.signal_session_ready(slug)
+
+    log.info("[%s] Waiting for 2FA submission (timeout: %ds)…", account.display_name, TOTP_TIMEOUT_SECONDS)
+    creds = login_srv.wait_for_credentials(slug, timeout=TOTP_TIMEOUT_SECONDS)
+    if creds is None:
+        log.warning("[%s] Timed out waiting for 2FA — asking user to reconnect.", account.display_name)
+        login_srv.push_status(slug, "Timed out waiting for 2FA — please click Connect again.", kind="error")
+        login_srv.push_redirect_home(slug)
+        _close_browser(browser)
+        return False
+
+    if not perform_login_step2(page, totp=creds["totp"]):
+        log.warning("[%s] Login step 2 failed — asking user to reconnect.", account.display_name)
+        login_srv.push_status(slug, "Login failed — please click Connect again.", kind="error")
+        login_srv.push_redirect_home(slug)
+        _close_browser(browser)
+        return False
+
+    log.info("[%s] Login successful — session saved to %s", account.display_name, account.profile_dir)
+    login_srv.push_status(slug, "Login successful! Checking reservations…", kind="success")
+    _run_check_and_report(account, page, dry_run, show_plot, login_srv, interval_minutes)
+    _close_browser(browser)
+    return True
+
+
+def _run_account_check(pw, account: Account, state: AccountState, dry_run: bool, headless: bool,
+                       show_plot: bool, login_srv, interval_minutes: int) -> None:
+    """Open this account's browser, confirm the session is active (or detect
+    that it expired and hand off to the login flow), run a check if active,
+    then always close the browser before returning."""
+    slug = account.slug
+    browser = page = None
+    try:
+        browser, page = _open_browser(pw, account, headless)
+        log.info("[%s] Navigating to %s …", account.display_name, PORTAL_URL)
+        page.goto(PORTAL_URL, wait_until="domcontentloaded")
+
+        try:
+            wait_for_reservations_page(page, timeout=10_000)
+            log.info("[%s] Session active.", account.display_name)
+        except PlaywrightTimeoutError:
+            log.warning("[%s] Session expired – login required.", account.display_name)
+            _close_browser(browser)
+            _enter_needs_login(account, state, login_srv)
+            return
+
+        _run_check_and_report(account, page, dry_run, show_plot, login_srv, interval_minutes)
+        _close_browser(browser)
+        state.consecutive_failures = 0
+        login_srv.update_dashboard(account.slug, consecutive_failures=0)
+
+    except Exception as exc:
+        log.error("[%s] Error during check: %s: %s", account.display_name, type(exc).__name__, exc)
+        _close_browser(browser)
+        state.consecutive_failures += 1
+        login_srv.update_dashboard(account.slug,
+                                   consecutive_failures=state.consecutive_failures,
+                                   status="error")
+        _send_error_email(account, state.consecutive_failures, exc)
 
 
 # ── Main loop ─────────────────────────────────────────────────────────────────
 
 def run(dry_run: bool, headless: bool, interval_minutes: int, show_plot: bool = False):
     log.info("=" * 60)
-    log.info("CERN Hostel Gap Filler  |  target: %s → %s", TARGET_START, TARGET_END)
+    log.info("CERN Hostel Gap Filler  |  %d account(s)", len(ACCOUNTS))
+    for acc in ACCOUNTS:
+        log.info("  %-10s  /%-10s  target: %s → %s", acc.display_name, acc.slug, acc.target_start, acc.target_end)
     log.info("dry-run=%s  headless=%s  interval=%dm", dry_run, headless, interval_minutes)
     log.info("=" * 60)
 
-    PROFILE_DIR.mkdir(parents=True, exist_ok=True)
+    for acc in ACCOUNTS:
+        acc.profile_dir.mkdir(parents=True, exist_ok=True)
 
-    # How long to wait (seconds) for the user to click Connect before restarting.
-    CONNECT_TIMEOUT_SECONDS = 4 * 3600   # 4 hours
-    # How long to wait (seconds) for the user to enter their TOTP after Connect.
-    TOTP_TIMEOUT_SECONDS    = 5 * 60     # 5 minutes
+    login_srv = login_server.LoginServer(port=LOGIN_SERVER_PORT, accounts=ACCOUNTS,
+                                         primary_slug=ACCOUNTS[0].slug, log_path=LOG_FILE)
+    base_url = login_srv.start()
+    log.info("Login/status server running at %s — personal pages:", base_url)
+    for acc in ACCOUNTS:
+        log.info("  %-10s → %s", acc.display_name, login_srv.url_for(acc.slug))
 
-    def _open_browser(pw):
-        b = pw.chromium.launch_persistent_context(
-            str(PROFILE_DIR),
-            headless=headless,
-            slow_mo=200,
-        )
-        p = b.pages[0] if b.pages else b.new_page()
-        return b, p
+    states = {acc.slug: AccountState(account=acc) for acc in ACCOUNTS}
 
-    def _close_browser(browser):
-        if browser is not None:
-            try:
-                browser.close()
-            except Exception as e:
-                log.warning("Error closing browser: %s", e)
-        return None, None
+    try:
+        with sync_playwright() as pw:
+            while True:
+                for slug, state in states.items():
+                    account = state.account
 
-    with sync_playwright() as pw:
-        browser, page = _open_browser(pw)
-
-        first_run = True
-        consecutive_failures = 0
-        MAX_RETRIES = 3
-        RETRY_DELAY_SECONDS = 60
-
-        while True:
-            if not first_run:
-                log.info("=" * 60)
-                log.info("Rechecking at %s", time.strftime("%Y-%m-%d %H:%M:%S"))
-                log.info("=" * 60)
-
-            attempt = 0
-            success = False
-            last_error = None
-            login_srv = None
-
-            while attempt < MAX_RETRIES:
-                try:
-                    # ── Step 1: navigate and handle login ────────────────────
-                    if browser is None:
-                        browser, page = _open_browser(pw)
-
-                    log.info("Navigating to %s …", PORTAL_URL)
-                    page.goto(PORTAL_URL, wait_until="domcontentloaded")
-
-                    try:
-                        wait_for_reservations_page(page, timeout=5_000)
-                        log.info("Session active%s.", " – skipping login" if first_run else "")
-
-                    except PlaywrightTimeoutError:
-                        if not first_run:
-                            log.warning("Session expired – login required.")
+                    if state.status == "needs_login":
+                        creds = login_srv.try_get_connect(slug)
+                        if creds:
+                            log.info("=" * 60)
+                            log.info("[%s] Connect received — starting login sequence…", account.display_name)
+                            if _perform_full_login(pw, account, creds, login_srv, headless,
+                                                   dry_run, show_plot, interval_minutes):
+                                state.status = "ready"
+                                state.next_check_time = time.monotonic() + interval_minutes * 60
+                                state.last_login_reminder_at = None
+                                _nxt = (datetime.now() + timedelta(minutes=interval_minutes)).isoformat(timespec="seconds")
+                                login_srv.update_dashboard(slug, next_check_at=_nxt)
+                                log.info("[%s] Next check in %d minutes.", account.display_name, interval_minutes)
+                            # on failure: stays "needs_login"; user was already redirected to retry
                         else:
-                            log.info("Not logged in – starting login flow.")
+                            _maybe_send_login_reminder(account, state, login_srv)
+                        continue
 
-                        # ── Close stale browser session ───────────────────────
-                        browser, page = _close_browser(browser)
+                    if time.monotonic() >= state.next_check_time:
+                        log.info("=" * 60)
+                        log.info("[%s] Checking…  (%s)", account.display_name, time.strftime("%Y-%m-%d %H:%M:%S"))
+                        _run_account_check(pw, account, state, dry_run, headless, show_plot, login_srv, interval_minutes)
+                        if state.status != "needs_login":
+                            state.status = "ready"
+                            state.next_check_time = time.monotonic() + interval_minutes * 60
+                            _nxt = (datetime.now() + timedelta(minutes=interval_minutes)).isoformat(timespec="seconds")
+                            login_srv.update_dashboard(slug, next_check_at=_nxt)
+                            log.info("[%s] Next check in %d minutes. Press Ctrl+C to stop.",
+                                     account.display_name, interval_minutes)
 
-                        # ── Start login server (shows Connect button) ─────────
-                        if login_srv is None:
-                            login_srv = login_server.LoginServer(
-                                port=LOGIN_SERVER_PORT,
-                                creds_file=CERN_CREDS_PATH if CERN_CREDS_PATH.exists() else None,
-                                plot_path=PLOT_PATH,
-                            )
-                            login_srv.start(on_ready=_send_login_required_email)
-
-                        # ── Inner loop: Connect → step-1 login → 2FA → step-2 ─
-                        login_succeeded = False
-                        while not login_succeeded:
-                            # Wait for user to click the Connect button (with creds)
-                            log.info(
-                                "Waiting for user to click Connect "
-                                "(timeout: %d h)…", CONNECT_TIMEOUT_SECONDS // 3600
-                            )
-                            connect_creds = login_srv.wait_for_connect(
-                                timeout=CONNECT_TIMEOUT_SECONDS
-                            )
-                            if not connect_creds:
-                                log.error(
-                                    "Timed out waiting for Connect after %d hours — "
-                                    "restarting script.", CONNECT_TIMEOUT_SECONDS // 3600
-                                )
-                                login_srv.push_status(
-                                    "Timed out — restarting the system.", kind="error"
-                                )
-                                login_srv.shutdown()
-                                _restart_script()  # does not return
-
-                            # Open a fresh playwright browser and navigate to portal
-                            log.info("User clicked Connect — opening fresh browser session…")
-                            login_srv.push_status("Opening browser session…")
-                            try:
-                                browser, page = _open_browser(pw)
-                                page.goto(PORTAL_URL, wait_until="domcontentloaded")
-                            except Exception as exc:
-                                log.error("Failed to open browser session: %s", exc)
-                                login_srv.push_status(
-                                    f"Browser error: {exc} — please try Connect again.",
-                                    kind="error",
-                                )
-                                login_srv.push_redirect_home()
-                                browser, page = _close_browser(browser)
-                                continue  # back to wait_for_connect
-
-                            # Step 1: enter username + password immediately
-                            login_srv.push_status("Entering username and password…")
-                            step1_ok = perform_login_step1(
-                                page,
-                                username=connect_creds["username"],
-                                password=connect_creds["password"],
-                            )
-                            if not step1_ok:
-                                log.warning(
-                                    "Login step 1 failed — closing browser and "
-                                    "asking user to reconnect."
-                                )
-                                login_srv.push_status(
-                                    "Credential entry failed — please try Connect again.",
-                                    kind="error",
-                                )
-                                login_srv.push_redirect_home()
-                                browser, page = _close_browser(browser)
-                                continue  # back to wait_for_connect
-
-                            # Step 1 done — OTP page is now loaded; redirect user to /2fa
-                            login_srv.push_status(
-                                "Credentials accepted — enter your 2FA code now."
-                            )
-                            login_srv.signal_session_ready()  # redirect → /2fa
-
-                            # Wait for TOTP from user
-                            log.info(
-                                "Waiting for 2FA submission (timeout: %ds)…",
-                                TOTP_TIMEOUT_SECONDS,
-                            )
-                            creds = login_srv.wait_for_credentials(
-                                timeout=TOTP_TIMEOUT_SECONDS
-                            )
-                            if creds is None:
-                                log.warning(
-                                    "Timed out waiting for 2FA (%ds) — "
-                                    "closing browser and asking user to reconnect.",
-                                    TOTP_TIMEOUT_SECONDS,
-                                )
-                                login_srv.push_status(
-                                    "Timed out waiting for 2FA — please click Connect again.",
-                                    kind="error",
-                                )
-                                login_srv.push_redirect_home()
-                                browser, page = _close_browser(browser)
-                                continue  # back to wait_for_connect
-
-                            # Step 2: enter OTP and wait for portal
-                            login_ok = perform_login_step2(page, totp=creds["totp"])
-                            if not login_ok:
-                                log.warning(
-                                    "Login step 2 failed — closing browser and "
-                                    "asking user to reconnect."
-                                )
-                                login_srv.push_status(
-                                    "Login failed — please click Connect again.",
-                                    kind="error",
-                                )
-                                login_srv.push_redirect_home()
-                                browser, page = _close_browser(browser)
-                                continue  # back to wait_for_connect
-
-                            login_succeeded = True
-                            login_srv.push_status(
-                                "Login successful! Checking reservations…", kind="success"
-                            )
-                        # ── end inner login loop ──────────────────────────────
-
-                    first_run = False
-
-                    if login_srv:
-                        login_srv.push_status("Scanning reservations…")
-                    result = _run_check(page, dry_run)
-
-                    if result:
-                        gap_summaries, remaining_gaps, final_reservations = result
-                        _show_plot(
-                            final_reservations, gap_summaries, remaining_gaps,
-                            show=show_plot,
-                        )
-                        if login_srv:
-                            login_srv.push_status("", kind="plot_updated")
-                            if remaining_gaps:
-                                gaps_str = ", ".join(
-                                    f"{g['gap_start']} – {g['gap_end']}"
-                                    for g in remaining_gaps
-                                )
-                                login_srv.push_status(
-                                    f"Remaining gaps: {gaps_str}", kind="warning"
-                                )
-                            else:
-                                login_srv.push_status(
-                                    "Target range fully covered!", kind="success"
-                                )
-                            login_srv.push_status(
-                                f"Next check in {interval_minutes} minutes.", kind="done"
-                            )
-
-                    success = True
-                    consecutive_failures = 0
-                    break
-
-                except KeyboardInterrupt:
-                    raise
-                except Exception as exc:
-                    attempt += 1
-                    last_error = exc
-                    log.error(
-                        "Error during check (attempt %d/%d): %s: %s",
-                        attempt, MAX_RETRIES, type(exc).__name__, exc,
-                    )
-                    # Close browser so the next attempt starts fresh
-                    browser, page = _close_browser(browser)
-                    if attempt < MAX_RETRIES:
-                        log.info("Retrying in %d seconds …", RETRY_DELAY_SECONDS)
-                        time.sleep(RETRY_DELAY_SECONDS)
-                    else:
-                        log.error("All %d attempts failed.", MAX_RETRIES)
-
-            if login_srv:
-                if not success:
-                    login_srv.push_status(
-                        "All check attempts failed — will retry next cycle.", kind="error"
-                    )
-                time.sleep(5)   # give the phone a moment to read the final status
-                login_srv.shutdown()
-                login_srv = None
-
-            if not success:
-                consecutive_failures += 1
-                log.error(
-                    "Consecutive failure count: %d. Last error: %s: %s",
-                    consecutive_failures, type(last_error).__name__, last_error,
-                )
-                _send_error_email(consecutive_failures, last_error)
-                # After enough consecutive failures, restart entirely to clear any
-                # stuck state (browser process leaks, broken playwright context, etc.)
-                if consecutive_failures >= MAX_RETRIES * 2:
-                    log.error(
-                        "%d consecutive failures — restarting script.", consecutive_failures
-                    )
-                    _restart_script()
-
-            # Ensure browser is open for next check cycle
-            if browser is None:
-                try:
-                    browser, page = _open_browser(pw)
-                except Exception as exc:
-                    log.error("Could not reopen browser before sleep: %s", exc)
-
-            log.info("Next check in %d minutes. Press Ctrl+C to stop.", interval_minutes)
-            time.sleep(interval_minutes * 60)
-
-        _close_browser(browser)
+                time.sleep(SCHEDULER_TICK_SECONDS)
+    finally:
+        login_srv.shutdown()
 
 
 # ── Notification deduplication ───────────────────────────────────────────────
@@ -1065,24 +1116,24 @@ def _notification_key(gap_summaries: list[dict]) -> str:
     return ";".join(parts)
 
 
-def _was_recently_notified(key: str) -> bool:
-    """Return True if the last row in the notification CSV has the same key."""
-    if not NOTIFICATION_LOG_PATH.exists():
+def _was_recently_notified(account: Account, key: str) -> bool:
+    """Return True if the last row in the account's notification CSV has the same key."""
+    if not account.notification_log_path.exists():
         return False
     import csv as _csv
     try:
-        with open(NOTIFICATION_LOG_PATH, newline="", encoding="utf-8") as f:
+        with open(account.notification_log_path, newline="", encoding="utf-8") as f:
             rows = list(_csv.DictReader(f))
         return bool(rows) and rows[-1].get("key") == key
     except Exception:
         return False
 
 
-def _log_notification(key: str, subject: str) -> None:
-    """Append one row to the notification CSV log."""
+def _log_notification(account: Account, key: str, subject: str) -> None:
+    """Append one row to the account's notification CSV log."""
     import csv as _csv
-    write_header = not NOTIFICATION_LOG_PATH.exists()
-    with open(NOTIFICATION_LOG_PATH, "a", newline="", encoding="utf-8") as f:
+    write_header = not account.notification_log_path.exists()
+    with open(account.notification_log_path, "a", newline="", encoding="utf-8") as f:
         writer = _csv.DictWriter(f, fieldnames=["timestamp", "key", "subject"])
         if write_header:
             writer.writeheader()
@@ -1095,13 +1146,14 @@ def _log_notification(key: str, subject: str) -> None:
 
 # ── Email notifications ────────────────────────────────────────────────────────
 
-def _send_login_required_email(url: str = ""):
+def _send_login_required_email(account: Account, url: str = ""):
     """Notify that the CERN SSO session has expired, including the login URL."""
-    log.info("Login required. Open %s on your phone.", url or f"http://localhost:{LOGIN_SERVER_PORT}")
+    log.info("[%s] Login required. Open %s on your phone.", account.display_name, url)
     if not GMAIL_CRED_PATH.exists():
         return
     subject = "[ACTION REQUIRED] CERN Hostel: login required"
     body = (
+        f"Hi {account.display_name},\n\n"
         "The CERN Hostel Gap Filler needs you to log in to CERN SSO.\n\n"
         f"Open this link on your phone:\n\n    {url}\n\n"
         "1. Tap the Connect button — this starts a fresh browser session.\n"
@@ -1112,32 +1164,33 @@ def _send_login_required_email(url: str = ""):
     )
     try:
         notifier = GmailNotifier(str(GMAIL_CRED_PATH))
-        notifier.send_email(NOTIFY_EMAIL, subject, body)
-        log.info("Login-required email sent to %s.", NOTIFY_EMAIL)
+        notifier.send_email(account.notify_email, subject, body)
+        log.info("[%s] Login-required email sent to %s.", account.display_name, account.notify_email)
     except Exception as e:
-        log.error("Failed to send login-required email: %s", e)
+        log.error("[%s] Failed to send login-required email: %s", account.display_name, e)
 
 
-def _send_error_email(consecutive_failures: int, error: Exception):
+def _send_error_email(account: Account, consecutive_failures: int, error: Exception):
     """Send an alert email when repeated check attempts all fail."""
     if not GMAIL_CRED_PATH.exists():
         return
-    subject = f"[ACTION REQUIRED] CERN Hostel: script error ({consecutive_failures} consecutive failure(s))"
+    subject = f"[ACTION REQUIRED] CERN Hostel ({account.display_name}): script error ({consecutive_failures} consecutive failure(s))"
     body = (
-        f"The CERN Hostel Gap Filler has failed {consecutive_failures} consecutive check(s).\n\n"
+        f"The CERN Hostel Gap Filler has failed {consecutive_failures} consecutive check(s) "
+        f"for {account.display_name}'s account.\n\n"
         f"Last error:\n  {type(error).__name__}: {error}\n\n"
-        "The script will keep retrying every 30 minutes. "
+        "The script will keep retrying every check cycle. "
         "You may need to check network connectivity or restart the script."
     )
     try:
         notifier = GmailNotifier(str(GMAIL_CRED_PATH))
-        notifier.send_email(NOTIFY_EMAIL, subject, body)
-        log.info("Error alert email sent to %s.", NOTIFY_EMAIL)
+        notifier.send_email(account.notify_email, subject, body)
+        log.info("[%s] Error alert email sent to %s.", account.display_name, account.notify_email)
     except Exception as e:
-        log.error("Failed to send error alert email: %s", e)
+        log.error("[%s] Failed to send error alert email: %s", account.display_name, e)
 
 
-def _send_notification(gap_summaries, remaining_gaps, final_reservations, dry_run):
+def _send_notification(account: Account, gap_summaries, remaining_gaps, final_reservations, dry_run):
     """Send a summary email only when there is actual availability to report."""
     if not GMAIL_CRED_PATH.exists():
         log.info("No Gmail credentials found at %s – skipping email.", GMAIL_CRED_PATH)
@@ -1155,17 +1208,18 @@ def _send_notification(gap_summaries, remaining_gaps, final_reservations, dry_ru
         return
 
     if any_non_adjacent:
-        subject = "[ACTION REQUIRED] CERN Hostel: available dates need manual booking"
+        subject = f"[ACTION REQUIRED] CERN Hostel ({account.display_name}): available dates need manual booking"
     else:
-        subject = "[CERN Hostel] Reservation(s) extended automatically – no action needed"
+        subject = f"[CERN Hostel] Reservation(s) extended automatically for {account.display_name} – no action needed"
 
     if dry_run:
         subject = "[DRY-RUN] " + subject
 
     # Deduplication: skip if the last notification had identical actionable content
     key = _notification_key(gap_summaries)
-    if _was_recently_notified(key):
-        log.info("Notification suppressed — same content as last email; skipping. (key: %s)", key)
+    if _was_recently_notified(account, key):
+        log.info("[%s] Notification suppressed — same content as last email; skipping. (key: %s)",
+                 account.display_name, key)
         return
 
     lines = []
@@ -1213,11 +1267,11 @@ def _send_notification(gap_summaries, remaining_gaps, final_reservations, dry_ru
 
     try:
         notifier = GmailNotifier(str(GMAIL_CRED_PATH))
-        notifier.send_email(NOTIFY_EMAIL, subject, body)
-        log.info("Notification email sent to %s.", NOTIFY_EMAIL)
-        _log_notification(key, subject)
+        notifier.send_email(account.notify_email, subject, body)
+        log.info("[%s] Notification email sent to %s.", account.display_name, account.notify_email)
+        _log_notification(account, key, subject)
     except Exception as e:
-        log.error("Failed to send notification email: %s", e)
+        log.error("[%s] Failed to send notification email: %s", account.display_name, e)
 
 
 # ── Timeline plot ─────────────────────────────────────────────────────────────
@@ -1225,7 +1279,7 @@ def _send_notification(gap_summaries, remaining_gaps, final_reservations, dry_ru
 _mpl_backend_set = False
 
 
-def _show_plot(final_reservations, gap_summaries, remaining_gaps, show: bool = False):
+def _show_plot(account: Account, final_reservations, gap_summaries, remaining_gaps, show: bool = False):
     global _mpl_backend_set
     try:
         import matplotlib
@@ -1248,7 +1302,7 @@ def _show_plot(final_reservations, gap_summaries, remaining_gaps, show: bool = F
     covered: set[date] = set()
     for r in final_reservations:
         for d in date_range(r["from"], r["to"]):
-            if TARGET_START <= d < TARGET_END:
+            if account.target_start <= d < account.target_end:
                 covered.add(d)
 
     # Nights flagged as possibly manually bookable
@@ -1278,7 +1332,7 @@ def _show_plot(final_reservations, gap_summaries, remaining_gaps, show: bool = F
         spans.append((seg_start, (nights[-1] - seg_start).days + 1, seg_color))
         return spans
 
-    all_nights = list(date_range(TARGET_START, TARGET_END))
+    all_nights = list(date_range(account.target_start, account.target_end))
     coverage_spans = make_spans(all_nights)
 
     # ── Layout: top panel = coverage band, bottom panels = per-reservation rows ──
@@ -1303,7 +1357,8 @@ def _show_plot(final_reservations, gap_summaries, remaining_gaps, show: bool = F
     ax_top.set_yticks([0.5])
     ax_top.set_yticklabels(["Coverage"])
     ax_top.set_title(
-        f"CERN Hostel Timeline  ·  {TARGET_START} – {TARGET_END - timedelta(days=1)}",
+        f"CERN Hostel Timeline ({account.display_name})  ·  "
+        f"{account.target_start} – {account.target_end - timedelta(days=1)}",
         fontweight="bold", pad=8,
     )
 
@@ -1317,8 +1372,8 @@ def _show_plot(final_reservations, gap_summaries, remaining_gaps, show: bool = F
 
     # ── Bottom: one row per reservation ──────────────────────────────────────
     for i, r in enumerate(final_reservations):
-        vis_start = max(r["from"], TARGET_START)
-        vis_end   = min(r["to"],   TARGET_END)
+        vis_start = max(r["from"], account.target_start)
+        vis_end   = min(r["to"],   account.target_end)
         if vis_start >= vis_end:
             continue
         width = (vis_end - vis_start).days
@@ -1350,14 +1405,14 @@ def _show_plot(final_reservations, gap_summaries, remaining_gaps, show: bool = F
     ax_bot.set_xlabel("Date")
 
     # ── Shared x-axis formatting ──────────────────────────────────────────────
-    ax_bot.set_xlim(to_mdate(TARGET_START), to_mdate(TARGET_END))
+    ax_bot.set_xlim(to_mdate(account.target_start), to_mdate(account.target_end))
     ax_bot.xaxis.set_major_locator(mdates.WeekdayLocator(byweekday=mdates.MO))
     ax_bot.xaxis.set_major_formatter(mdates.DateFormatter("%b %-d"))
     plt.setp(ax_bot.get_xticklabels(), rotation=45, ha="right", fontsize=8)
 
     plt.tight_layout()
-    plt.savefig(PLOT_PATH, dpi=150, bbox_inches="tight")
-    log.info("Availability plot saved to %s", PLOT_PATH)
+    plt.savefig(account.plot_path, dpi=150, bbox_inches="tight")
+    log.info("[%s] Availability plot saved to %s", account.display_name, account.plot_path)
     if show:
         plt.show()
     plt.close(fig)

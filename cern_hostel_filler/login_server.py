@@ -1,35 +1,46 @@
 """
-login_server.py — Flask server for CERN credential collection and live status
-broadcasting to the user's phone browser.
+login_server.py — multi-tenant Flask server for CERN credential collection and
+live status broadcasting, one account per URL slug, all sharing one port.
+
+Each account (identified by a URL-safe `slug`) gets its own page at `/<slug>/`
+that is phase-aware:
+    "idle"    → status page (nothing pending; shows the latest plot)
+    "connect" → Connect form (username prefilled if known; password always blank)
+    "2fa"     → TOTP form
 
 Public API:
-    LoginServer(port, creds_file, plot_path)
-        .start(on_ready)            → starts server, returns URL
-        .wait_for_connect(timeout)  → blocks until user clicks Connect; returns
-                                      {"username": str, "password": str} or None on timeout
-        .signal_session_ready()     → push SSE redirect to /2fa (call after step-1 login done)
-        .wait_for_credentials(timeout) → blocks until TOTP form submitted; None on timeout
-        .push_status(text, kind)    → push a line to the SSE status feed
-        .reset()                    → clear pending state (for login retry)
-        .shutdown()                 → stop the server
+    LoginServer(port, accounts, primary_slug=None)
+        .start()                          → starts server, returns base URL
+        .url_for(slug)                    → personal login URL for that account
+        .try_get_connect(slug)            → NON-BLOCKING poll; creds dict or None
+        .signal_session_ready(slug)       → switch to /2fa and push redirect
+        .wait_for_credentials(slug, timeout) → blocks (bounded) for TOTP submit
+        .push_status(slug, text, kind)    → push a line to that account's SSE feed
+        .push_redirect_home(slug)         → reset to "connect" phase, redirect to /<slug>/
+        .set_idle(slug, status_text=None) → switch back to "idle" phase
+        .shutdown()                       → stop the server
 
-    collect_credentials(...)        → convenience one-shot wrapper (legacy)
+Each account object passed in `accounts` only needs these attributes (duck-typed,
+so no import of cern_hostel_filler.Account is required):
+    slug, display_name, cern_username, cern_creds_path, plot_path
 """
 
+import html as _html
 import json
 import logging
 import socket
 import threading
 import time
 import urllib.request
+from datetime import datetime, timedelta
 from pathlib import Path
 
-from flask import Flask, request, Response, send_file as flask_send_file
+from flask import Flask, request, Response, abort, redirect, send_file as flask_send_file
 from werkzeug.serving import make_server
 
 log = logging.getLogger(__name__)
 
-# ── Shared CSS (injected into login form pages) ────────────────────────────────
+# ── Shared CSS (injected into every page) ──────────────────────────────────────
 
 _SHARED_CSS = """
     *, *::before, *::after { box-sizing: border-box; }
@@ -111,123 +122,13 @@ _SHARED_CSS = """
       border: 1px solid #e5e7eb;
       display: none;
     }
+    .status-dot {
+      display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+      background: #16a34a; margin-right: 6px; vertical-align: middle;
+    }
 """
 
-# Availability plot image tag — shown at the bottom of login form pages.
-# onerror hides it silently if no plot has been saved yet.
-_PLOT_IMG = (
-    '<img class="plot-preview" src="/plot.png" '
-    'onload="this.style.display=\'block\'" onerror="this.style.display=\'none\'">'
-)
-
-# ── Connect page — credentials pre-loaded (just a button) ─────────────────────
-
-_CONNECT_HTML = """<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CERN Hostel — Reconnect</title>
-  <style>{css}</style>
-</head>
-<body>
-  <div class="card">
-    <h2>&#128683; Session Expired</h2>
-    <p class="subtitle">Your CERN session has expired and must be renewed.</p>
-    <div class="notice">
-      Clicking <strong>Connect</strong> will immediately enter your saved
-      credentials in the browser. You will then be taken to the
-      <strong>2FA page</strong> to enter your Google Authenticator code.
-    </div>
-    <form method="post" action="/connect">
-      <button type="submit">Connect &amp; Start Login</button>
-    </form>
-    {plot_img}
-  </div>
-</body>
-</html>""".format(css=_SHARED_CSS, plot_img=_PLOT_IMG)
-
-# ── Connect page — no saved credentials (ask for username + password) ──────────
-
-_CONNECT_CREDS_HTML = """<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CERN Hostel — Reconnect</title>
-  <style>{css}</style>
-</head>
-<body>
-  <div class="card">
-    <h2>&#128683; Session Expired</h2>
-    <p class="subtitle">Enter your credentials, then click Connect.</p>
-    <div class="notice">
-      Your username and password will be entered in the browser immediately.
-      You will then be taken to the <strong>2FA page</strong> to enter your
-      Google Authenticator code.
-    </div>
-    <form method="post" action="/connect" autocomplete="on">
-      <div class="field">
-        <label for="username">CERN Username</label>
-        <input id="username" name="username" type="text"
-          autocomplete="username" autocorrect="off" autocapitalize="none"
-          spellcheck="false" required autofocus>
-      </div>
-      <div class="field">
-        <label for="password">Password</label>
-        <input id="password" name="password" type="password"
-          autocomplete="current-password" required>
-      </div>
-      <button type="submit">Connect &amp; Start Login</button>
-    </form>
-    {plot_img}
-  </div>
-</body>
-</html>""".format(css=_SHARED_CSS, plot_img=_PLOT_IMG)
-
-# ── TOTP form (served at /2fa after step-1 login completes) ───────────────────
-
-_TOTP_HTML = """<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CERN 2FA</title>
-  <style>{css}</style>
-</head>
-<body>
-  <div class="card">
-    <h2>CERN Hostel — 2FA</h2>
-    <p class="subtitle">Credentials accepted. Enter your Google Authenticator code.</p>
-    <div class="notice">
-      Open your authenticator app <strong>last</strong>, just before tapping
-      Submit — TOTP codes expire after 30 seconds.
-    </div>
-    <form method="post" action="/2fa" autocomplete="off">
-      <div class="field">
-        <label for="totp">Google Authenticator Code</label>
-        <div class="totp-wrap">
-          <input id="totp" name="totp" type="number"
-            inputmode="numeric" pattern="[0-9]{{6}}"
-            maxlength="6" placeholder="000000" required autofocus>
-        </div>
-      </div>
-      <button type="submit">Submit &amp; Log In</button>
-    </form>
-    {plot_img}
-  </div>
-</body>
-</html>""".format(css=_SHARED_CSS, plot_img=_PLOT_IMG)
-
-# ── Status page (shown after form submit; streams live updates) ────────────────
-
-_STATUS_HTML = """<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CERN Hostel — Status</title>
-  <style>
+_STATUS_PAGE_CSS = """
     *, *::before, *::after { box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -270,111 +171,462 @@ _STATUS_HTML = """<!DOCTYPE html>
       width: 100%; border-radius: 8px;
       border: 1px solid #e5e7eb; display: none;
     }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h2>&#128274; CERN Hostel</h2>
-    <p id="subtitle"><span class="spinner"></span>Please wait&hellip;</p>
-    <div class="feed" id="feed"></div>
-    <div id="plot-wrap">
-      <img id="plot-img" src="/plot.png?t=0"
-           onload="this.style.display='block'" onerror="this.style.display='none'">
-    </div>
-  </div>
-  <script>
-    const feed     = document.getElementById('feed');
-    const subtitle = document.getElementById('subtitle');
-    const plotImg  = document.getElementById('plot-img');
+"""
 
-    function addMsg(kind, text) {
-      const row  = document.createElement('div');
-      row.className = 'msg ' + kind;
-      const dot  = document.createElement('span');
-      dot.className = 'dot';
-      const span = document.createElement('span');
-      span.className = 'text';
-      span.textContent = text;
-      row.appendChild(dot);
-      row.appendChild(span);
-      feed.appendChild(row);
-      row.scrollIntoView({behavior: 'smooth', block: 'nearest'});
-    }
-
-    const src = new EventSource('/events');
-    src.onmessage = function(e) {
-      const d = JSON.parse(e.data);
-      if (d.kind === 'plot_updated') {
-        plotImg.src = '/plot.png?t=' + Date.now();
-        plotImg.style.display = 'block';
-        return;
-      }
-      if (d.kind === 'redirect') {
-        src.close();
-        setTimeout(() => { window.location = d.text || '/'; }, 1500);
-        return;
-      }
-      addMsg(d.kind, d.text);
-      if (d.kind === 'success' && d.text.includes('Login successful')) {
-        subtitle.textContent = 'Logged in \u2713 \u2014 scraping reservations\u2026';
-      }
-      if (d.kind === 'done') {
-        subtitle.textContent = '\u2713 Done';
-        src.close();
-      }
-    };
-    src.onerror = function() {
-      subtitle.textContent = 'Connection closed.';
-      src.close();
-    };
-  </script>
-</body>
-</html>"""
-
-# ── Error page ─────────────────────────────────────────────────────────────────
-
-_ERROR_HTML = """<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Login failed</title>
-  <style>
-    body {{
+_ERROR_CSS = """
+    body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #f0f4f8; display: flex; align-items: center;
       justify-content: center; min-height: 100vh; margin: 0;
-    }}
-    .card {{
+    }
+    .card {
       background: #fff; border-radius: 12px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.10);
       padding: 32px; text-align: center; max-width: 380px;
-    }}
-    .icon {{ font-size: 2.5rem; margin-bottom: 12px; }}
-    h2 {{ margin: 0 0 10px; color: #c0392b; font-size: 1.2rem; }}
-    p  {{ margin: 0 0 20px; color: #555; font-size: 0.9rem; line-height: 1.5; }}
-    .reason {{
+    }
+    .icon { font-size: 2.5rem; margin-bottom: 12px; }
+    h2 { margin: 0 0 10px; color: #c0392b; font-size: 1.2rem; }
+    p  { margin: 0 0 20px; color: #555; font-size: 0.9rem; line-height: 1.5; }
+    .reason {
       background: #fef2f2; border-left: 4px solid #ef4444;
       border-radius: 4px; padding: 10px 12px;
       font-size: 0.85rem; color: #555; text-align: left; margin-bottom: 20px;
-    }}
-    a {{
+    }
+    a {
       display: inline-block; padding: 12px 28px; background: #0066cc;
       color: #fff; font-weight: 600; border-radius: 8px;
       text-decoration: none; font-size: 1rem;
-    }}
-  </style>
-</head>
-<body>
-  <div class="card">
-    <div class="icon">&#10060;</div>
-    <h2>Login failed</h2>
-    <p>The script could not complete the CERN SSO login.</p>
-    <div class="reason">{reason}</div>
-    <a href="/">Try again</a>
-  </div>
-</body>
-</html>"""
+    }
+"""
+
+
+_DASHBOARD_CSS = """
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+           background: #f0f4f8; margin: 0; padding: 16px; }
+    .dashboard { max-width: 1200px; margin: 0 auto; }
+    .dash-header { display: flex; justify-content: space-between; align-items: baseline;
+                   margin-bottom: 20px; flex-wrap: wrap; gap: 8px; }
+    .dash-header h1 { margin: 0; font-size: 1.5rem; color: #1a1a2e; }
+    .updated { color: #6b7280; font-size: 0.85rem; }
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 16px; }
+    .user-card { background: #fff; border-radius: 12px;
+                 box-shadow: 0 2px 12px rgba(0,0,0,0.08); overflow: hidden; }
+    .card-top { padding: 20px 20px 14px; }
+    .card-title { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .dot.pulse { animation: pulse 2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+    .name { font-size: 1.15rem; font-weight: 700; color: #1a1a2e; }
+    .badge { padding: 3px 9px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+    .badge-green { background: #dcfce7; color: #15803d; }
+    .badge-amber { background: #fef3c7; color: #92400e; }
+    .badge-red   { background: #fee2e2; color: #b91c1c; }
+    .badge-gray  { background: #f3f4f6; color: #6b7280; }
+    .card-meta { display: flex; flex-wrap: wrap; gap: 4px 16px;
+                 font-size: 0.8rem; color: #6b7280; margin-bottom: 8px; }
+    .status-text { font-size: 0.85rem; color: #374151; background: #f9fafb;
+                   border-radius: 6px; padding: 8px 10px; line-height: 1.4; }
+    details { border-top: 1px solid #f3f4f6; }
+    summary { padding: 11px 20px; font-size: 0.88rem; font-weight: 600; color: #374151;
+              cursor: pointer; user-select: none; list-style: none;
+              display: flex; justify-content: space-between; align-items: center; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: "▾"; font-size: 0.9rem; color: #9ca3af; }
+    details[open] summary::after { content: "▴"; }
+    .detail-body { padding: 2px 20px 14px; }
+    .detail-body h4 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;
+                      color: #9ca3af; margin: 10px 0 5px; }
+    .detail-body ul { margin: 0; padding: 0 0 0 16px; font-size: 0.85rem; color: #374151; }
+    .detail-body li { padding: 2px 0; }
+    .gaps li { color: #b91c1c; font-weight: 500; }
+    .all-good { color: #15803d; font-size: 0.85rem; font-weight: 600; margin: 4px 0; }
+    .empty { color: #9ca3af; font-size: 0.85rem; margin: 4px 0; font-style: italic; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0; }
+    .stat-box { background: #f9fafb; border-radius: 8px; padding: 10px 8px; text-align: center; }
+    .stat-box .num { display: block; font-size: 1.25rem; font-weight: 700; color: #1a1a2e; }
+    .stat-box .lbl { display: block; font-size: 0.68rem; color: #6b7280; margin-top: 2px; }
+    .log-scroll { background: #111827; border-radius: 8px; padding: 10px 12px;
+                  max-height: 220px; overflow-y: auto; margin-top: 6px; }
+    .log-line { font-family: monospace; font-size: 0.72rem; color: #d1fae5;
+                line-height: 1.55; white-space: pre-wrap; word-break: break-all; }
+    .log-line.warn { color: #fde68a; }
+    .log-line.err  { color: #fca5a5; }
+"""
+
+
+def _parse_log_stats(log_path, display_name: str) -> dict:
+    """Scan the log file and return per-account check/fill/login counts + recent lines."""
+    if not log_path:
+        return {}
+    log_path = Path(log_path)
+    if not log_path.exists():
+        return {}
+    now = datetime.now()
+    cutoff_24h = now - timedelta(hours=24)
+    cutoff_7d  = now - timedelta(days=7)
+    checks_24h = checks_7d = fills_24h = fills_7d = logins_24h = logins_7d = 0
+    recent: list[tuple[datetime, str]] = []
+    prefix = f"[{display_name}]"
+    try:
+        with open(log_path, encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                if prefix not in line:
+                    continue
+                try:
+                    ts = datetime.strptime(line[:19], "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    continue
+                if ts < cutoff_7d:
+                    continue
+                recent.append((ts, line.rstrip()))
+                in_24h = ts >= cutoff_24h
+                low = line.lower()
+                if "checking…" in low or "checking..." in low:
+                    checks_7d += 1
+                    if in_24h: checks_24h += 1
+                if "gap fully filled" in low or "fully covered" in low:
+                    fills_7d += 1
+                    if in_24h: fills_24h += 1
+                if "session expired" in low:
+                    logins_7d += 1
+                    if in_24h: logins_24h += 1
+    except OSError:
+        return {}
+    recent.sort(key=lambda x: x[0])
+    return {
+        "checks_24h": checks_24h, "checks_7d": checks_7d,
+        "fills_24h":  fills_24h,  "fills_7d":  fills_7d,
+        "logins_24h": logins_24h, "logins_7d": logins_7d,
+        "recent_lines": [ln for _, ln in recent[-20:]],
+    }
+
+
+def _rel_time(iso_str: str | None) -> str:
+    if not iso_str:
+        return "—"
+    try:
+        dt = datetime.fromisoformat(iso_str)
+    except (ValueError, TypeError):
+        return iso_str
+    secs = int((datetime.now() - dt).total_seconds())
+    if secs < 60:   return f"{secs}s ago"
+    if secs < 3600: return f"{secs // 60}m ago"
+    return f"{secs // 3600}h {(secs % 3600) // 60}m ago"
+
+
+def _until_time(iso_str: str | None) -> str:
+    if not iso_str:
+        return "—"
+    try:
+        dt = datetime.fromisoformat(iso_str)
+    except (ValueError, TypeError):
+        return iso_str
+    secs = int((dt - datetime.now()).total_seconds())
+    if secs <= 0:   return "soon"
+    if secs < 3600: return f"in {secs // 60}m {secs % 60}s"
+    return f"in {secs // 3600}h {(secs % 3600) // 60}m"
+
+
+def _status_dashboard_html(accounts_data: list[dict], log_path, now_str: str) -> str:
+    cards = []
+    for d in accounts_data:
+        slug        = d["slug"]
+        name        = d["display_name"]
+        status      = d.get("status", "unknown")
+        failures    = d.get("consecutive_failures", 0)
+        status_text = _html.escape(d.get("status_text", "") or "")
+        target_s    = _html.escape(str(d.get("target_start", "")))
+        target_e    = _html.escape(str(d.get("target_end", "")))
+        last_check  = _rel_time(d.get("last_check_at"))
+        next_check  = _until_time(d.get("next_check_at"))
+
+        if failures > 0:
+            dot_color, badge_text, badge_cls = "#dc2626", f"Error ({failures}\xd7)", "badge-red"
+            pulse_cls = ""
+        elif status == "ready":
+            dot_color, badge_text, badge_cls = "#16a34a", "Running", "badge-green"
+            pulse_cls = " pulse"
+        elif status == "needs_login":
+            dot_color, badge_text, badge_cls = "#d97706", "Needs Login", "badge-amber"
+            pulse_cls = ""
+        else:
+            dot_color, badge_text, badge_cls = "#6b7280", "Unknown", "badge-gray"
+            pulse_cls = ""
+
+        reservations = d.get("reservations", [])
+        gaps         = d.get("remaining_gaps", [])
+
+        res_html = ("<ul>" + "".join(
+            f"<li>#{_html.escape(r['id'])}&nbsp;&nbsp;"
+            f"{_html.escape(r['from'])} &rarr; {_html.escape(r['to'])}</li>"
+            for r in reservations
+        ) + "</ul>") if reservations else "<p class='empty'>No data yet</p>"
+
+        if gaps:
+            gaps_html = ("<ul class='gaps'>" + "".join(
+                f"<li>{_html.escape(g['gap_start'])} &ndash; {_html.escape(g['gap_end'])}</li>"
+                for g in gaps
+            ) + "</ul>")
+            gap_badge = f"⚠ {len(gaps)} gap{'s' if len(gaps) > 1 else ''}"
+        elif reservations:
+            gaps_html = "<p class='all-good'>&#10003; Target range fully covered!</p>"
+            gap_badge = "&#10003; Covered"
+        else:
+            gaps_html = "<p class='empty'>No data yet</p>"
+            gap_badge = ""
+
+        stats = _parse_log_stats(log_path, name)
+        def _s(k): return stats.get(k, "—")  # noqa: E731
+        stats_html = f"""<div class="stats-grid">
+          <div class="stat-box"><span class="num">{_s('checks_24h')}</span><span class="lbl">checks&nbsp;(24h)</span></div>
+          <div class="stat-box"><span class="num">{_s('checks_7d')}</span><span class="lbl">checks&nbsp;(7d)</span></div>
+          <div class="stat-box"><span class="num">{_s('fills_24h')}</span><span class="lbl">fills&nbsp;(24h)</span></div>
+          <div class="stat-box"><span class="num">{_s('fills_7d')}</span><span class="lbl">fills&nbsp;(7d)</span></div>
+          <div class="stat-box"><span class="num">{_s('logins_24h')}</span><span class="lbl">logins&nbsp;(24h)</span></div>
+          <div class="stat-box"><span class="num">{_s('logins_7d')}</span><span class="lbl">logins&nbsp;(7d)</span></div>
+        </div>"""
+
+        recent_lines = stats.get("recent_lines", [])
+
+        def _line_cls(ln: str) -> str:
+            ll = ln.lower()
+            if "error" in ll:   return "err"
+            if "warning" in ll: return "warn"
+            return ""
+
+        log_html = ("<div class='log-scroll'>" + "".join(
+            f"<div class='log-line {_line_cls(ln)}'>{_html.escape(ln)}</div>"
+            for ln in recent_lines
+        ) + "</div>") if recent_lines else "<p class='empty'>No log entries yet</p>"
+
+        cards.append(f"""
+        <div class="user-card">
+          <div class="card-top">
+            <div class="card-title">
+              <span class="dot{pulse_cls}" style="background:{dot_color}"></span>
+              <span class="name">{_html.escape(name)}</span>
+              <span class="badge {badge_cls}">{badge_text}</span>
+            </div>
+            <div class="card-meta">
+              <span>Target: {target_s} &ndash; {target_e}</span>
+              <span>Last: {last_check}</span>
+              <span>Next: {next_check}</span>
+            </div>
+            <div class="status-text">{status_text or '&nbsp;'}</div>
+          </div>
+          <details>
+            <summary>Booking status <span style="font-weight:400;color:#6b7280;font-size:0.8rem">{gap_badge}</span></summary>
+            <div class="detail-body">
+              <h4>Reservations</h4>{res_html}
+              <h4>Remaining gaps</h4>{gaps_html}
+            </div>
+          </details>
+          <details>
+            <summary>Activity stats</summary>
+            <div class="detail-body">
+              {stats_html}
+              <h4>Recent log entries</h4>{log_html}
+            </div>
+          </details>
+          <details>
+            <summary>Availability plot</summary>
+            <div class="detail-body" style="padding-top:10px">
+              <img src="/{slug}/plot.png?t={int(time.time())}"
+                   style="width:100%;border-radius:6px;border:1px solid #e5e7eb"
+                   onerror="this.outerHTML='<p class=empty>No plot available yet</p>'">
+            </div>
+          </details>
+        </div>""")
+
+    body = f"""
+    <div class="dashboard">
+      <div class="dash-header">
+        <h1>&#127968; CERN Hostel Status</h1>
+        <span class="updated">Updated: {now_str} &middot; auto-refreshes every 30s</span>
+      </div>
+      <div class="cards-grid">{''.join(cards)}</div>
+    </div>"""
+    return _page_shell("CERN Hostel — Status", _DASHBOARD_CSS,
+                       '<meta http-equiv="refresh" content="30">' + body)
+
+
+# ── Per-page HTML builders (slug-aware; built per-request, not precomputed) ────
+
+def _plot_img_html(slug: str) -> str:
+    return (
+        f'<img class="plot-preview" src="/{slug}/plot.png" '
+        f'onload="this.style.display=\'block\'" onerror="this.style.display=\'none\'">'
+    )
+
+
+def _page_shell(title: str, css: str, body: str) -> str:
+    return (
+        f'<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">'
+        f'<meta name="viewport" content="width=device-width, initial-scale=1">'
+        f'<title>{title}</title><style>{css}</style></head><body>{body}</body></html>'
+    )
+
+
+def _idle_page_html(slug: str, display_name: str, status_text: str) -> str:
+    body = f"""
+    <div class="card">
+      <h2>&#128274; CERN Hostel — {display_name}</h2>
+      <p class="subtitle"><span class="status-dot"></span>{status_text}</p>
+      <div class="notice">
+        Nothing for you to do right now. This page is yours — bookmark it.
+        You'll get an email with a fresh link whenever a login is needed.
+      </div>
+      {_plot_img_html(slug)}
+    </div>
+    """
+    return _page_shell(f"CERN Hostel — {display_name}", _SHARED_CSS, body)
+
+
+def _connect_page_html(slug: str, display_name: str, prefilled_username: str,
+                       has_password: bool) -> str:
+    if has_password:
+        notice = (
+            "Clicking <strong>Connect</strong> will immediately enter your saved "
+            "credentials in the browser. You will then be taken to the "
+            "<strong>2FA page</strong> to enter your Google Authenticator code."
+        )
+        form = '<form method="post" action="/{slug}/connect"><button type="submit">Connect &amp; Start Login</button></form>'.format(slug=slug)
+    else:
+        notice = (
+            "Enter your CERN username and password, then tap Connect. They will be "
+            "entered in the browser immediately — we don't store your password. "
+            "You will then be taken to the <strong>2FA page</strong> for your "
+            "Google Authenticator code."
+        )
+        username_value = f' value="{prefilled_username}"' if prefilled_username else ""
+        form = f"""
+        <form method="post" action="/{slug}/connect" autocomplete="on">
+          <div class="field">
+            <label for="username">CERN Username</label>
+            <input id="username" name="username" type="text"{username_value}
+              autocomplete="username" autocorrect="off" autocapitalize="none"
+              spellcheck="false" required autofocus>
+          </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password"
+              autocomplete="current-password" required>
+          </div>
+          <button type="submit">Connect &amp; Start Login</button>
+        </form>
+        """
+
+    body = f"""
+    <div class="card">
+      <h2>&#128683; Session Expired — {display_name}</h2>
+      <p class="subtitle">Your CERN session has expired and must be renewed.</p>
+      <div class="notice">{notice}</div>
+      {form}
+      {_plot_img_html(slug)}
+    </div>
+    """
+    return _page_shell("CERN Hostel — Reconnect", _SHARED_CSS, body)
+
+
+def _totp_page_html(slug: str, display_name: str) -> str:
+    body = f"""
+    <div class="card">
+      <h2>CERN Hostel — 2FA ({display_name})</h2>
+      <p class="subtitle">Credentials accepted. Enter your Google Authenticator code.</p>
+      <div class="notice">
+        Open your authenticator app <strong>last</strong>, just before tapping
+        Submit — TOTP codes expire after 30 seconds.
+      </div>
+      <form method="post" action="/{slug}/2fa" autocomplete="off">
+        <div class="field">
+          <label for="totp">Google Authenticator Code</label>
+          <div class="totp-wrap">
+            <input id="totp" name="totp" type="number"
+              inputmode="numeric" pattern="[0-9]{{6}}"
+              maxlength="6" placeholder="000000" required autofocus>
+          </div>
+        </div>
+        <button type="submit">Submit &amp; Log In</button>
+      </form>
+      {_plot_img_html(slug)}
+    </div>
+    """
+    return _page_shell("CERN 2FA", _SHARED_CSS, body)
+
+
+def _status_page_html(slug: str, display_name: str) -> str:
+    body = f"""
+    <div class="card">
+      <h2>&#128274; CERN Hostel — {display_name}</h2>
+      <p id="subtitle"><span class="spinner"></span>Please wait&hellip;</p>
+      <div class="feed" id="feed"></div>
+      <div id="plot-wrap">
+        <img id="plot-img" src="/{slug}/plot.png?t=0"
+             onload="this.style.display='block'" onerror="this.style.display='none'">
+      </div>
+    </div>
+    <script>
+      const feed     = document.getElementById('feed');
+      const subtitle = document.getElementById('subtitle');
+      const plotImg  = document.getElementById('plot-img');
+
+      function addMsg(kind, text) {{
+        const row  = document.createElement('div');
+        row.className = 'msg ' + kind;
+        const dot  = document.createElement('span');
+        dot.className = 'dot';
+        const span = document.createElement('span');
+        span.className = 'text';
+        span.textContent = text;
+        row.appendChild(dot);
+        row.appendChild(span);
+        feed.appendChild(row);
+        row.scrollIntoView({{behavior: 'smooth', block: 'nearest'}});
+      }}
+
+      const src = new EventSource('/{slug}/events');
+      src.onmessage = function(e) {{
+        const d = JSON.parse(e.data);
+        if (d.kind === 'plot_updated') {{
+          plotImg.src = '/{slug}/plot.png?t=' + Date.now();
+          plotImg.style.display = 'block';
+          return;
+        }}
+        if (d.kind === 'redirect') {{
+          src.close();
+          setTimeout(() => {{ window.location = d.text || '/{slug}/'; }}, 1500);
+          return;
+        }}
+        addMsg(d.kind, d.text);
+        if (d.kind === 'success' && d.text.includes('Login successful')) {{
+          subtitle.textContent = 'Logged in ✓ — scraping reservations…';
+        }}
+        if (d.kind === 'done') {{
+          subtitle.textContent = '✓ Done';
+          src.close();
+        }}
+      }};
+      src.onerror = function() {{
+        subtitle.textContent = 'Connection closed.';
+        src.close();
+      }};
+    </script>
+    """
+    return _page_shell("CERN Hostel — Status", _STATUS_PAGE_CSS, body)
+
+
+def _error_page_html(slug: str, reason: str) -> str:
+    body = f"""
+    <div class="card">
+      <div class="icon">&#10060;</div>
+      <h2>Login failed</h2>
+      <p>The script could not complete the CERN SSO login.</p>
+      <div class="reason">{reason}</div>
+      <a href="/{slug}/">Try again</a>
+    </div>
+    """
+    return _page_shell("Login failed", _ERROR_CSS, body)
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -390,13 +642,6 @@ def _get_local_ip() -> str:
         return "localhost"
 
 
-def _read_creds_file(path: Path) -> tuple[str, str]:
-    lines = path.read_text(encoding="utf-8").splitlines()
-    if len(lines) < 2:
-        raise ValueError(f"Creds file {path} must have at least 2 lines: username, password")
-    return lines[0].strip(), lines[1].strip()
-
-
 def _get_public_ip() -> str | None:
     try:
         with urllib.request.urlopen("https://api.ipify.org", timeout=5) as resp:
@@ -406,129 +651,199 @@ def _get_public_ip() -> str | None:
         return None
 
 
+def _read_creds_file(path: Path) -> tuple[str, str]:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if len(lines) < 2:
+        raise ValueError(f"Creds file {path} must have at least 2 lines: username, password")
+    return lines[0].strip(), lines[1].strip()
+
+
+# ── Per-account state ──────────────────────────────────────────────────────────
+
+class _AccountLogin:
+    """All mutable state for one account's login/status page."""
+
+    def __init__(self, slug, display_name, prefilled_username, prefilled_password, plot_path):
+        self.slug             = slug
+        self.display_name     = display_name
+        self.prefilled_username = prefilled_username
+        self.prefilled_password = prefilled_password
+        self.plot_path        = Path(plot_path) if plot_path else None
+
+        self.phase        = "idle"   # "idle" | "connect" | "2fa"
+        self.status_text  = "System running normally."
+
+        self.connect_creds: dict = {}
+        self.creds: dict         = {}
+        self.creds_ready         = threading.Event()
+        self.connect_event       = threading.Event()
+
+        self.messages: list[dict] = []
+        self.msg_lock             = threading.Lock()
+
+    def clear_messages(self):
+        with self.msg_lock:
+            self.messages.clear()
+
+    def push(self, text: str, kind: str = "info"):
+        with self.msg_lock:
+            self.messages.append({"kind": kind, "text": text})
+
+
 # ── LoginServer ────────────────────────────────────────────────────────────────
 
 class LoginServer:
     """
-    Temporary Flask server that:
-      - Shows a Connect button page (with optional username/password fields) when
-        the session expires
-      - After Connect is clicked, signals the main thread to open a fresh playwright
-        session and immediately enter username + password (step 1)
-      - Once step 1 completes (OTP page reached), redirects the user to the TOTP form
-      - After TOTP is submitted, streams live login status via SSE
+    One Flask app, one port, many accounts — each at its own `/<slug>/` URL.
 
-    Flow:
-        GET /          → Connect page (button only if creds pre-loaded, else with fields)
-        POST /connect  → signals wait_for_connect(); returns status page (SSE)
-        (main thread opens playwright, enters username/password — step 1)
-        (main thread calls signal_session_ready() once OTP page is reached)
-        GET /2fa       → TOTP-only form
-        POST /2fa      → signals wait_for_credentials(); returns status page (SSE)
-        (main thread enters TOTP — step 2, pushes status via push_status())
+    Flow per account:
+        GET  /<slug>/        → idle status / Connect form / TOTP form (phase-aware)
+        POST /<slug>/connect → registers connect creds, signals try_get_connect()
+        (scheduler opens playwright, enters username/password — step 1)
+        (scheduler calls signal_session_ready(slug) once OTP page is reached)
+        GET  /<slug>/2fa     → TOTP-only form
+        POST /<slug>/2fa     → registers TOTP, signals wait_for_credentials()
+        (scheduler enters TOTP — step 2, pushes status via push_status())
     """
 
-    def __init__(
-        self,
-        port: int = 5000,
-        creds_file: Path | None = None,
-        plot_path: Path | None = None,
-    ):
-        self._port      = port
-        self._plot_path = Path(plot_path) if plot_path else None
+    def __init__(self, port: int, accounts: list, primary_slug: str | None = None,
+                 log_path=None):
+        self._port         = port
+        self._primary_slug = primary_slug or (accounts[0].slug if accounts else None)
+        self._log_path     = Path(log_path) if log_path else None
 
-        self._prefilled_username = ""
-        self._prefilled_password = ""
-        if creds_file is not None:
-            self._prefilled_username, self._prefilled_password = _read_creds_file(
-                Path(creds_file)
+        self._accounts:  dict[str, _AccountLogin] = {}
+        self._dashboard: dict[str, dict]           = {}
+        for acc in accounts:
+            prefilled_user = ""
+            prefilled_pass = ""
+            has_password   = False
+            if getattr(acc, "cern_creds_path", None) is not None and Path(acc.cern_creds_path).exists():
+                prefilled_user, prefilled_pass = _read_creds_file(Path(acc.cern_creds_path))
+                has_password = True
+            elif getattr(acc, "cern_username", None):
+                prefilled_user = acc.cern_username
+
+            self._accounts[acc.slug] = _AccountLogin(
+                slug=acc.slug,
+                display_name=acc.display_name,
+                prefilled_username=prefilled_user,
+                prefilled_password=prefilled_pass if has_password else "",
+                plot_path=getattr(acc, "plot_path", None),
             )
+            # Stash whether this account has a full saved password (changes which
+            # connect-page variant is shown) without polluting _AccountLogin's
+            # public surface.
+            self._accounts[acc.slug]._has_password = has_password
+
+            self._dashboard[acc.slug] = {
+                "slug":                 acc.slug,
+                "display_name":         acc.display_name,
+                "status":               "unknown",
+                "consecutive_failures": 0,
+                "last_check_at":        None,
+                "next_check_at":        None,
+                "reservations":         [],
+                "remaining_gaps":       [],
+                "target_start":         str(getattr(acc, "target_start", "")),
+                "target_end":           str(getattr(acc, "target_end",   "")),
+            }
             log.info(
-                "Loaded CERN credentials from %s (username: %s).",
-                creds_file, self._prefilled_username,
+                "Registered login page for %-10s → /%s/  (%s)",
+                acc.display_name, acc.slug,
+                "saved credentials" if has_password else
+                (f"username prefilled: {prefilled_user}" if prefilled_user else "full manual login"),
             )
 
-        self._connect_creds: dict = {}   # {"username": str, "password": str}
-        self._creds: dict        = {}
-        self._creds_ready        = threading.Event()
-        self._connect_event      = threading.Event()
-        self._phase              = "connect"   # "connect" | "2fa"
-
-        self._messages: list[dict] = []   # {'kind': str, 'text': str}
-        self._msg_lock             = threading.Lock()
-        self._shutdown_flag        = False
-
-        self._wsgi_server  = None
-        self._server_thread = None
-        self._url           = ""
+        self._shutdown_flag  = False
+        self._wsgi_server    = None
+        self._server_thread  = None
+        self._url            = ""
 
     # ── Lifecycle ──────────────────────────────────────────────────────────────
 
-    def start(self, on_ready=None) -> str:
-        """Build the Flask app, start the server thread, return the public URL."""
+    def _account(self, slug: str) -> _AccountLogin:
+        acc = self._accounts.get(slug)
+        if acc is None:
+            abort(404)
+        return acc
+
+    def start(self) -> str:
+        """Build the Flask app, start the server thread, return the base URL."""
         app = Flask(__name__)
         logging.getLogger("werkzeug").setLevel(logging.ERROR)
-        srv = self   # capture for route closures
+        srv = self
 
-        # ── GET / — phase-aware landing page ──────────────────────────────────
         @app.route("/", methods=["GET"])
-        def connect_page():
-            if srv._phase == "2fa":
-                return _TOTP_HTML
-            if srv._prefilled_username:
-                return _CONNECT_HTML
-            return _CONNECT_CREDS_HTML
+        def root():
+            if srv._primary_slug:
+                return redirect(f"/{srv._primary_slug}/")
+            return "No accounts configured", 404
 
-        # ── POST /connect — user clicked Connect ───────────────────────────────
-        @app.route("/connect", methods=["POST"])
-        def connect():
-            srv._clear_messages()
-            srv.push_status("Starting browser session — entering credentials…")
-            srv._connect_creds = {
-                "username": request.form.get("username", "").strip() or srv._prefilled_username,
-                "password": request.form.get("password", "") or srv._prefilled_password,
+        @app.route("/<slug>/", methods=["GET"])
+        def account_page(slug):
+            acc = srv._account(slug)
+            if acc.phase == "2fa":
+                return _totp_page_html(slug, acc.display_name)
+            if acc.phase == "connect":
+                return _connect_page_html(
+                    slug, acc.display_name, acc.prefilled_username, acc._has_password
+                )
+            return _idle_page_html(slug, acc.display_name, acc.status_text)
+
+        @app.route("/<slug>/connect", methods=["POST"])
+        def connect(slug):
+            acc = srv._account(slug)
+            if acc.phase != "connect":
+                # Stale page / accidental click — nothing pending for this account.
+                return redirect(f"/{slug}/")
+            acc.clear_messages()
+            acc.push("Starting browser session — entering credentials…")
+            acc.connect_creds = {
+                "username": request.form.get("username", "").strip() or acc.prefilled_username,
+                "password": request.form.get("password", "") or acc.prefilled_password,
             }
-            srv._connect_event.set()
-            return _STATUS_HTML
+            acc.connect_event.set()
+            return _status_page_html(slug, acc.display_name)
 
-        # ── GET /2fa — TOTP form (served after step-1 login completes) ────────
-        @app.route("/2fa", methods=["GET"])
-        def totp_form():
-            return _TOTP_HTML
+        @app.route("/<slug>/2fa", methods=["GET"])
+        def totp_form(slug):
+            acc = srv._account(slug)
+            if acc.phase != "2fa":
+                return redirect(f"/{slug}/")
+            return _totp_page_html(slug, acc.display_name)
 
-        # ── POST /2fa — user submitted TOTP ───────────────────────────────────
-        @app.route("/2fa", methods=["POST"])
-        def totp_submit():
-            srv._clear_messages()
-            srv.push_status("2FA code received — completing login…")
-            srv._creds = {"totp": request.form.get("totp", "").strip()}
-            srv._creds_ready.set()
-            return _STATUS_HTML
+        @app.route("/<slug>/2fa", methods=["POST"])
+        def totp_submit(slug):
+            acc = srv._account(slug)
+            if acc.phase != "2fa":
+                return redirect(f"/{slug}/")
+            acc.clear_messages()
+            acc.push("2FA code received — completing login…")
+            acc.creds = {"totp": request.form.get("totp", "").strip()}
+            acc.creds_ready.set()
+            return _status_page_html(slug, acc.display_name)
 
-        # ── GET /plot.png ──────────────────────────────────────────────────────
-        @app.route("/plot.png")
-        def plot_image():
-            if srv._plot_path and srv._plot_path.exists():
+        @app.route("/<slug>/plot.png")
+        def plot_image(slug):
+            acc = srv._account(slug)
+            if acc.plot_path and acc.plot_path.exists():
                 return flask_send_file(
-                    str(srv._plot_path.resolve()),
-                    mimetype="image/png",
-                    max_age=0,
+                    str(acc.plot_path.resolve()), mimetype="image/png", max_age=0,
                 )
             return "No plot yet", 404
 
-        # ── GET /events — SSE status feed ─────────────────────────────────────
-        @app.route("/events")
-        def events():
-            # Start from current message count so each status page only sees
-            # messages pushed after it loaded (avoids replaying stale redirects).
-            start_idx = len(srv._messages)
+        @app.route("/<slug>/events")
+        def events(slug):
+            acc = srv._account(slug)
+            start_idx = len(acc.messages)
 
             def generate():
                 idx = start_idx
                 while not srv._shutdown_flag:
-                    with srv._msg_lock:
-                        batch    = srv._messages[idx:]
-                        new_idx  = len(srv._messages)
+                    with acc.msg_lock:
+                        batch   = acc.messages[idx:]
+                        new_idx = len(acc.messages)
                     for msg in batch:
                         yield f"data: {json.dumps(msg)}\n\n"
                     idx = new_idx
@@ -540,13 +855,25 @@ class LoginServer:
                 headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
             )
 
-        # ── GET /failed — error landing page ──────────────────────────────────
-        @app.route("/failed")
-        def failed():
+        @app.route("/status")
+        def status_dashboard():
+            now_str = time.strftime("%Y-%m-%d %H:%M:%S")
+            data = []
+            for slug_, d in srv._dashboard.items():
+                merged = dict(d)
+                acc = srv._accounts.get(slug_)
+                if acc:
+                    merged["status_text"] = acc.status_text
+                data.append(merged)
+            return _status_dashboard_html(data, srv._log_path, now_str)
+
+        @app.route("/<slug>/failed")
+        def failed(slug):
+            acc = srv._account(slug)
             reason = request.args.get("reason", "Unknown error — check the script log.")
-            srv._creds_ready.clear()
-            srv._creds.clear()
-            return _ERROR_HTML.format(reason=reason)
+            acc.creds_ready.clear()
+            acc.creds.clear()
+            return _error_page_html(slug, reason)
 
         self._wsgi_server   = make_server("0.0.0.0", self._port, app, threaded=True)
         self._server_thread = threading.Thread(
@@ -554,96 +881,104 @@ class LoginServer:
         )
         self._server_thread.start()
 
-        local_url = f"http://{_get_local_ip()}:{self._port}"
-        if self._prefilled_username:
-            public_ip  = _get_public_ip()
-            self._url  = f"http://{public_ip}:{self._port}" if public_ip else local_url
-        else:
-            self._url = local_url
-        log.info("Login server ready: %s", self._url)
-
-        if on_ready is not None:
-            on_ready(self._url)
+        local_url   = f"http://{_get_local_ip()}:{self._port}"
+        public_ip   = _get_public_ip()
+        self._url   = f"http://{public_ip}:{self._port}" if public_ip else local_url
+        log.info("Login server ready: %s  (accounts: %s)", self._url, ", ".join(self._accounts))
 
         return self._url
 
+    # ── Per-account URL ────────────────────────────────────────────────────────
+
+    def url_for(self, slug: str) -> str:
+        return f"{self._url}/{slug}/"
+
     # ── Connect handshake ──────────────────────────────────────────────────────
 
-    def wait_for_connect(self, timeout: float | None = None) -> dict | None:
+    def begin_login(self, slug: str) -> None:
+        """Switch an account's page to the Connect form (call when its session expires)."""
+        acc = self._account(slug)
+        acc.connect_creds.clear()
+        acc.creds.clear()
+        acc.creds_ready.clear()
+        acc.connect_event.clear()
+        acc.phase = "connect"
+
+    def try_get_connect(self, slug: str) -> dict | None:
         """
-        Block until the user clicks the Connect button.
-        Returns {"username": str, "password": str} on success, None on timeout.
-        Automatically re-arms for the next call.
+        NON-BLOCKING poll: has the user clicked Connect for this account yet?
+        Returns {"username": str, "password": str} if so (and re-arms for next
+        time), or None if nothing has happened yet. Never blocks the caller —
+        this is what lets other accounts' checks run on schedule while one
+        account's user takes their time logging in.
         """
-        result = self._connect_event.wait(timeout=timeout)
-        self._connect_event.clear()
-        if not result:
+        acc = self._account(slug)
+        if not acc.connect_event.is_set():
             return None
-        return dict(self._connect_creds)
+        acc.connect_event.clear()
+        return dict(acc.connect_creds)
 
-    def signal_session_ready(self) -> None:
-        """
-        Mark the server as being in 2FA phase and push an SSE redirect to /2fa.
-        Call this after playwright has navigated to the portal.
-        From this point on, GET / will serve the TOTP form directly so the user
-        can reload at any time and still see the right page.
-        """
-        self._phase = "2fa"
-        self.push_status("/2fa", kind="redirect")
+    def signal_session_ready(self, slug: str) -> None:
+        """Mark an account as being in the 2FA phase and redirect its page to /2fa."""
+        acc = self._account(slug)
+        acc.phase = "2fa"
+        acc.push("/" + slug + "/2fa", kind="redirect")
 
-    def push_redirect_home(self) -> None:
-        """
-        Reset to the Connect phase and redirect the user back to /.
-        Call this on any login failure so reloading shows the Connect button again.
-        """
-        self._phase = "connect"
-        self.push_status("/", kind="redirect")
+    def push_redirect_home(self, slug: str) -> None:
+        """Reset an account to the Connect phase and redirect its page to /<slug>/."""
+        acc = self._account(slug)
+        acc.phase = "connect"
+        acc.push(f"/{slug}/", kind="redirect")
 
     # ── Credential handshake ───────────────────────────────────────────────────
 
-    def wait_for_credentials(self, timeout: float | None = None) -> dict | None:
+    def wait_for_credentials(self, slug: str, timeout: float | None = None) -> dict | None:
         """
-        Block until the user submits the 2FA form.
-        Returns the credential dict, or None on timeout.
-        Automatically re-arms for the next call.
+        Block (with a bounded timeout — the TOTP step, ~5 min) until the user
+        submits the 2FA form for this account. Returns the credential dict, or
+        None on timeout. Automatically re-arms for next time.
         """
-        result = self._creds_ready.wait(timeout=timeout)
-        self._creds_ready.clear()
+        acc = self._account(slug)
+        result = acc.creds_ready.wait(timeout=timeout)
+        acc.creds_ready.clear()
         if not result:
             return None
-        return dict(self._creds)
+        return dict(acc.creds)
 
-    def reset(self) -> None:
-        """Clear all pending state so the server can be reused for another attempt."""
-        self._connect_creds.clear()
-        self._creds.clear()
-        self._creds_ready.clear()
-        self._connect_event.clear()
-        self._phase = "connect"
+    # ── Idle / status ──────────────────────────────────────────────────────────
 
-    # ── Status broadcasting ────────────────────────────────────────────────────
+    def set_idle(self, slug: str, status_text: str | None = None) -> None:
+        """Switch an account's page back to its normal idle status view."""
+        acc = self._account(slug)
+        acc.phase = "idle"
+        if status_text is not None:
+            acc.status_text = status_text
 
-    def push_status(self, text: str, kind: str = "info") -> None:
+    def update_idle_status(self, slug: str, status_text: str) -> None:
+        acc = self._account(slug)
+        acc.status_text = status_text
+
+    # ── Status broadcasting (active login / check-in-progress feed) ────────────
+
+    def push_status(self, slug: str, text: str, kind: str = "info") -> None:
         """
-        Push a status line to any browser connected to /events.
+        Push a status line to whatever browser is connected to /<slug>/events.
 
-        kind values: 'info' | 'success' | 'warning' | 'error' | 'done' | 'plot_updated'
-        Using kind='done' tells the browser to close the SSE connection.
-        Using kind='plot_updated' triggers a plot image refresh (text is ignored).
-        Using kind='redirect' navigates the browser to `text` as a URL.
+        kind values: 'info' | 'success' | 'warning' | 'error' | 'done' | 'plot_updated' | 'redirect'
         """
-        with self._msg_lock:
-            self._messages.append({"kind": kind, "text": text})
+        self._account(slug).push(text, kind)
 
-    def _clear_messages(self) -> None:
-        """Discard all queued SSE messages (called at start of each login phase)."""
-        with self._msg_lock:
-            self._messages.clear()
+    # ── Dashboard state ────────────────────────────────────────────────────────
+
+    def update_dashboard(self, slug: str, **fields) -> None:
+        """Merge fields into the named account's dashboard state."""
+        d = self._dashboard.get(slug)
+        if d is not None:
+            d.update(fields)
 
     # ── Shutdown ───────────────────────────────────────────────────────────────
 
     def shutdown(self) -> None:
-        """Stop the server and SSE generator threads."""
         self._shutdown_flag = True
         if self._wsgi_server:
             self._wsgi_server.shutdown()
@@ -656,19 +991,3 @@ class LoginServer:
     @property
     def url(self) -> str:
         return self._url
-
-
-# ── Backward-compat one-shot wrapper ──────────────────────────────────────────
-
-def collect_credentials(
-    on_ready=None,
-    port: int = 5000,
-    creds_file: Path | None = None,
-    plot_path: Path | None = None,
-) -> dict:
-    """Start a LoginServer, wait for one credential submission, shut down, return creds."""
-    srv = LoginServer(port=port, creds_file=creds_file, plot_path=plot_path)
-    srv.start(on_ready=on_ready)
-    creds = srv.wait_for_credentials()
-    srv.shutdown()
-    return creds
