@@ -2,3 +2,7 @@
 __pycache__/
 *.pyc
 *.log
+
+# Local virtualenv
+venv/
+.venv/
