@@ -4,7 +4,7 @@
 
 **Resume:** Shelf v10 and the Cost & buy list tab are live; wait for Dylan's feedback on the shape, then check Palaiseau stock.
 
-**Goal:** Two-shelf under-sink shelf for Dylan's cabinet in Palaiseau. Was published on the site at https://dylan-neff.web.cern.ch/misc/shelf/ (Design tab: `index.html`, Cost & buy list tab: `buy.html`). Moved here from `dylan-cern-site/misc/shelf/` on 2026-10-17 and removed from the site repo; that live page stays up until the site is next deployed.
+**Goal:** Two-shelf under-sink shelf for Dylan's cabinet in Palaiseau. Was published on the site at https://dylan-neff.web.cern.ch/misc/shelf/ (Design tab: `index.html`, Cost & buy list tab: `buy.html`). Source moved here from `dylan-cern-site/misc/shelf/` on 2026-10-17. The built pages are still deployed from the site repo: run `publish_to_site.sh` here, then commit and deploy there.
 
 **Layout (confirmed by Dylan, drawn and agreed in chat):** standing at the door looking in, the right is a solid wall (dishwasher behind it) and the shelves go against it. Cabinet = 40 cm wide at the door x 50 cm deep, its back is the outer kitchen wall. To the LEFT is an extra space 70 cm wide, same 50 cm depth, level with the cabinet, on the SAME straight back wall (110 cm from dishwasher wall to far left). The oven stands in front of it and blocks it. A corner counter covers everything. The basin starts 6 cm from the dishwasher wall and reaches 6 cm over the extra space. The extra space is not deeper than the cabinet; earlier versions wrongly put it behind the back wall.
 
@@ -40,4 +40,4 @@
 - `under_sink_shelf/render_blender.py` — `~/Software/blender-5.1.0-linux-x64/blender -b --factory-startup --python under_sink_shelf/render_blender.py` writes `renders/shelf_{iso,iso_open,front}.png`
 - `under_sink_shelf/plan_view.py` — `python3 under_sink_shelf/plan_view.py` writes `renders/shelf_plan.png` (matplotlib)
 - `under_sink_shelf/index.html` — Design tab (Three.js animation reads `model.json`); `under_sink_shelf/buy.html` — Cost & buy list tab
-- Site deploy (`dylan-cern-site/scripts/deploy-eos.sh`) no longer includes the shelf; it only runs from the site repo, not from here.
+- Publish: `./under_sink_shelf/publish_to_site.sh` copies `index.html`, `buy.html`, `model.json` and `renders/` into `dylan-cern-site/misc/shelf/`. Then deploy from the site repo with `./scripts/deploy-eos.sh` (needs a Kerberos ticket: `kinit dneff@CERN.CH`).

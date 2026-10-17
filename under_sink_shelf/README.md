@@ -20,7 +20,9 @@ open questions is in [HANDOFF.md](HANDOFF.md).
 
       ~/Software/blender-5.1.0-linux-x64/blender -b --factory-startup --python under_sink_shelf/render_blender.py
 
-Open the HTML pages in a browser to view them. The Design tab loads `model.json`
+Open the HTML pages in a browser to view them. To deploy, run
+`publish_to_site.sh` (copies the built pages into `dylan-cern-site/misc/shelf/`),
+then commit and deploy from the site repo. The Design tab loads `model.json`
 and the renders relative to its own folder.
 
 Measurements (Dylan): opening 400 mm wide, 500 mm deep, floor to basin bottom
