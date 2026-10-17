@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Under-sink shelf — cost and buy list</title>
+<style>
+  :root { --bg:#fafaf7; --fg:#1c1c1a; --mut:#66645e; --card:#ffffff; --line:#e2dfd6; --acc:#9a6a2f; --warn:#8a3b12; --good:#2f6b3a; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg:#161513; --fg:#ece9e1; --mut:#a6a095; --card:#1f1e1b; --line:#3a3832; --acc:#d3a262; --warn:#f0a074; --good:#7cc78a; }
+  }
+  :root[data-theme="dark"] { --bg:#161513; --fg:#ece9e1; --mut:#a6a095; --card:#1f1e1b; --line:#3a3832; --acc:#d3a262; --warn:#f0a074; --good:#7cc78a; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.7rem; margin: .2em 0 .3em; }
+  h2 { font-size: 1.2rem; margin: 2em 0 .6em; border-bottom: 1px solid var(--line); padding-bottom: .3em; }
+  p.crumb { font-size: .85rem; color: var(--mut); margin: 0; }
+  .lede, .note { color: var(--mut); }
+  .note { font-size: .9rem; }
+  nav.tabs { display: flex; gap: 4px; margin: 14px 0 6px; border-bottom: 1px solid var(--line); }
+  nav.tabs a { padding: 8px 16px; border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0; text-decoration: none; color: var(--mut); }
+  nav.tabs a[aria-current="page"] { background: var(--card); border-color: var(--line); color: var(--fg); font-weight: 600; margin-bottom: -1px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px; overflow-x: auto; }
+  .totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; margin: 16px 0; }
+  .tot { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .tot .v { font-size: 1.7rem; font-weight: 650; }
+  .tot .k { color: var(--mut); font-size: .85rem; }
+  .tot.main { border-color: var(--acc); }
+  table { width: 100%; border-collapse: collapse; font-size: .93rem; min-width: 760px; }
+  th, td { text-align: left; padding: 8px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--mut); font-weight: 600; }
+  td.num, th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  tr.own td { opacity: .45; }
+  tr.own td:first-child { opacity: 1; }
+  .tag { display:inline-block; font-size:.72rem; padding:1px 7px; border-radius:99px; border:1px solid var(--line); color:var(--mut); white-space:nowrap; }
+  .tag.c { color: var(--acc); border-color: var(--acc); }
+  .tag.a { color: var(--good); border-color: var(--good); }
+  .tag.gap { color: var(--warn); border-color: var(--warn); }
+  .best { font-weight: 650; }
+  a { color: var(--acc); }
+  .sub { color: var(--mut); font-size: .82rem; display: block; }
+  input[type=checkbox] { width: 1.1em; height: 1.1em; }
+  li { margin: .35em 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="crumb">Misc / under-sink shelf</p>
+  <h1>Under-sink shelf — cost and buy list</h1>
+  <nav class="tabs" aria-label="Shelf pages">
+    <a href="index.html">Design</a>
+    <a href="buy.html" aria-current="page">Cost &amp; buy list</a>
+  </nav>
+  <p class="lede">Everything the build needs, priced at Castorama and compared with similar items on Amazon.fr. Prices were read from the live pages on 16 Oct 2026. Tick what you already own and the totals update.</p>
+
+  <div class="totals">
+    <div class="tot main"><div class="v" id="t-pick">…</div><div class="k">Recommended basket (cheapest sensible pick per line)</div></div>
+    <div class="tot"><div class="v" id="t-cast">…</div><div class="k">Everything from Castorama</div></div>
+    <div class="tot"><div class="v" id="t-saved">…</div><div class="k">Saved by buying brackets on Amazon</div></div>
+    <div class="tot"><div class="v" id="t-have">…</div><div class="k">Lines ticked as already owned</div></div>
+  </div>
+
+  <h2>Itemized list</h2>
+  <div class="card">
+    <table id="list">
+      <thead>
+        <tr><th>Own it</th><th>Item and amount needed</th><th>Castorama</th><th class="num">€</th><th>Amazon.fr (similar)</th><th class="num">€</th><th>Buy</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p class="note">The totals count one pack of each line, as listed. Shipping is not included: Castorama marketplace sellers and Amazon each show their own delivery terms, and the Amazon pages were priced for a Paris 75001 address, not Palaiseau. Stock at the Palaiseau store was not checked.</p>
+
+  <h2>What the comparison found</h2>
+  <div class="card">
+    <ul>
+      <li><strong>Timber: Castorama only.</strong> I found no like-for-like 18 mm × 40 × 200 cm pine board or 27 × 27 × 2.4 m pine batten on Amazon. The results were craft strips and cutting boards.</li>
+      <li><strong>Brackets: Amazon is cheaper and better.</strong> A pack of 22 stainless 40 × 40 mm brackets with 88 screws is €9.75. Castorama's pack of 25 is galvanised, €13.90, and has no screws. You need 9. Check the screw length in the Amazon listing before ordering: the screws that go through a bracket into an 18 mm shelf must be 16 mm or shorter. Otherwise add the 3.5 × 16 mm stainless screws from Castorama.</li>
+      <li><strong>Tools and consumables: Castorama is cheaper.</strong> Saw (€7.99 against €16.70 for the Stanley), clamps, sandpaper and a brush all cost less there.</li>
+      <li><strong>The 4 × 40 mm stainless screws are a tie.</strong> €19.90 for 200 Pozidriv at Castorama, €20.42 for 200 Torx at Amazon. You need about 12 of them, so most of the pack is spare either way.</li>
+      <li><strong>Linseed oil:</strong> Amazon does not list the Phébus 1 L. The closest 1 L is a baked linseed oil at €9.30 with 8 reviews.</li>
+    </ul>
+  </div>
+
+  <h2>Notes on the picks</h2>
+  <div class="card">
+    <ul>
+      <li>The brackets go on the three post-to-shelf joints of each shelf. 40 × 40 × 20 mm is enough, because the posts are 27 mm wide.</li>
+      <li>The batten page lists a bevelled edge, so the posts will have slightly eased edges.</li>
+      <li>For the damp cabinet the glue should be water-resistant (D3). The Pattex Power pick is rated "water resistant", with no D-class on the listing. Sader Pro D3 (100 g, €9.89) is the one that states D3.</li>
+      <li>A pilot drill bit (2.5 mm) and a countersink are not on the list. Add them if you do not have them.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+const CA = "https://www.castorama.fr/search?term=";
+const AM = "https://www.amazon.fr/s?k=";
+// pick: "c" or "a". price = price of one pack/unit as listed; amz may be null when there is no like-for-like.
+const ITEMS = [
+  { id:"board", name:"Pine board 40 × 200 cm, 18 mm", need:"1 board (both shelves, one 400 × 860 mm piece)",
+    c:{ t:"Tablette en pin massif PPA18400", p:16.90, u:"https://www.castorama.fr/tablette-en-pin-massif-40-x-200-cm-ep-18-mm-ppa18400/3760002269221_CAFR.prd", s:"4.7★ (11)" },
+    a:null, pick:"c" },
+  { id:"batten", name:"Pine batten 27 × 27 × 2400 mm", need:"1 (cut list 1446 mm)",
+    c:{ t:"Baguette d'angle rabotée pin 27 × 27 mm, 2.4 m", p:8.69, u:"https://www.castorama.fr/baguette-d-angle-rabotee-pin-27-x-27-mm-l-2-4-m/3663602871934_CAFR.prd", s:"4.65★ (20); bevelled edge" },
+    a:null, pick:"c" },
+  { id:"screws", name:"Stainless wood screws 4 × 40 mm (A2)", need:"about 12; the pack has 200",
+    c:{ t:"Diall A2 Pozidriv 4 × 40, 200 pcs", p:19.90, u:"https://www.castorama.fr/vis-a-bois-en-acier-inoxydable-a2-pozidriv-4x40-mm-200-pieces/3663602748496_CAFR.prd", s:"4.3★ (13)" },
+    a:{ t:"A2 Torx 4 × 40 countersunk, 200 pcs", p:20.42, u:AM+"vis+bois+inox+A2+4x40+200+pi%C3%A8ces", s:"3.8K reviews" }, pick:"c" },
+  { id:"brackets", name:"Corner brackets 40 × 40 mm", need:"9, one per post-to-shelf joint",
+    c:{ t:"Équerre galvanisée 40 × 40 × 20 mm, pack of 25 (no screws)", p:13.90, u:CA+"equerre%20de%20fixation%2040x40", s:"5★ (2)" },
+    a:{ t:"Stainless 40 × 40 mm brackets, pack of 22 with 88 screws", p:9.75, u:AM+"equerre+assemblage+40x40+inox", s:"check screw length ≤ 16 mm" }, pick:"a" },
+  { id:"brscrews", name:"Short screws for the brackets (3.5 × 16 mm)", need:"about 18 (2 per bracket)",
+    c:{ t:"Torx round-head A2 3.5 × 16, 100 pcs (marketplace seller)", p:5.34, u:CA+"vis%20inox%20a2%203%2C5%20x%2016", s:"" },
+    a:{ t:"Included in the Amazon bracket pack", p:0, u:AM+"equerre+assemblage+40x40+inox", s:"confirm length" }, pick:"a" },
+  { id:"glue", name:"Water-resistant wood glue", need:"1 bottle (225 g is plenty)",
+    c:{ t:"Pattex Power white, water resistant, 225 g", p:9.65, u:CA+"colle%20a%20bois", s:"Sader Pro D3 100 g €9.89" },
+    a:{ t:"Wood assembly glue D3, interior/exterior", p:9.89, u:AM+"colle+%C3%A0+bois+D3+r%C3%A9sistante+%C3%A0+l%27eau", s:"Pattex waterproof 750 g €13.15 (573 reviews)" }, pick:"c" },
+  { id:"saw", name:"Coping saw", need:"1 (top-shelf notch)",
+    c:{ t:"Magnusson SW53, carbon steel blade, 15 TPI", p:7.99, u:CA+"scie%20a%20chantourner", s:"4.16★ (31)" },
+    a:{ t:"Stanley coping saw 0-15-106", p:16.70, u:AM+"scie+%C3%A0+chantourner+manuelle", s:"4.4★ (2.1K); cheapest 12-blade set €11.99" }, pick:"c" },
+  { id:"clamps", name:"Screw clamps (about 300 mm)", need:"2",
+    c:{ t:"Screw clamp 300 × 80 mm, pack of 2", p:8.99, u:CA+"serre-joint", s:"4.31★ (16)" },
+    a:{ t:"Screw clamp, 60 mm jaw, 300 mm opening (single)", p:22.99, u:AM+"serre-joint+%C3%A0+vis+300mm+lot+de+2", s:"4-packs €25.97 to €44.99" }, pick:"c" },
+  { id:"paper", name:"Sandpaper, grits 80 to 240", need:"1 assorted pack (sand to 120, then 180)",
+    c:{ t:"Sheets 230 × 280 mm, grits 80/120/180/240, pack of 4", p:4.99, u:CA+"papier%20abrasif%20bois%20grain%20120%20180", s:"3★ (1)" },
+    a:{ t:"Assorted wet/dry sheets 9 × 3.6 in", p:6.89, u:AM+"papier+abrasif+assortiment+grain+80+120+180+240+feuilles", s:"831 reviews" }, pick:"c" },
+  { id:"brush", name:"Flat brush 40 mm, for oil and varnish", need:"1",
+    c:{ t:"GoodHome flat brush, oil/varnish/stain, 40 mm", p:3.99, u:CA+"pinceau%20huile%20de%20lin%20plat", s:"4.66★ (215)" },
+    a:{ t:"3 flat brushes 30/50/70 mm", p:7.99, u:AM+"pinceau+plat+vernis+lasure+40+mm", s:"466 reviews" }, pick:"c" },
+  { id:"oil", name:"Boiled linseed oil, 1 L", need:"1 (about 0.6 m² to cover)",
+    c:{ t:"Phébus linseed oil, 1 L", p:8.79, u:CA+"huile%20de%20lin%20phebus", s:"4.66★ (3)" },
+    a:{ t:"Galloil baked linseed oil, 1 L (not the same product)", p:9.30, u:AM+"phebus+huile+de+lin+cuite+1+L", s:"8 reviews" }, pick:"c" },
+];
+
+const eur = (x) => x.toFixed(2).replace(".", ",") + " €";
+let owned = new Set();
+try { owned = new Set(JSON.parse(localStorage.getItem("shelfOwned") || "[]")); } catch (e) {}
+
+function cell(o) {
+  if (!o) return '<td><span class="tag gap">no like-for-like found</span></td><td class="num">—</td>';
+  return `<td><a href="${o.u}">${o.t}</a>${o.s ? `<span class="sub">${o.s}</span>` : ""}</td><td class="num">${eur(o.p)}</td>`;
+}
+
+function render() {
+  const body = document.querySelector("#list tbody");
+  body.innerHTML = "";
+  for (const it of ITEMS) {
+    const tr = document.createElement("tr");
+    if (owned.has(it.id)) tr.className = "own";
+    const buy = !it.a ? '<span class="tag c">Castorama</span>' :
+      it.pick === "a" ? '<span class="tag a">Amazon</span>' : '<span class="tag c">Castorama</span>';
+    const cb = `<input type="checkbox" data-id="${it.id}" ${owned.has(it.id) ? "checked" : ""} aria-label="I already have ${it.name}">`;
+    tr.innerHTML = `<td>${cb}</td><td><strong>${it.name}</strong><span class="sub">${it.need}</span></td>${cell(it.c)}${cell(it.a)}<td>${buy}</td>`;
+    body.appendChild(tr);
+  }
+  let pick = 0, cast = 0, saved = 0, have = 0;
+  for (const it of ITEMS) {
+    const chosen = it.pick === "a" && it.a ? it.a.p : it.c.p;
+    if (owned.has(it.id)) { have += chosen; continue; }
+    pick += chosen;
+    cast += it.c.p;
+  }
+  saved = cast - pick;
+  document.getElementById("t-pick").textContent = eur(pick);
+  document.getElementById("t-cast").textContent = eur(cast);
+  document.getElementById("t-saved").textContent = eur(saved);
+  document.getElementById("t-have").textContent = eur(have);
+}
+
+document.querySelector("#list").addEventListener("change", (e) => {
+  const id = e.target.dataset.id;
+  if (!id) return;
+  e.target.checked ? owned.add(id) : owned.delete(id);
+  try { localStorage.setItem("shelfOwned", JSON.stringify([...owned])); } catch (err) {}
+  render();
+});
+render();
+</script>
+</body>
+</html>

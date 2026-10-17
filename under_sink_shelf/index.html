@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Under-sink shelf — build review v3</title>
+<style>
+  :root { --bg:#fafaf7; --fg:#1c1c1a; --mut:#66645e; --card:#ffffff; --line:#e2dfd6; --acc:#9a6a2f; --warn:#8a3b12; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg:#161513; --fg:#ece9e1; --mut:#a6a095; --card:#1f1e1b; --line:#3a3832; --acc:#d3a262; --warn:#f0a074; }
+  }
+  :root[data-theme="dark"] { --bg:#161513; --fg:#ece9e1; --mut:#a6a095; --card:#1f1e1b; --line:#3a3832; --acc:#d3a262; --warn:#f0a074; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.7rem; margin: .2em 0 .3em; }
+  h2 { font-size: 1.2rem; margin: 2em 0 .6em; border-bottom: 1px solid var(--line); padding-bottom: .3em; }
+  p.crumb { font-size: .85rem; color: var(--mut); margin: 0; }
+  .lede { color: var(--mut); }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+  #viewer { width: 100%; height: 460px; border-radius: 10px; overflow: hidden; background: var(--card); border: 1px solid var(--line); }
+  #caption { min-height: 3.2em; margin: 12px 0 8px; }
+  .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  button { font: inherit; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--card); color: var(--fg); cursor: pointer; }
+  button:hover { border-color: var(--acc); }
+  button[aria-pressed="true"] { border-color: var(--acc); color: var(--acc); }
+  .steps { color: var(--mut); font-size: .9rem; margin-left: auto; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 700px) { .grid2 { grid-template-columns: 1fr; } }
+  img.render { width: 100%; border-radius: 10px; border: 1px solid var(--line); background: var(--card); }
+  table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--mut); font-weight: 600; }
+  td.num { white-space: nowrap; }
+  .tag { display:inline-block; font-size:.75rem; padding:1px 7px; border-radius:99px; border:1px solid var(--line); color:var(--mut); white-space:nowrap; }
+  .tag.ok { color: var(--acc); border-color: var(--acc); }
+  .tag.gap { color: var(--warn); border-color: var(--warn); }
+  .note { color: var(--mut); font-size: .9rem; }
+  a { color: var(--acc); }
+  nav.tabs { display: flex; gap: 4px; margin: 14px 0 6px; border-bottom: 1px solid var(--line); }
+  nav.tabs a { padding: 8px 16px; border: 1px solid transparent; border-bottom: none; border-radius: 8px 8px 0 0; text-decoration: none; color: var(--mut); }
+  nav.tabs a[aria-current="page"] { background: var(--card); border-color: var(--line); color: var(--fg); font-weight: 600; margin-bottom: -1px; }
+  code { font-size: .92em; }
+  li { margin: .35em 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="crumb">Misc / under-sink shelf</p>
+  <h1>Under-sink shelf — build review (v3)</h1>
+  <nav class="tabs" aria-label="Shelf pages">
+    <a href="index.html" aria-current="page">Design</a>
+    <a href="buy.html">Cost &amp; buy list</a>
+  </nav>
+  <p class="lede">A two-tier shelf for the 40 × 50 cm cabinet in Palaiseau, with the measurements you gave: 40 cm opening, 50 cm deep,
+  60 cm from the cabinet floor to the basin bottom. v3 raises the middle shelf so you can store under it, flattens the back,
+  and sharpens the slope at the front-left. All dimensions are in millimetres.</p>
+
+  <h2>1. Assembly animation</h2>
+  <p class="note">Drag to orbit, scroll to zoom. The walls, counter and basin are shown for scale. The pipes are estimates from a photo.</p>
+  <div id="viewer"></div>
+  <div id="caption" class="card"></div>
+  <div class="controls">
+    <button id="prev">◀ Prev</button>
+    <button id="play" aria-pressed="false">▶ Play</button>
+    <button id="next">Next ▶</button>
+    <button id="all">Show finished</button>
+    <button id="ctx" aria-pressed="true">Counter &amp; basin</button>
+    <span class="steps" id="stepinfo"></span>
+  </div>
+
+  <h2>2. 3D renders</h2>
+  <div class="grid2">
+    <img class="render" src="renders/shelf_plan.png" alt="Plan view from above with the counter removed: cabinet at the right, extra space at the left, basin over both">
+    <img class="render" src="renders/shelf_iso_open.png" alt="Shelf inside the cabinet with the counter and basin removed, seen from the front-left">
+    <img class="render" src="renders/shelf_iso.png" alt="Shelf, basin and corner counter, seen from the front-left with the oven hidden">
+    <img class="render" src="renders/shelf_front.png" alt="Straight on from the front, with the oven in place">
+  </div>
+  <p class="note">Layout, standing at the door and looking in. Right: a solid wall, with the dishwasher behind it. The shelves go against it. The cabinet is 40 cm wide at the door and 50 cm deep, and its back is the outer kitchen wall. Left: the oven stands beside the door. Behind it is an extra space, 70 cm wide and the same 50 cm deep, level with the cabinet and open to it, on the same straight back wall. From the dishwasher wall to the far left wall is 110 cm. Only the right 40 cm are reachable through the door. The corner counter covers all of it. The sink basin is shifted left: it starts 6 cm from the dishwasher wall and reaches 6 cm over the extra space. The four items are at their measured sizes. The two detergent boxes stand upright at the back of the cabinet floor, the bags stand upright on the middle shelf, and the rinse bottle stands at the back, just left of the door opening, so it is out of view from the open door. The oven front is drawn as a grey panel in the front view and left out of the angled ones. Positions are a layout, not a measurement. The trap and hose are not in the model.</p>
+
+  <h2>3. Design v5 — what changed and why</h2>
+  <div class="card">
+    <table>
+      <tr><th>Item</th><th>v2</th><th>v5 (current)</th><th>Why</th></tr>
+      <tr><td>Shape</td><td>Right isosceles triangle, 380 mm legs</td>
+        <td>Five sides: 370 mm back edge, 430 deep, 100 mm front edge. The left edge runs straight for 100 mm at the back, then one diagonal (about 39° off straight) runs all the way to the front edge. Area 1146 cm², up from 722 cm².</td>
+        <td>The back keeps its full width for longer, and only 10 cm of the 40 cm width is left at the front, so it is easy to reach past the front of the shelf into the extra space on the left.</td></tr>
+      <tr><td>Middle shelf height</td><td>120 mm underside</td>
+        <td><strong>300 mm underside</strong>, 300 mm clear space below</td>
+        <td>Room under it for the detergents standing upright (240 mm and 200 mm tall).</td></tr>
+      <tr><td>Top shelf</td><td>Top at 500 mm</td>
+        <td><strong>Underside at 500 mm, top at 518 mm</strong>, 82 mm below the basin bottom. Same outline as the middle shelf.</td>
+        <td>50 cm off the floor, as asked. The bags stand on the middle shelf (150 mm tall) with 32 mm to spare under the top shelf.</td></tr>
+      <tr><td>Supports</td><td>Three posts at the triangle corners</td>
+        <td>Three posts: back-left, back-right and front-right. The front-left corner is cut away, leaving a 100 mm front edge.</td>
+        <td>Keeps the open front-left clear. The shelf is light (about 1 kg), so the cantilever is fine.</td></tr>
+      <tr><td>Margins</td><td>Not stated</td>
+        <td>15 mm to the back and side walls, 55 mm to the front; the basin margin is 80 mm (was 100 mm) to fit the 50 cm height; the basin is shifted left, 6 cm clear of the dishwasher wall and 6 cm over the extra space; stored items checked against posts and shelves</td>
+        <td>Safety margin for a cabinet whose dimensions are only approximate. The 80 mm basin margin is a choice to confirm against the basin fittings.</td></tr>
+    </table>
+    <p class="note">The design checks run in <code>build_model.py</code>; the build stops if a margin is violated.</p>
+  </div>
+
+  <h2>4. Cut list</h2>
+  <div class="card">
+    <table>
+      <tr><th>Part</th><th>Qty</th><th>Size (mm)</th><th>Notes</th></tr>
+      <tr><td>Pine board</td><td>1</td><td>40 × 200 × 1.8 cm</td><td>Castorama PPA18400. Both shelves fit in one 400 × 860 mm piece, with about 1.1 m spare.</td></tr>
+      <tr><td>Middle shelf</td><td>1</td><td>370 back, 430 deep, 100 front × 18</td><td>Cut from a 370 × 430 mm rectangle. Mark 100 mm in from the back along the left edge, and the point 100 mm from the right side along the front edge, and join the two with one straight saw cut. Keep the other corners square.</td></tr>
+      <tr><td>Top shelf</td><td>1</td><td>Same outline, notch 100 × 70 mm at the back</td><td>Drill two corner holes in the notch, then saw it out with a coping saw.</td></tr>
+      <tr><td>Base posts</td><td>3</td><td>27 × 27 × 300</td><td>Under the middle shelf.</td></tr>
+      <tr><td>Middle posts</td><td>3</td><td>27 × 27 × 182</td><td>Between the shelves.</td></tr>
+      <tr><td>Corner brackets</td><td>9</td><td>40 × 40 mm</td><td>One per joint, as in v2.</td></tr>
+    </table>
+    <p class="note">Batten total: 1446 mm plus about 12 mm of kerf. One 2.4 m batten is enough.</p>
+  </div>
+
+  <h2>5. Varnish: water-based vs linseed oil</h2>
+  <div class="card">
+    <table>
+      <tr><th></th><th>Boiled linseed oil (Phébus)</th><th>Water-based polyurethane varnish</th></tr>
+      <tr><td><strong>Water sealing</strong></td>
+        <td>Repels water at the surface but doesn't form a film. Water can still get into the end grain, and the oil cures slowly, so for weeks it stays soft. Sources describe it as "less durable than most evaporative finishes".</td>
+        <td>Forms a continuous film, which is a better water barrier once cured. Recoat times are short (1–5 hours, per datasheets). Cure takes longer than the dry-to-touch time. Thin films scratch more easily, so keep the surface clean and dry.</td></tr>
+      <tr><td><strong>Cost</strong></td>
+        <td>€8.79 for 1 L at Castorama (product page). Probably more than enough for this shelf (about 0.6 m² of surface), so cost per job is low. Check the coverage on the label.</td>
+        <td>I did not find a Castorama water-based varnish price. Water-based varnishes usually cost more per litre; check the price on the product page before buying.</td></tr>
+      <tr><td><strong>Eco</strong></td>
+        <td>Natural base oil, but commercial boiled linseed often contains metal driers and solvents. The Phébus sheet suggests thinning with 30–50% turpentine, which is a solvent. Oily rags can self-heat and catch fire.</td>
+        <td>Low VOC: datasheets list 10 g/L (Codeve), 100 g/L maximum (Comus) and 130 g/L maximum (Peintagone). Water clean-up. Not a natural product, and it contains plastic resins.</td></tr>
+    </table>
+    <p class="note"><strong>Chosen: boiled linseed oil.</strong> Cure for at least two weeks in the cellar. The verdict below is kept for reference.</p>
+    <p class="note"><strong>Verdict for under the sink:</strong> water-based polyurethane gives the better water barrier, and it is lower VOC than solvent varnish. Linseed is the more natural choice, but it needs a longer cure, and the oiled end grain is the weak point. If the water barrier matters more than the look, go with water-based. If you want the natural finish, use linseed, cure it for at least two weeks, and keep the shelves away from drips.</p>
+    <p class="note">Sources used: <a href="https://www.codeve.fr/vernis-exterieur/219-vernis-bois-polyurethane.html">Codeve</a>, <a href="https://www.peintagone.com/document/download/551/1ceeb136-ddd7-4b7a-9cc7-950483f11a11/14202?preview=True">Peintagone VERNIX PU AQUA</a>, <a href="https://comus.fr/wp-content/uploads/2018/02/vernis_beton_v7-11.pdf">Comus</a>, and the Castorama and Phébus product pages. The water-resistance claims are from manufacturers and were not independently tested. The 1 L linseed price is from the Castorama product page.</p>
+  </div>
+
+  <h2>6. Castorama check (Palaiseau)</h2>
+  <div class="card">
+    <table>
+      <tr><th>Item</th><th>Result</th><th>Price</th><th>Status</th></tr>
+      <tr><td>Pine board</td><td><a href="https://www.castorama.fr/tablette-en-pin-massif-40-x-200-cm-ep-18-mm-ppa18400/3760002269221_CAFR.prd">Tablette en pin massif 40 × 200 cm, 18 mm (PPA18400)</a></td><td>€16.90</td><td><span class="tag ok">buy</span></td></tr>
+      <tr><td>27 × 27 batten</td><td>The 27 × 27 lamelles are discontinued. Replacement: <a href="https://www.castorama.fr/baguette-d-angle-rabotee-pin-27-x-27-mm-l-2-4-m/3663602871934_CAFR.prd">Baguette d'angle rabotée pin 27 × 27 mm, 2.4 m</a> (same profile, pine, not water-resistant).</td><td>€8.69</td><td><span class="tag ok">buy</span></td></tr>
+      <tr><td>Screws</td><td><a href="https://www.castorama.fr/vis-a-bois-en-acier-inoxydable-a2-pozidriv-4x40-mm-200-pieces/3663602748496_CAFR.prd">Vis à bois inox A2 Pozidriv 4 × 40 mm, 200 pièces</a></td><td>€19.90</td><td><span class="tag ok">buy</span></td></tr>
+      <tr><td>Boiled linseed oil 1 L</td><td>Castorama "Huile de lin pour protéger Phébus 1 L" product page.</td><td>€8.79</td><td><span class="tag ok">buy</span></td></tr>
+            <tr><td>Coping saw, brackets, glue, clamps, sandpaper, brush</td><td>Checked on 16 Oct 2026. Prices and the Amazon comparison are on the <a href="buy.html">Cost &amp; buy list</a> tab.</td><td>—</td><td><span class="tag ok">see tab</span></td></tr>
+    </table>
+    <p class="note">Prices on all four product pages were re-checked in the browser on 16 Oct 2026 and match the table. Note that the batten page lists "Bord incliné" (a bevelled edge profile), so the posts will have slightly eased edges. Stock at the Palaiseau store was not verified: the product pages ask for a postal code. Check the store, or castorama.fr with Palaiseau selected. Prices are from the product pages; the baguette's search snippet showed €7.89, the page €8.69.</p>
+  </div>
+
+  <h2>7. Screws</h2>
+  <div class="card">
+    <p>Size comes from the parts: the shelves are 18 mm and the posts are 27 mm. A 4 × 40 mm screw goes through the shelf and 22 mm into the post, enough to hold without splitting the post. The 4 mm shank needs a 2.5 mm pilot hole, as in the build notes.</p>
+    <p>Buy stainless (A2), because the cabinet is damp. The Castorama pack of 200 for €19.90 is about €0.10 per screw. The shelves need roughly 12 of these. The 9 brackets need about 18 short screws (3.5 × 16 mm, because the shelf is only 18 mm thick), not these 40 mm ones; they are on the Cost &amp; buy list. The photo's screws are not used: their size was uncertain, and the screws to buy are now specified.</p>
+  </div>
+
+  <h2>8. Build notes</h2>
+  <div class="card">
+    <p><strong>Before cutting:</strong> check the back of your cabinet for the trap and the dishwasher hose. The design does not allow for them, so if either sits where the top shelf or a post would go, tell me before cutting.</p>
+    <p><strong>Cutting:</strong> mark the outline on the board with a square, clamp a batten on each line, and support the board so the tail doesn't tear out. The notch on the top shelf goes last.</p>
+    <p><strong>Drilling:</strong> pre-drill 2.5 mm through the shelf and into the post, countersink, and keep screws at least 15 mm from any edge.</p>
+    <p><strong>Finish:</strong> sand to 120 then 180 grit, and vacuum. Seal the end grain first. For water-based varnish, follow the datasheet recoat times and sand lightly between coats. For linseed oil, thin coats with at least two weeks to cure.</p>
+    <p><strong>Oily rags:</strong> lay them flat outdoors to dry, or soak them in water and put them in a sealed metal bin.</p>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+const CAPTIONS = [
+  "Step 1 — Stand the three base posts (27 × 27 × 300 mm) on the floor: back-left, back-right and front-right corners.",
+  "Step 2 — Lower the middle shelf onto the base posts. Its underside is 300 mm above the floor, so you can store things under it. Glue each joint, then fix it with a bracket.",
+  "Step 3 — Stand the three middle posts (27 × 27 × 182 mm) on the middle shelf, directly above the base posts.",
+  "Step 4 — Lower the top shelf onto the middle posts. Its underside is 500 mm above the floor, and its top is 82 mm below the basin bottom.",
+];
+const STEP_MS = 3200, MOVE_MS = 1400;
+// model is Z-up (mm); Three.js is Y-up. (x, y, z) -> (x, z, -y) is a proper rotation, so winding is kept.
+const toT = (a) => new THREE.Vector3(a[0], a[2], -a[1]);
+
+const viewer = document.getElementById("viewer");
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+viewer.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue("--card").trim() || "#ffffff");
+const camera = new THREE.PerspectiveCamera(35, 1, 10, 20000);
+camera.position.set(-1900, 1250, 1300);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(-150, 330, -300);
+controls.enableDamping = true;
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x888888, 1.6));
+const sun = new THREE.DirectionalLight(0xffffff, 1.0);
+sun.position.set(-900, 1200, 800);
+scene.add(sun);
+const floor = new THREE.GridHelper(1600, 32, 0x999990, 0xccccc4);
+scene.add(floor);
+
+function resize() {
+  const w = viewer.clientWidth, h = viewer.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+addEventListener("resize", resize);
+resize();
+
+const MATS = {
+  shelf: new THREE.MeshStandardMaterial({ color: 0xc9925a, roughness: 0.6 }),
+  post: new THREE.MeshStandardMaterial({ color: 0xc9925a, roughness: 0.6 }),
+  wall: new THREE.MeshStandardMaterial({ color: 0xf2f1ec, roughness: 0.8, transparent: true, opacity: 0.18, depthWrite: false, side: THREE.DoubleSide }),
+  counter: new THREE.MeshStandardMaterial({ color: 0x8a5a33, roughness: 0.5 }),
+  steel: new THREE.MeshStandardMaterial({ color: 0xb8bcc2, roughness: 0.25 }),
+  pipe: new THREE.MeshStandardMaterial({ color: 0x3b3e44, roughness: 0.5, transparent: true, opacity: 0.85 }),
+  hose: new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.7 }),
+  bottle: new THREE.MeshStandardMaterial({ color: 0x1a38a0, roughness: 0.35 }),
+  roll: new THREE.MeshStandardMaterial({ color: 0x202224, roughness: 0.7 }),
+  salt: new THREE.MeshStandardMaterial({ color: 0x2659c0, roughness: 0.5 }),
+  tabs: new THREE.MeshStandardMaterial({ color: 0x73193f, roughness: 0.5 }),
+};
+const contextMeshes = [];
+
+async function load() {
+  const model = await (await fetch("model.json")).json();
+  const c = model.cabinet;
+  // cabinet interior outline (dashed-look wire) for scale
+  const corners = [];
+  for (const x of [c.x0, c.x1]) for (const y of [c.y0, c.y1]) for (const z of [c.z0, c.z1]) corners.push([x, y, z]);
+  const pts = [];
+  for (let i = 0; i < 8; i++) for (let j = i + 1; j < 8; j++) {
+    const a = corners[i], b = corners[j];
+    const d = Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
+    if (d === (c.x1 - c.x0) || d === (c.y1 - c.y0) || d === (c.z1 - c.z0)) pts.push(toT(a), toT(b));
+  }
+  scene.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),
+    new THREE.LineBasicMaterial({ color: 0x333333 })));
+
+  return model.parts.map((p) => {
+    const pos = [];
+    for (const f of p.faces) for (const idx of f) { const v = p.verts[idx]; pos.push(v[0], v[2], -v[1]); }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.Float32BufferAttribute(pos, 3));
+    g.computeVertexNormals();
+    const isContext = p.step === 0;
+    const mesh = new THREE.Mesh(g, MATS[p.role] || MATS.wall);
+    mesh.userData = { step: p.step, explode: toT(p.explode), label: p.label, role: p.role, id: p.id };
+    if (isContext) contextMeshes.push(mesh);
+    scene.add(mesh);
+    return mesh;
+  });
+}
+
+const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+
+load().then((parts) => {
+  const assembly = parts.filter((m) => m.userData.step > 0);
+  let stepShown = 0;
+  let playing = false, timer = null, anim = null;
+
+  // counter & basin toggle (the counter top and basin are context, not part of the build)
+  const ctxBtn = document.getElementById("ctx");
+  ctxBtn.onclick = () => {
+    const on = ctxBtn.getAttribute("aria-pressed") !== "true";
+    ctxBtn.setAttribute("aria-pressed", String(on));
+    for (const m of parts) if (m.userData.role === "counter" || m.userData.role === "steel") m.visible = on;
+  };
+
+  function animateTo(target) {
+    const from = new Map(assembly.map((m) => [m, m.position.clone()]));
+    anim = { t0: performance.now(), from, target };
+  }
+
+  function setStep(n) {
+    stepShown = Math.max(0, Math.min(4, n));
+    document.getElementById("caption").textContent =
+      stepShown === 0 ? "Parts laid out. Press Next to start assembling." : CAPTIONS[stepShown - 1];
+    document.getElementById("stepinfo").textContent = `step ${stepShown} of 4`;
+    animateTo(stepShown);
+  }
+
+  function tick(now) {
+    if (anim) {
+      const k = Math.min(1, (now - anim.t0) / MOVE_MS);
+      for (const m of assembly) {
+        const to = m.userData.step <= anim.target ? new THREE.Vector3(0, 0, 0) : m.userData.explode;
+        m.position.lerpVectors(anim.from.get(m), to, easeOut(k));
+      }
+      if (k >= 1) anim = null;
+    }
+    controls.update();
+    renderer.render(scene, camera);
+    requestAnimationFrame(tick);
+  }
+
+  function setPlay(on) {
+    playing = on;
+    const btn = document.getElementById("play");
+    btn.setAttribute("aria-pressed", String(on));
+    btn.textContent = on ? "❚❚ Pause" : "▶ Play";
+    clearInterval(timer);
+    if (on) {
+      if (stepShown >= 4) setStep(0);
+      timer = setInterval(() => {
+        if (stepShown >= 4) return setPlay(false);
+        setStep(stepShown + 1);
+      }, STEP_MS);
+    }
+  }
+
+  document.getElementById("prev").onclick = () => { setPlay(false); setStep(stepShown - 1); };
+  document.getElementById("next").onclick = () => { setPlay(false); setStep(stepShown + 1); };
+  document.getElementById("play").onclick = () => setPlay(!playing);
+  document.getElementById("all").onclick = () => { setPlay(false); setStep(4); };
+
+  for (const m of assembly) m.position.copy(m.userData.explode);
+  setStep(0);
+  requestAnimationFrame(tick);
+  setTimeout(() => setPlay(true), 800);
+});
+</script>
+</body>
+</html>
