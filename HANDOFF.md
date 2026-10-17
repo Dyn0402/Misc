@@ -1,6 +1,6 @@
 # Handoff: under-sink shelf
 
-## Under-sink shelf — updated 2026-10-16 (dylan-MS-7C84)
+## Under-sink shelf — updated 2026-10-17 (dylan-MS-7C84)
 
 **Resume:** Shelf v10 and the Cost & buy list tab are live; wait for Dylan's feedback on the shape, then check Palaiseau stock.
 
@@ -11,6 +11,7 @@
 **Axes (output frame, model.json / renders / page):** +x toward the dishwasher wall (right), so left = -x; +y away from you (y=0 door line, y=500 back wall); z up; right-handed. `build_model.py` is AUTHORED in the old frame (origin back-right corner, x grows to the left, y grows to the front) and `rot()` turns it 180 degrees about z on output. So constants in the file read as "distance left of the dishwasher wall" and "distance in front of the back wall". `plan_view.py` uses the authoring frame.
 
 **Done:**
+- 2026-10-17: source moved from `dylan-cern-site/misc/shelf/` to `under_sink_shelf/` (Misc commits `5b78a51`, `8fa1936`). Rebuilt `model.json` and the plan PNG match the site copies byte for byte. The built pages are published into the site with `under_sink_shelf/publish_to_site.sh` (site commits `d3242c1`, `9b349cf`). The live site is unchanged. Blender renders not re-run after the move.
 - v7-v10: layout above; rinse bottle at the back, 1 cm left of the door opening (just out of view from the door); detergent boxes on the floor at the back, bin bags on the middle shelf; basin shifted left; walls in the animation made transparent (opacity 0.18); 2D plan view `renders/shelf_plan.png` first on the page.
 - Shelf shape (v10): five sides, 370 back edge, 430 deep, 100 front edge; left edge straight for 100 mm at the back then one diagonal (about 39 degrees) to the 100 mm front edge. Area 1146 cm2. Only 10 of the 40 cm width is left at the front, so it is easy to reach into the extra space. Posts unchanged (back-right, front-right, back-left); the front-left is a cantilever.
 - Castorama pages re-checked in Chrome on 2026-10-16: board 16.90, batten 8.69, screws 19.90, linseed 8.79 (all unchanged).

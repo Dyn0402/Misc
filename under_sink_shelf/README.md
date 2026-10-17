@@ -2,7 +2,7 @@
 
 Two-shelf design for the cabinet under the kitchen sink in Palaiseau. Moved here
 from the `dylan-cern-site` repo on 2026-10-17. The handoff with the decisions and
-open questions is in [HANDOFF.md](HANDOFF.md).
+open questions is in [HANDOFF.md](../HANDOFF.md).
 
 - `index.html`: Design tab. Build review, renders, and a Three.js assembly animation
   that reads `model.json`. Loads Three.js from jsdelivr.
