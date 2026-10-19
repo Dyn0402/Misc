@@ -1,4 +1,27 @@
-# Handoff: under-sink shelf
+# Handoff
+
+## Desktop speaker popping — updated 2026-10-19 (dylan-MS-7C84)
+
+**Resume:** Z323 speakers pop on the onboard aux; Dylan is trying sub RCA to 3.5 mm. Ask how it went, then pick a DAC if needed.
+
+**Goal:** Stop the loud popping (worse with volume) from the Logitech Z323 on the desktop and understand the faint periodic pop that remains with the PC cable unplugged.
+
+**Done:**
+- Audited the outputs and wrote everything up in `desktop_audio/NOTES.md`. No settings changed.
+
+**In progress / where it stopped:**
+- Dylan connected the sub's RCA input to a 3.5 mm plug in the PC as a trial. Outcome unknown.
+
+**Next steps:**
+1. Ask whether the loud popping and the faint double pop are gone.
+2. If not: USB DAC or optical-to-RCA converter (see the notes); the faint pop is probably the speakers' own supply.
+
+**Gotchas / decisions:**
+- Unplugging at the PC end silenced the loud pop, so it is PC-side analog noise, not the speakers.
+
+**Key files & commands:**
+- `desktop_audio/NOTES.md` — findings and options
+- `aplay -l`, `wpctl status` — list outputs
 
 ## Under-sink shelf — updated 2026-10-17 (dylan-MS-7C84)
 
