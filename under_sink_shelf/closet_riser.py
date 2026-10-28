@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Closet risers from the same stock as the under-sink shelf: cut plan, cost and sag check.
 
-A riser is one 800 x 400 x 18 mm pine top on four 27 x 27 mm batten legs, 200 mm tall
-overall. It stands on an existing 80 x 40 cm closet shelf and splits the ~40 cm gap above
+A riser is one 750 x 400 x 18 mm pine top on four 27 x 27 mm batten legs, 200 mm tall
+overall. It stands on an existing closet shelf (80 x 40 cm, ~76 cm usable) and splits the ~40 cm gap above
 it in two (182 mm clear under the top, about 200 mm above it).
 
     python3 under_sink_shelf/closet_riser.py        # table for 0..6 risers, cut plan for 3
@@ -19,7 +19,7 @@ import build_model as bm
 OUT = pathlib.Path(__file__).resolve().parent / "renders" / "closet_cut_plan.png"
 
 # --- riser -------------------------------------------------------------------
-TOP_L, TOP_W = 800, 400          # same footprint as the closet shelf (trim to 790 if it sits between walls)
+TOP_L, TOP_W = 750, 400          # closet is ~76 cm wide with obstacles (Dylan, 2026-10-28)
 HEIGHT = 200                     # overall, floor of the closet shelf to top of the riser
 LEG_L = HEIGHT - bm.T            # 182
 LEGS = 4
@@ -29,7 +29,7 @@ BRACKETS = 4                     # one per leg-to-top joint, like the kitchen sh
 BOARD_L, BOARD_W, BOARD_EUR = 2000, 400, 16.90      # Tablette pin massif 40 x 200 cm, 18 mm
 BATTEN_L, BATTEN_EUR = 2400, 8.69                  # baguette pin 27 x 27 mm, 2.4 m
 BRACKET_PACK, BRACKET_EUR = 22, 9.75               # Amazon, 22 stainless 40 x 40 with 88 screws
-KITCHEN_EUR = 99.64                                # recommended kitchen basket
+KITCHEN_EUR = 109.55                               # recommended basket in buy.html (crosscut saw, 2026-10-28)
 KERF = 3                                           # saw cut, plus a little for squaring
 END_TRIM = 10                                      # off each factory end, in case it is not square
 

@@ -53,7 +53,7 @@
     <a href="index.html">Design</a>
     <a href="buy.html" aria-current="page">Cost &amp; buy list</a>
   </nav>
-  <p class="lede">Everything the build needs, priced at Castorama and compared with similar items on Amazon.fr. Prices were read from the live pages on 16 Oct 2026. Tick what you already own and the totals update.</p>
+  <p class="lede">Everything the build needs, priced at Castorama and compared with similar items on Amazon.fr. Prices were read from the live pages on 16 Oct 2026 (the saw on 28 Oct). The list also covers one closet riser, which comes out of the same board and batten at no extra cost. Tick what you already own and the totals update.</p>
 
   <div class="totals">
     <div class="tot main"><div class="v" id="t-pick">…</div><div class="k">Recommended basket (cheapest sensible pick per line)</div></div>
@@ -78,7 +78,7 @@
     <ul>
       <li><strong>Timber: Castorama only.</strong> I found no like-for-like 18 mm × 40 × 200 cm pine board or 27 × 27 × 2.4 m pine batten on Amazon. The results were craft strips and cutting boards.</li>
       <li><strong>Brackets: Amazon is cheaper and better.</strong> A pack of 22 stainless 40 × 40 mm brackets with 88 screws is €9.75. Castorama's pack of 25 is galvanised, €13.90, and has no screws. You need 9. Check the screw length in the Amazon listing before ordering: the screws that go through a bracket into an 18 mm shelf must be 16 mm or shorter. Otherwise add the 3.5 × 16 mm stainless screws from Castorama.</li>
-      <li><strong>Tools and consumables: Castorama is cheaper.</strong> Saw (€7.99 against €16.70 for the Stanley), clamps, sandpaper and a brush all cost less there.</li>
+      <li><strong>Tools and consumables: Castorama is cheaper.</strong> Clamps, sandpaper and a brush all cost less there. The crosscut saw was priced at Castorama only.</li>
       <li><strong>The 4 × 40 mm stainless screws are a tie.</strong> €19.90 for 200 Pozidriv at Castorama, €20.42 for 200 Torx at Amazon. You need about 12 of them, so most of the pack is spare either way.</li>
       <li><strong>Linseed oil:</strong> Amazon does not list the Phébus 1 L. The closest 1 L is a baked linseed oil at €9.30 with 8 reviews.</li>
     </ul>
@@ -91,6 +91,8 @@
       <li>The batten page lists a bevelled edge, so the posts will have slightly eased edges.</li>
       <li>For the damp cabinet the glue should be water-resistant (D3). The Pattex Power pick is rated "water resistant", with no D-class on the listing. Sader Pro D3 (100 g, €9.89) is the one that states D3.</li>
       <li>A pilot drill bit (2.5 mm) and a countersink are not on the list. Add them if you do not have them.</li>
+      <li>The saw is a fine-tooth crosscut saw rather than the coping saw on earlier versions of this list: the top-shelf notch it was for is gone, and every cut left is straight. The fine teeth leave a cleaner edge on the pine.</li>
+      <li><strong>Closet riser:</strong> a 750 × 400 mm top (the closet is about 76 cm wide with obstacles) on four 27 × 27 mm legs, 182 mm long, 200 mm tall overall. Fix each leg with two 4 × 40 screws down through the top. Brackets and glue are optional on the riser: its legs are short and only carry weight straight down. The cut plan is in <code>closet_riser.py</code>.</li>
     </ul>
   </div>
 </div>
@@ -100,27 +102,27 @@ const CA = "https://www.castorama.fr/search?term=";
 const AM = "https://www.amazon.fr/s?k=";
 // pick: "c" or "a". price = price of one pack/unit as listed; amz may be null when there is no like-for-like.
 const ITEMS = [
-  { id:"board", name:"Pine board 40 × 200 cm, 18 mm", need:"1 board (both shelves, one 400 × 860 mm piece)",
+  { id:"board", name:"Pine board 40 × 200 cm, 18 mm", need:"1 board: both kitchen shelves (860 mm) + the closet riser top (750 mm)",
     c:{ t:"Tablette en pin massif PPA18400", p:16.90, u:"https://www.castorama.fr/tablette-en-pin-massif-40-x-200-cm-ep-18-mm-ppa18400/3760002269221_CAFR.prd", s:"4.7★ (11)" },
     a:null, pick:"c" },
-  { id:"batten", name:"Pine batten 27 × 27 × 2400 mm", need:"1 (cut list 1446 mm)",
+  { id:"batten", name:"Pine batten 27 × 27 × 2400 mm", need:"1: kitchen posts (1446 mm) + 4 riser legs of 182 mm",
     c:{ t:"Baguette d'angle rabotée pin 27 × 27 mm, 2.4 m", p:8.69, u:"https://www.castorama.fr/baguette-d-angle-rabotee-pin-27-x-27-mm-l-2-4-m/3663602871934_CAFR.prd", s:"4.65★ (20); bevelled edge" },
     a:null, pick:"c" },
-  { id:"screws", name:"Stainless wood screws 4 × 40 mm (A2)", need:"about 12; the pack has 200",
+  { id:"screws", name:"Stainless wood screws 4 × 40 mm (A2)", need:"about 12 for the kitchen + 8 for the riser (2 per leg); the pack has 200",
     c:{ t:"Diall A2 Pozidriv 4 × 40, 200 pcs", p:19.90, u:"https://www.castorama.fr/vis-a-bois-en-acier-inoxydable-a2-pozidriv-4x40-mm-200-pieces/3663602748496_CAFR.prd", s:"4.3★ (13)" },
     a:{ t:"A2 Torx 4 × 40 countersunk, 200 pcs", p:20.42, u:AM+"vis+bois+inox+A2+4x40+200+pi%C3%A8ces", s:"3.8K reviews" }, pick:"c" },
-  { id:"brackets", name:"Corner brackets 40 × 40 mm", need:"9, one per post-to-shelf joint",
+  { id:"brackets", name:"Corner brackets 40 × 40 mm", need:"9 for the kitchen; 4 more for the riser are optional (the pack has 13 spare)",
     c:{ t:"Équerre galvanisée 40 × 40 × 20 mm, pack of 25 (no screws)", p:13.90, u:CA+"equerre%20de%20fixation%2040x40", s:"5★ (2)" },
     a:{ t:"Stainless 40 × 40 mm brackets, pack of 22 with 88 screws", p:9.75, u:AM+"equerre+assemblage+40x40+inox", s:"check screw length ≤ 16 mm" }, pick:"a" },
   { id:"brscrews", name:"Short screws for the brackets (3.5 × 16 mm)", need:"about 18 (2 per bracket)",
     c:{ t:"Torx round-head A2 3.5 × 16, 100 pcs (marketplace seller)", p:5.34, u:CA+"vis%20inox%20a2%203%2C5%20x%2016", s:"" },
     a:{ t:"Included in the Amazon bracket pack", p:0, u:AM+"equerre+assemblage+40x40+inox", s:"confirm length" }, pick:"a" },
-  { id:"glue", name:"Water-resistant wood glue", need:"1 bottle (225 g is plenty)",
+  { id:"glue", name:"Water-resistant wood glue", need:"1 bottle (225 g is plenty); optional on the riser",
     c:{ t:"Pattex Power white, water resistant, 225 g", p:9.65, u:CA+"colle%20a%20bois", s:"Sader Pro D3 100 g €9.89" },
     a:{ t:"Wood assembly glue D3, interior/exterior", p:9.89, u:AM+"colle+%C3%A0+bois+D3+r%C3%A9sistante+%C3%A0+l%27eau", s:"Pattex waterproof 750 g €13.15 (573 reviews)" }, pick:"c" },
-  { id:"saw", name:"Coping saw", need:"1 (top-shelf notch)",
-    c:{ t:"Magnusson SW53, carbon steel blade, 15 TPI", p:7.99, u:CA+"scie%20a%20chantourner", s:"4.16★ (31)" },
-    a:{ t:"Stanley coping saw 0-15-106", p:16.70, u:AM+"scie+%C3%A0+chantourner+manuelle", s:"4.4★ (2.1K); cheapest 12-blade set €11.99" }, pick:"c" },
+  { id:"saw", name:"Crosscut hand saw (égoïne), fine teeth", need:"1 (all cuts are straight: crosscuts, the kitchen diagonal, the legs)",
+    c:{ t:"Stanley JET-CUT fine 450 mm", p:17.90, u:"https://www.castorama.fr/scie-egoine-stanley-jet-cut-fine-450-mm/3253562155955_CAFR.prd", s:"budget: 400 mm 7 TPI saw €5.19, 3.47★ (19)" },
+    a:"unchecked", pick:"c" },
   { id:"clamps", name:"Screw clamps (about 300 mm)", need:"2",
     c:{ t:"Screw clamp 300 × 80 mm, pack of 2", p:8.99, u:CA+"serre-joint", s:"4.31★ (16)" },
     a:{ t:"Screw clamp, 60 mm jaw, 300 mm opening (single)", p:22.99, u:AM+"serre-joint+%C3%A0+vis+300mm+lot+de+2", s:"4-packs €25.97 to €44.99" }, pick:"c" },
@@ -130,7 +132,7 @@ const ITEMS = [
   { id:"brush", name:"Flat brush 40 mm, for oil and varnish", need:"1",
     c:{ t:"GoodHome flat brush, oil/varnish/stain, 40 mm", p:3.99, u:CA+"pinceau%20huile%20de%20lin%20plat", s:"4.66★ (215)" },
     a:{ t:"3 flat brushes 30/50/70 mm", p:7.99, u:AM+"pinceau+plat+vernis+lasure+40+mm", s:"466 reviews" }, pick:"c" },
-  { id:"oil", name:"Boiled linseed oil, 1 L", need:"1 (about 0.6 m² to cover)",
+  { id:"oil", name:"Boiled linseed oil, 1 L", need:"1 (about 1.3 m² to cover with the riser)",
     c:{ t:"Phébus linseed oil, 1 L", p:8.79, u:CA+"huile%20de%20lin%20phebus", s:"4.66★ (3)" },
     a:{ t:"Galloil baked linseed oil, 1 L (not the same product)", p:9.30, u:AM+"phebus+huile+de+lin+cuite+1+L", s:"8 reviews" }, pick:"c" },
 ];
@@ -141,6 +143,7 @@ try { owned = new Set(JSON.parse(localStorage.getItem("shelfOwned") || "[]")); }
 
 function cell(o) {
   if (!o) return '<td><span class="tag gap">no like-for-like found</span></td><td class="num">—</td>';
+  if (o === "unchecked") return '<td><span class="tag">not checked</span></td><td class="num">—</td>';
   return `<td><a href="${o.u}">${o.t}</a>${o.s ? `<span class="sub">${o.s}</span>` : ""}</td><td class="num">${eur(o.p)}</td>`;
 }
 

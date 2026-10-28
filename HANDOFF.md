@@ -28,11 +28,11 @@
 **2026-10-28, closet risers:** Dylan asked whether the same wood could also make risers for the
 clothes closet (existing shelves 80 x 40 cm, about 40 cm apart; new riser = same footprint,
 20 cm tall, a board on 4 feet). `under_sink_shelf/closet_riser.py` has the cut plan and cost.
-Result: 1 riser fits in the kitchen leftovers for 0 EUR extra; 2 or 3 risers need one more
-board and batten (+25.59 EUR, total 125.23); 4 = +52.24. Sag 0.7 mm with 20 kg. Not added to
-the site pages yet. Open: how many risers; do the closet shelves sit between side walls (then
-cut the top to 790)? Crosscutting a 400 mm board with the coping saw on the buy list is slow:
-ask for the store's cutting service or get a crosscut saw.
+Decided: ONE riser, top 750 x 400 (closet ~76 cm wide with obstacles), legs 182 mm, 2 screws
+per leg; brackets and glue optional on the riser. It fits in the kitchen board and batten for
+0 EUR extra (2-3 risers would be +25.59). `buy.html` updated for it, and the coping saw swapped
+for a Stanley JET-CUT fine 450 mm crosscut saw (17.90, Castorama, read 2026-10-28; Amazon not
+checked). New totals: recommended 109.55, all-Castorama 119.04. Site not republished yet.
 
 **Resume:** Shelf v10 and the Cost & buy list tab are live; wait for Dylan's feedback on the shape, then check Palaiseau stock.
 
