@@ -32,7 +32,11 @@ Decided: ONE riser, top 750 x 400 (closet ~76 cm wide with obstacles), legs 182 
 per leg; brackets and glue optional on the riser. It fits in the kitchen board and batten for
 0 EUR extra (2-3 risers would be +25.59). `buy.html` updated for it, and the coping saw swapped
 for a Stanley JET-CUT fine 450 mm crosscut saw (17.90, Castorama, read 2026-10-28; Amazon not
-checked). New totals: recommended 109.55, all-Castorama 119.04. Site not republished yet.
+checked). Then (same day) screws switched to 2 x Diall 20-packs (11.78; Les Ulis had 1 in stock),
+Amazon prices added for the saw (16.92) and 200 A2 screws (14.90). Totals: recommended 101.43,
+all-Castorama 110.92, Amazon wherever possible 124.22 (Amazon free delivery to 91120 from 45 EUR).
+Leftovers: board ~360 x 400, batten ~175 mm: enough for a small U-shaped riser 36 x 20 x 20 cm.
+Published to the site on 2026-10-28.
 
 **Resume:** Shelf v10 and the Cost & buy list tab are live; wait for Dylan's feedback on the shape, then check Palaiseau stock.
 

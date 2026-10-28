@@ -53,12 +53,12 @@
     <a href="index.html">Design</a>
     <a href="buy.html" aria-current="page">Cost &amp; buy list</a>
   </nav>
-  <p class="lede">Everything the build needs, priced at Castorama and compared with similar items on Amazon.fr. Prices were read from the live pages on 16 Oct 2026 (the saw on 28 Oct). The list also covers one closet riser, which comes out of the same board and batten at no extra cost. Tick what you already own and the totals update.</p>
+  <p class="lede">Everything the build needs, priced at Castorama and compared with similar items on Amazon.fr. Prices were read from the live pages on 16 Oct 2026 (the saw and the screws on 28 Oct). The list also covers one closet riser, which comes out of the same board and batten at no extra cost. Tick what you already own and the totals update.</p>
 
   <div class="totals">
     <div class="tot main"><div class="v" id="t-pick">…</div><div class="k">Recommended basket (cheapest sensible pick per line)</div></div>
     <div class="tot"><div class="v" id="t-cast">…</div><div class="k">Everything from Castorama</div></div>
-    <div class="tot"><div class="v" id="t-saved">…</div><div class="k">Saved by buying brackets on Amazon</div></div>
+    <div class="tot"><div class="v" id="t-amz">…</div><div class="k">Amazon wherever it has the item (timber still from Castorama)</div></div>
     <div class="tot"><div class="v" id="t-have">…</div><div class="k">Lines ticked as already owned</div></div>
   </div>
 
@@ -71,15 +71,16 @@
       <tbody></tbody>
     </table>
   </div>
-  <p class="note">The totals count one pack of each line, as listed. Shipping is not included: Castorama marketplace sellers and Amazon each show their own delivery terms, and the Amazon pages were priced for a Paris 75001 address, not Palaiseau. Stock at the Palaiseau store was not checked.</p>
+  <p class="note">The totals count each line as listed. Delivery is not included. Amazon delivers free to Palaiseau (91120) on €45 of items it dispatches, so the Amazon-wherever-possible basket ships free but the recommended one (brackets only, €9.75) pays delivery unless you have Prime. Castorama marketplace sellers charge their own delivery (€7.10 to 91120 for one screw seller). In-store stock was only checked for the screws, at Castorama Les Ulis.</p>
 
   <h2>What the comparison found</h2>
   <div class="card">
     <ul>
+      <li><strong>Castorama versus Amazon overall:</strong> the timber is only at Castorama, so a Castorama trip is needed either way. Buying everything else on Amazon too costs more (about €124 against €111), mostly because of clamps, brush and sandpaper. The cheapest mix is Castorama for everything except the brackets.</li>
+      <li><strong>Screws: small packs win.</strong> You need about 20 of the 4 × 40 mm (12 kitchen, 8 riser). Castorama's own Diall A2 screws also come in packs of 20 at €5.89; two packs (€11.78) leave spares and cost €8 less than the 200-pack at €19.90. Les Ulis had one pack of 20 in stock on 28 Oct, so order the second for pickup or delivery. If you order on Amazon anyway, 200 A2 Torx 4 × 40 cost €14.90; a 50-pack costs €11.92, so there the big pack is the better deal.</li>
       <li><strong>Timber: Castorama only.</strong> I found no like-for-like 18 mm × 40 × 200 cm pine board or 27 × 27 × 2.4 m pine batten on Amazon. The results were craft strips and cutting boards.</li>
       <li><strong>Brackets: Amazon is cheaper and better.</strong> A pack of 22 stainless 40 × 40 mm brackets with 88 screws is €9.75. Castorama's pack of 25 is galvanised, €13.90, and has no screws. You need 9. Check the screw length in the Amazon listing before ordering: the screws that go through a bracket into an 18 mm shelf must be 16 mm or shorter. Otherwise add the 3.5 × 16 mm stainless screws from Castorama.</li>
-      <li><strong>Tools and consumables: Castorama is cheaper.</strong> Clamps, sandpaper and a brush all cost less there. The crosscut saw was priced at Castorama only.</li>
-      <li><strong>The 4 × 40 mm stainless screws are a tie.</strong> €19.90 for 200 Pozidriv at Castorama, €20.42 for 200 Torx at Amazon. You need about 12 of them, so most of the pack is spare either way.</li>
+      <li><strong>Tools and consumables: Castorama is cheaper.</strong> Clamps, sandpaper and a brush all cost less there. The crosscut saw is the exception: Stanley's 500 mm JetCut fine is €16.92 on Amazon against €17.90 for the 450 mm one at Castorama. It is picked at Castorama because €1 does not cover Amazon's small-order delivery.</li>
       <li><strong>Linseed oil:</strong> Amazon does not list the Phébus 1 L. The closest 1 L is a baked linseed oil at €9.30 with 8 reviews.</li>
     </ul>
   </div>
@@ -92,6 +93,7 @@
       <li>For the damp cabinet the glue should be water-resistant (D3). The Pattex Power pick is rated "water resistant", with no D-class on the listing. Sader Pro D3 (100 g, €9.89) is the one that states D3.</li>
       <li>A pilot drill bit (2.5 mm) and a countersink are not on the list. Add them if you do not have them.</li>
       <li>The saw is a fine-tooth crosscut saw rather than the coping saw on earlier versions of this list: the top-shelf notch it was for is gone, and every cut left is straight. The fine teeth leave a cleaner edge on the pine.</li>
+      <li><strong>Leftovers after the kitchen shelf and the riser:</strong> a board offcut of about 360 × 400 mm and about 175 mm of batten. That is enough for one more small riser if it uses board for the sides: a top 360 × 200 mm and two sides about 178 × 197 mm (rip the offcut into two 200 mm strips) makes a U-shaped riser about 36 cm wide, 20 cm deep and 20 cm tall. A riser on four legs taller than about 4 cm would need another batten (€8.69).</li>
       <li><strong>Closet riser:</strong> a 750 × 400 mm top (the closet is about 76 cm wide with obstacles) on four 27 × 27 mm legs, 182 mm long, 200 mm tall overall. Fix each leg with two 4 × 40 screws down through the top. Brackets and glue are optional on the riser: its legs are short and only carry weight straight down. The cut plan is in <code>closet_riser.py</code>.</li>
     </ul>
   </div>
@@ -108,9 +110,9 @@ const ITEMS = [
   { id:"batten", name:"Pine batten 27 × 27 × 2400 mm", need:"1: kitchen posts (1446 mm) + 4 riser legs of 182 mm",
     c:{ t:"Baguette d'angle rabotée pin 27 × 27 mm, 2.4 m", p:8.69, u:"https://www.castorama.fr/baguette-d-angle-rabotee-pin-27-x-27-mm-l-2-4-m/3663602871934_CAFR.prd", s:"4.65★ (20); bevelled edge" },
     a:null, pick:"c" },
-  { id:"screws", name:"Stainless wood screws 4 × 40 mm (A2)", need:"about 12 for the kitchen + 8 for the riser (2 per leg); the pack has 200",
-    c:{ t:"Diall A2 Pozidriv 4 × 40, 200 pcs", p:19.90, u:"https://www.castorama.fr/vis-a-bois-en-acier-inoxydable-a2-pozidriv-4x40-mm-200-pieces/3663602748496_CAFR.prd", s:"4.3★ (13)" },
-    a:{ t:"A2 Torx 4 × 40 countersunk, 200 pcs", p:20.42, u:AM+"vis+bois+inox+A2+4x40+200+pi%C3%A8ces", s:"3.8K reviews" }, pick:"c" },
+  { id:"screws", name:"Stainless wood screws 4 × 40 mm (A2)", need:"about 20: 12 for the kitchen + 8 for the riser (2 per leg)",
+    c:{ t:"Diall A2 Pozidriv 4 × 40, 20 pcs, × 2 packs", p:11.78, u:"https://www.castorama.fr/vis-a-bois-en-acier-inoxydable-a2-pozidriv-4x40-mm-20-pieces/3663602748465_CAFR.prd", s:"€5.89 per pack, 5★ (2); the 200-pack is €19.90" },
+    a:{ t:"A2 Torx 4 × 40 countersunk, full thread, 200 pcs", p:14.90, u:AM+"vis+bois+inox+A2+4x40+200+pi%C3%A8ces", s:"4.5★ (78); 50 pcs €11.92" }, pick:"c" },
   { id:"brackets", name:"Corner brackets 40 × 40 mm", need:"9 for the kitchen; 4 more for the riser are optional (the pack has 13 spare)",
     c:{ t:"Équerre galvanisée 40 × 40 × 20 mm, pack of 25 (no screws)", p:13.90, u:CA+"equerre%20de%20fixation%2040x40", s:"5★ (2)" },
     a:{ t:"Stainless 40 × 40 mm brackets, pack of 22 with 88 screws", p:9.75, u:AM+"equerre+assemblage+40x40+inox", s:"check screw length ≤ 16 mm" }, pick:"a" },
@@ -122,7 +124,7 @@ const ITEMS = [
     a:{ t:"Wood assembly glue D3, interior/exterior", p:9.89, u:AM+"colle+%C3%A0+bois+D3+r%C3%A9sistante+%C3%A0+l%27eau", s:"Pattex waterproof 750 g €13.15 (573 reviews)" }, pick:"c" },
   { id:"saw", name:"Crosscut hand saw (égoïne), fine teeth", need:"1 (all cuts are straight: crosscuts, the kitchen diagonal, the legs)",
     c:{ t:"Stanley JET-CUT fine 450 mm", p:17.90, u:"https://www.castorama.fr/scie-egoine-stanley-jet-cut-fine-450-mm/3253562155955_CAFR.prd", s:"budget: 400 mm 7 TPI saw €5.19, 3.47★ (19)" },
-    a:"unchecked", pick:"c" },
+    a:{ t:"Stanley 2-15-599 JetCut fine 500 mm", p:16.92, u:AM+"scie+%C3%A9go%C3%AFne+stanley+jetcut+fine", s:"4.7★ (1.7K)" }, pick:"c" },
   { id:"clamps", name:"Screw clamps (about 300 mm)", need:"2",
     c:{ t:"Screw clamp 300 × 80 mm, pack of 2", p:8.99, u:CA+"serre-joint", s:"4.31★ (16)" },
     a:{ t:"Screw clamp, 60 mm jaw, 300 mm opening (single)", p:22.99, u:AM+"serre-joint+%C3%A0+vis+300mm+lot+de+2", s:"4-packs €25.97 to €44.99" }, pick:"c" },
@@ -143,7 +145,6 @@ try { owned = new Set(JSON.parse(localStorage.getItem("shelfOwned") || "[]")); }
 
 function cell(o) {
   if (!o) return '<td><span class="tag gap">no like-for-like found</span></td><td class="num">—</td>';
-  if (o === "unchecked") return '<td><span class="tag">not checked</span></td><td class="num">—</td>';
   return `<td><a href="${o.u}">${o.t}</a>${o.s ? `<span class="sub">${o.s}</span>` : ""}</td><td class="num">${eur(o.p)}</td>`;
 }
 
@@ -159,17 +160,18 @@ function render() {
     tr.innerHTML = `<td>${cb}</td><td><strong>${it.name}</strong><span class="sub">${it.need}</span></td>${cell(it.c)}${cell(it.a)}<td>${buy}</td>`;
     body.appendChild(tr);
   }
-  let pick = 0, cast = 0, saved = 0, have = 0;
+  let pick = 0, cast = 0, amz = 0, have = 0;
   for (const it of ITEMS) {
     const chosen = it.pick === "a" && it.a ? it.a.p : it.c.p;
     if (owned.has(it.id)) { have += chosen; continue; }
     pick += chosen;
     cast += it.c.p;
+    // the bracket pack includes its screws, so the Castorama screw line is not needed on Amazon
+    amz += it.a ? it.a.p : it.c.p;
   }
-  saved = cast - pick;
   document.getElementById("t-pick").textContent = eur(pick);
   document.getElementById("t-cast").textContent = eur(cast);
-  document.getElementById("t-saved").textContent = eur(saved);
+  document.getElementById("t-amz").textContent = eur(amz);
   document.getElementById("t-have").textContent = eur(have);
 }
 
