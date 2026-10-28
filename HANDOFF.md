@@ -25,6 +25,15 @@
 
 ## Under-sink shelf — updated 2026-10-17 (dylan-MS-7C84)
 
+**2026-10-28, closet risers:** Dylan asked whether the same wood could also make risers for the
+clothes closet (existing shelves 80 x 40 cm, about 40 cm apart; new riser = same footprint,
+20 cm tall, a board on 4 feet). `under_sink_shelf/closet_riser.py` has the cut plan and cost.
+Result: 1 riser fits in the kitchen leftovers for 0 EUR extra; 2 or 3 risers need one more
+board and batten (+25.59 EUR, total 125.23); 4 = +52.24. Sag 0.7 mm with 20 kg. Not added to
+the site pages yet. Open: how many risers; do the closet shelves sit between side walls (then
+cut the top to 790)? Crosscutting a 400 mm board with the coping saw on the buy list is slow:
+ask for the store's cutting service or get a crosscut saw.
+
 **Resume:** Shelf v10 and the Cost & buy list tab are live; wait for Dylan's feedback on the shape, then check Palaiseau stock.
 
 **Goal:** Two-shelf under-sink shelf for Dylan's cabinet in Palaiseau. Was published on the site at https://dylan-neff.web.cern.ch/misc/shelf/ (Design tab: `index.html`, Cost & buy list tab: `buy.html`). Source moved here from `dylan-cern-site/misc/shelf/` on 2026-10-17. The built pages are still deployed from the site repo: run `publish_to_site.sh` here, then commit and deploy there.

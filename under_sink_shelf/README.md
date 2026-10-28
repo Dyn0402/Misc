@@ -16,6 +16,12 @@ open questions is in [HANDOFF.md](../HANDOFF.md).
   The script runs design checks (margins, post clearances, keep-out zones) and
   stops with a message if one fails.
 - `plan_view.py`: 2D plan view, writes `renders/shelf_plan.png` (matplotlib).
+- `closet_riser.py`: closet risers (800 x 400 top on four 182 mm legs, 200 mm tall) cut
+  from the same stock. Prints boards, battens and extra cost for 0 to 6 risers, a sag
+  check, and writes `renders/closet_cut_plan.png`:
+
+      python3 under_sink_shelf/closet_riser.py [n_risers]
+
 - `render_blender.py`: headless Cycles renders to `renders/`:
 
       ~/Software/blender-5.1.0-linux-x64/blender -b --factory-startup --python under_sink_shelf/render_blender.py
