@@ -52,14 +52,16 @@ Z_UP = 500           # underside of top shelf: 50 cm off the floor
 TOP = Z_UP + T       # 518
 
 # Flat back, steeper front-left slope toward the extra space (plan view, x, y in mm).
-# Lower shelf (v10): 370 back edge, 100 front edge, 430 deep. The left edge keeps a 100 mm straight
-# run at the back (y 15..115), then one diagonal runs all the way to the 100 mm front edge.
-OUTLINE_LOW = [(15, 15), (385, 15), (385, 115), (115, 445), (15, 445)]
+# Lower shelf (v11): the full 400 mm board width, so the back edge and the short left edge are the
+# board's factory edges (two fewer cuts). 400 back edge, 100 front edge, 430 deep. The v10 diagonal
+# is extended to the new left edge: 63 mm straight at the back (y 15..78), then the diagonal to the
+# 100 mm front edge. The back-left corner reaches 15 mm past the door opening, into the open extra space.
+OUTLINE_LOW = [(15, 15), (415, 15), (415, 78), (115, 445), (15, 445)]
 # Upper shelf: same outline (the standpipe and its notch were removed in v4).
 OUTLINE_UP = OUTLINE_LOW
 
 # Post lower-left corners (x, y); each post is LEG x LEG.
-POSTS = {"R": (25, 25), "F": (25, 403), "B": (333, 25)}
+POSTS = {"R": (25, 25), "F": (25, 403), "B": (363, 25)}
 
 # Things stored under the sink, measured by Dylan (mm). Placed where they fit:
 # the detergents stand upright on the floor under the middle shelf, the bags stand
@@ -67,7 +69,7 @@ POSTS = {"R": (25, 25), "F": (25, 403), "B": (333, 25)}
 # 50 cm of open floor left of the cabinet opening (it uses about 6 cm of it).
 # Box = (x0, x1, y0, y1, z0, z1) bounding box, used for the clearance checks.
 ITEM_BOX = {
-    "bottle": (410, 540, 5, 65, 0, 390),     # 39 x 13 x 6 cm, at the back, just left of the door opening (out of view)
+    "bottle": (430, 560, 5, 65, 0, 390),     # 39 x 13 x 6 cm, at the back, 3 cm left of the door opening (out of view)
     "salt":   (150, 320, 0, 100, 0, 240),     # big blue detergent box 24 x 17 x 10 cm, upright, pushed back
     "tabs":   (60, 130, 0, 180, 0, 200),      # red detergent box 18 x 20 x 7 cm, upright, pushed back
     "roll":   (165, 235, 25, 95, 318, 468),   # bin bags 15 cm long x 7 cm diameter, upright, middle shelf
@@ -204,7 +206,9 @@ def check():
 
     for label, poly in (("lower", OUTLINE_LOW), ("upper", OUTLINE_UP)):
         for x, y in poly:
-            need(CAB["x0"] + WALL_M <= x <= CAB["x1"] - WALL_M, f"{label} shelf x={x} too close to side wall")
+            need(CAB["x0"] + WALL_M <= x <= CAB["x1"] + WALL_M, f"{label} shelf x={x} too close to side wall")
+            # past the door opening only at the back, where the cabinet is open to the extra space
+            need(x <= CAB["x1"] - WALL_M or y <= 100, f"{label} shelf x={x}, y={y} hits the door frame")
             need(CAB["y0"] + WALL_M <= y <= CAB["y1"] - FRONT_M, f"{label} shelf y={y} margin to back/front")
 
     for name in POSTS:
@@ -299,7 +303,7 @@ def build():
     items = [
         # rinse bottle: 39 cm bottom to cap, 13 wide, 6 deep; cap/neck on top; back-left
         ("bottle", "Rinse bottle (39 x 13 x 6 cm)", "bottle",
-         merge(ellipse(475, 35, 65, 30, 0, 350), ellipse(475, 35, 30, 20, 350, 390))),
+         merge(ellipse(495, 35, 65, 30, 0, 350), ellipse(495, 35, 30, 20, 350, 390))),
         ("salt", "Big blue detergent box (24 x 17 x 10 cm, upright)", "salt", box(*ITEM_BOX["salt"])),
         ("roll", "Trash bags (15 cm long, 7 cm diameter, upright)", "roll", cylinder(200, 60, 35, 318, 468)),
         ("tabs", "Smaller red detergent box (18 x 20 x 7 cm, upright)", "tabs", box(*ITEM_BOX["tabs"])),

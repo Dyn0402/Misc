@@ -44,9 +44,10 @@ JAR_LEG_L = JAR_HEIGHT - bm.T    # 162, four of them from the 2 m of dowel
 
 # The two kitchen shelves are cut nested: the second one is turned 180 degrees so the two diagonal
 # edges run side by side, one saw cut apart. Board frame: u along the board, v across it (0..400).
-SHELF_UV = [(y - 15, x - 15) for x, y in bm.OUTLINE_LOW]   # 430 long, 370 across
-NEST_D = 191                     # u of the second shelf's narrow end; >= 3 mm between the diagonals
-NEST_L = NEST_D + 430            # 621 mm of board for both shelves (860 if cut straight)
+SHELF_UV = [(y - 15, x - 15) for x, y in bm.OUTLINE_LOW]   # 430 long, the full 400 across (v11)
+NEST_D = 188                     # u of the second shelf's narrow end: the diagonals are ~1.7 mm apart,
+                                 # one saw kerf, so a single diagonal cut separates the two shelves
+NEST_L = NEST_D + 430            # 618 mm of board for both shelves (860 if cut straight)
 KITCHEN_BOARD = [("kitchen shelves", NEST_L)]
 KITCHEN_POSTS = [("kitchen post", bm.Z_LOW)] * 3 + [("kitchen post", bm.Z_UP - bm.Z_LOW - bm.T)] * 3
 

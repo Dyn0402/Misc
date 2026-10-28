@@ -39,7 +39,7 @@ for n in bm.POSTS:
 for name, (x0, x1, y0, y1, z0, z1) in bm.ITEM_BOX.items():
     col = {"bottle": "#1a38a0", "salt": "#2659c0", "tabs": "#73193f", "roll": "#202224"}[name]
     rect(x0, x1, y0, y1, fc=col, ec="none", alpha=.9)
-ax.annotate("rinse bottle,\njust out of view\nfrom the door", xy=(475, 35), xytext=(700, 120), ha="center", fontsize=8, arrowprops=dict(arrowstyle="->", lw=.8))
+ax.annotate("rinse bottle,\njust out of view\nfrom the door", xy=(495, 35), xytext=(700, 120), ha="center", fontsize=8, arrowprops=dict(arrowstyle="->", lw=.8))
 ax.text(235, 55, "detergents", ha="center", fontsize=7, color="white")
 # walls
 w = dict(fc="#444", ec="none")

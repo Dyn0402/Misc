@@ -43,8 +43,14 @@ The other Amazon links in buy.html are still search links, not products.
 Jar riser (kitchen top closet, empty jars): 600 x 400 top on four 162 mm legs cut from Dylan's
 two 1 m x 20 mm dowels, 18 cm tall, one 4x40 screw + glue per leg. It only fits on the board
 because the two kitchen shelves are now cut NESTED (second turned 180 deg, narrow end at 191 mm,
-621 mm total instead of 860); board is then used to within the 10 mm end trims. Design tab cut
+618 mm total in v11 instead of 860); board is then used to within the 10 mm end trims. Design tab cut
 list updated (also dropped the stale v4 notch row). Jar-closet shelf size not confirmed by Dylan.
+v11 (Dylan's idea, 2026-10-28): shelves use the full 400 mm board width (back edge 400, left straight
+63 mm, same diagonal extended, front 100, depth 430, area 1170 cm2). Back-left corner reaches 15 mm
+past the door opening into the open extra space (check() now allows that at y <= 100 only). Post B
+moved to x 363 (authoring), rinse bottle moved 20 mm left. The unit is 400 wide = door opening, so it
+goes in turned (narrowest width 350 mm). Nested cut is now 618 mm and 4 cuts: crosscut, one shared
+diagonal (edge A 63 mm -> edge B 555 mm), two 100 mm front cuts. Renders re-run in Blender.
 Published to the site on 2026-10-28.
 
 **Resume:** Shelf v10 and the Cost & buy list tab are live; wait for Dylan's feedback on the shape, then check Palaiseau stock.
