@@ -36,6 +36,10 @@ checked). Then (same day) screws switched to 2 x Diall 20-packs (11.78; Les Ulis
 Amazon prices added for the saw (16.92) and 200 A2 screws (14.90). Totals: recommended 101.43,
 all-Castorama 110.92, Amazon wherever possible 124.22 (Amazon free delivery to 91120 from 45 EUR).
 Leftovers: board ~360 x 400, batten ~175 mm: enough for a small U-shaped riser 36 x 20 x 20 cm.
+Brackets then switched to the product Dylan found: VFANDV 20 stainless 40x40x16 with screws,
+7.79 EUR, https://www.amazon.fr/dp/B0D6YTK3KT (photo: screws 15 mm, 4 holes; title says 80 screws,
+photo 60). Totals now: recommended 99.47, all-Castorama 110.92, Amazon wherever possible 122.26.
+The other Amazon links in buy.html are still search links, not products.
 Published to the site on 2026-10-28.
 
 **Resume:** Shelf v10 and the Cost & buy list tab are live; wait for Dylan's feedback on the shape, then check Palaiseau stock.
@@ -61,7 +65,7 @@ Published to the site on 2026-10-28.
 **Next steps:**
 1. Ask Dylan if the v10 shape is right; adjust `OUTLINE_LOW` in `build_model.py` if not.
 2. Stock at Palaiseau was NOT checked (Castorama asks for a postal code; I did not type one without permission). Ask Dylan for the code (91120?) or to go ahead.
-3. Confirm the Amazon bracket screws are 16 mm or shorter; confirm the 40x40x20 bracket width is enough.
+3. Done 2026-10-28: Amazon bracket screws are 15 mm (VFANDV pack); 16 mm wide brackets are fine on 27 mm posts.
 4. Still unconfirmed guesses: extra space 70 cm wide, oven drawn as a thin 20 mm front panel (does its body reach back into the space?), basin 6 cm over the extra space, top shelf only 82 mm below the basin, counter geometry.
 5. Glue: Pattex Power says "water resistant" without a D-class; Sader Pro D3 100 g (9.89 EUR) states D3.
 

@@ -28,8 +28,8 @@ BRACKETS = 4                     # one per leg-to-top joint, like the kitchen sh
 # --- stock (buy.html) ----------------------------------------------------------
 BOARD_L, BOARD_W, BOARD_EUR = 2000, 400, 16.90      # Tablette pin massif 40 x 200 cm, 18 mm
 BATTEN_L, BATTEN_EUR = 2400, 8.69                  # baguette pin 27 x 27 mm, 2.4 m
-BRACKET_PACK, BRACKET_EUR = 22, 9.75               # Amazon, 22 stainless 40 x 40 with 88 screws
-KITCHEN_EUR = 101.43                               # recommended basket in buy.html (2026-10-28)
+BRACKET_PACK, BRACKET_EUR = 20, 7.79               # Amazon B0D6YTK3KT, 20 stainless 40 x 40 x 16 with screws
+KITCHEN_EUR = 99.47                                # recommended basket in buy.html (2026-10-28)
 KERF = 3                                           # saw cut, plus a little for squaring
 END_TRIM = 10                                      # off each factory end, in case it is not square
 
