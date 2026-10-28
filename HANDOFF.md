@@ -23,73 +23,64 @@
 - `desktop_audio/NOTES.md` — findings and options
 - `aplay -l`, `wpctl status` — list outputs
 
-## Under-sink shelf — updated 2026-10-17 (dylan-MS-7C84)
+## Under-sink shelf — updated 2026-10-28 (dylan-MS-7C84)
 
-**2026-10-28, closet risers:** Dylan asked whether the same wood could also make risers for the
-clothes closet (existing shelves 80 x 40 cm, about 40 cm apart; new riser = same footprint,
-20 cm tall, a board on 4 feet). `under_sink_shelf/closet_riser.py` has the cut plan and cost.
-Decided: ONE riser, top 750 x 400 (closet ~76 cm wide with obstacles), legs 182 mm, 2 screws
-per leg; brackets and glue optional on the riser. It fits in the kitchen board and batten for
-0 EUR extra (2-3 risers would be +25.59). `buy.html` updated for it, and the coping saw swapped
-for a Stanley JET-CUT fine 450 mm crosscut saw (17.90, Castorama, read 2026-10-28; Amazon not
-checked). Then (same day) screws switched to 2 x Diall 20-packs (11.78; Les Ulis had 1 in stock),
-Amazon prices added for the saw (16.92) and 200 A2 screws (14.90). Totals: recommended 101.43,
-all-Castorama 110.92, Amazon wherever possible 124.22 (Amazon free delivery to 91120 from 45 EUR).
-Leftovers: board ~360 x 400, batten ~175 mm: enough for a small U-shaped riser 36 x 20 x 20 cm.
-Brackets then switched to the product Dylan found: VFANDV 20 stainless 40x40x16 with screws,
-7.79 EUR, https://www.amazon.fr/dp/B0D6YTK3KT (photo: screws 15 mm, 4 holes; title says 80 screws,
-photo 60). Totals now: recommended 99.47, all-Castorama 110.92, Amazon wherever possible 122.26.
-The other Amazon links in buy.html are still search links, not products.
-Jar riser (kitchen top closet, empty jars): 600 x 400 top on four 162 mm legs cut from Dylan's
-two 1 m x 20 mm dowels, 18 cm tall, one 4x40 screw + glue per leg. It only fits on the board
-because the two kitchen shelves are now cut NESTED (second turned 180 deg, narrow end at 191 mm,
-618 mm total in v11 instead of 860); board is then used to within the 10 mm end trims. Design tab cut
-list updated (also dropped the stale v4 notch row). Jar-closet shelf size not confirmed by Dylan.
-v11 (Dylan's idea, 2026-10-28): shelves use the full 400 mm board width (back edge 400, left straight
-63 mm, same diagonal extended, front 100, depth 430, area 1170 cm2). Back-left corner reaches 15 mm
-past the door opening into the open extra space (check() now allows that at y <= 100 only). Post B
-moved to x 363 (authoring), rinse bottle moved 20 mm left. The unit is 400 wide = door opening, so it
-goes in turned (narrowest width 350 mm). Nested cut is now 618 mm and 4 cuts: crosscut, one shared
-diagonal (edge A 63 mm -> edge B 555 mm), two 100 mm front cuts. Renders re-run in Blender.
-Published to the site on 2026-10-28.
+**Resume:** Shelf v11 + closet riser + jar riser all designed and live; next is buying (Castorama trip) and building.
 
-**Resume:** Shelf v10 and the Cost & buy list tab are live; wait for Dylan's feedback on the shape, then check Palaiseau stock.
-
-**Goal:** Two-shelf under-sink shelf for Dylan's cabinet in Palaiseau. Was published on the site at https://dylan-neff.web.cern.ch/misc/shelf/ (Design tab: `index.html`, Cost & buy list tab: `buy.html`). Source moved here from `dylan-cern-site/misc/shelf/` on 2026-10-17. The built pages are still deployed from the site repo: run `publish_to_site.sh` here, then commit and deploy there.
+**Goal:** Two-shelf under-sink shelf for Dylan's cabinet in Palaiseau (the main item), plus two risers
+cut from the same board and batten: one for the clothes closet, one for jars in a kitchen top closet.
+Live at https://dylan-neff.web.cern.ch/misc/shelf/ (Design tab `index.html`, Cost & buy list `buy.html`).
+Source lives here; the site repo only holds published copies.
 
 **Layout (confirmed by Dylan, drawn and agreed in chat):** standing at the door looking in, the right is a solid wall (dishwasher behind it) and the shelves go against it. Cabinet = 40 cm wide at the door x 50 cm deep, its back is the outer kitchen wall. To the LEFT is an extra space 70 cm wide, same 50 cm depth, level with the cabinet, on the SAME straight back wall (110 cm from dishwasher wall to far left). The oven stands in front of it and blocks it. A corner counter covers everything. The basin starts 6 cm from the dishwasher wall and reaches 6 cm over the extra space. The extra space is not deeper than the cabinet; earlier versions wrongly put it behind the back wall.
 
 **Axes (output frame, model.json / renders / page):** +x toward the dishwasher wall (right), so left = -x; +y away from you (y=0 door line, y=500 back wall); z up; right-handed. `build_model.py` is AUTHORED in the old frame (origin back-right corner, x grows to the left, y grows to the front) and `rot()` turns it 180 degrees about z on output. So constants in the file read as "distance left of the dishwasher wall" and "distance in front of the back wall". `plan_view.py` uses the authoring frame.
 
-**Done:**
-- 2026-10-17: source moved from `dylan-cern-site/misc/shelf/` to `under_sink_shelf/` (Misc commits `5b78a51`, `8fa1936`). Rebuilt `model.json` and the plan PNG match the site copies byte for byte. The built pages are published into the site with `under_sink_shelf/publish_to_site.sh` (site commits `d3242c1`, `9b349cf`). The live site is unchanged. Blender renders not re-run after the move.
-- v7-v10: layout above; rinse bottle at the back, 1 cm left of the door opening (just out of view from the door); detergent boxes on the floor at the back, bin bags on the middle shelf; basin shifted left; walls in the animation made transparent (opacity 0.18); 2D plan view `renders/shelf_plan.png` first on the page.
-- Shelf shape (v10): five sides, 370 back edge, 430 deep, 100 front edge; left edge straight for 100 mm at the back then one diagonal (about 39 degrees) to the 100 mm front edge. Area 1146 cm2. Only 10 of the 40 cm width is left at the front, so it is easy to reach into the extra space. Posts unchanged (back-right, front-right, back-left); the front-left is a cantilever.
-- Castorama pages re-checked in Chrome on 2026-10-16: board 16.90, batten 8.69, screws 19.90, linseed 8.79 (all unchanged).
-- `buy.html`: itemized list with Castorama prices and an Amazon.fr comparison, totals with "own it" tick boxes. Recommended basket 99.64 EUR, all-Castorama 109.13 EUR. Amazon wins only on brackets (22 stainless 40x40 with 88 screws, 9.75 EUR); no like-for-like timber on Amazon.
-- Fixed a wrong claim: the 9 brackets need about 18 SHORT screws (3.5 x 16 mm, shelf is 18 mm thick), not the 4 x 40 pack.
+**Done (2026-10-28):**
+- Shelf v11 (Dylan's idea): shelves use the full 400 mm board width. 400 back edge, 63 mm straight on the
+  left at the back, the v10 diagonal extended, 100 front edge, 430 deep, 1170 cm2. Back-left corner is 15 mm
+  past the door opening, in the open extra space (`check()` allows x up to 415 only at y <= 100). Post B
+  moved to authoring x 363; rinse bottle moved 20 mm left. Model, plan view and Blender renders re-run.
+- Nested cut: both shelves from 618 mm of board in 4 cuts (crosscut; one shared diagonal from edge A at
+  63 mm to edge B at 555 mm; two 100 mm front cuts). Written up in section 4 of the Design tab with
+  `renders/closet_cut_plan.png`. Section 4 also has a new guide to cutting the battens/dowels accurately.
+- Closet riser: 750 x 400 top (closet ~76 cm wide with obstacles), four 182 mm batten legs, 200 mm tall,
+  2 screws per leg, brackets/glue optional. Jar riser: 600 x 400 top, four 162 mm legs from Dylan's two
+  1 m x 20 mm dowels, 180 mm tall. All fit on ONE board + ONE batten (board used to within the 10 mm end
+  trims; ~180 mm batten left). `closet_riser.py` has the cost scaling for more closet risers.
+- Buy list: coping saw replaced by Stanley JET-CUT fine 450 mm crosscut saw (17.90 Castorama; Amazon
+  500 mm 16.92). Screws: 2 x Diall 20-pack 4x40 A2 (11.78; Les Ulis had 1 pack in stock). Brackets:
+  VFANDV 20 stainless 40x40x16 with 15 mm screws, 7.79, https://www.amazon.fr/dp/B0D6YTK3KT (found by Dylan).
+  Totals: recommended 99.47, all-Castorama 110.92, Amazon wherever possible 122.26. Amazon free delivery
+  to 91120 from 45 EUR; Dylan appears not to have Prime.
 
 **In progress / where it stopped:**
-- Nothing half-done. Last deploy is commit `083ad93` on `master`, pushed.
-- Dylan has not yet reacted to the v10 shape. I read "more space toward the back, less toward the front" as more SHELF at the back and a bigger cut-out at the front. If he meant the opposite, swap the two end widths in `OUTLINE_LOW`.
+- Nothing half-done. Everything published and deployed 2026-10-28.
 
 **Next steps:**
-1. Ask Dylan if the v10 shape is right; adjust `OUTLINE_LOW` in `build_model.py` if not.
-2. Stock at Palaiseau was NOT checked (Castorama asks for a postal code; I did not type one without permission). Ask Dylan for the code (91120?) or to go ahead.
-3. Done 2026-10-28: Amazon bracket screws are 15 mm (VFANDV pack); 16 mm wide brackets are fine on 27 mm posts.
-4. Still unconfirmed guesses: extra space 70 cm wide, oven drawn as a thin 20 mm front panel (does its body reach back into the space?), basin 6 cm over the extra space, top shelf only 82 mm below the basin, counter geometry.
-5. Glue: Pattex Power says "water resistant" without a D-class; Sader Pro D3 100 g (9.89 EUR) states D3.
+1. Dylan buys the timber at Castorama and the brackets on Amazon, then builds; answer build questions.
+2. Size of the jar closet's shelf not confirmed; the 600 x 400 top is the maximum, cut smaller if needed.
+3. Other Amazon links in `buy.html` are still searches, not product pages (only brackets are pinned).
+4. Still unconfirmed guesses: extra space 70 cm wide, oven body depth, basin 6 cm over the extra space,
+   82 mm from top shelf to basin, counter geometry. Re-measure before cutting.
+5. Glue: Pattex Power says "water resistant" with no D-class; Sader Pro D3 100 g (9.89) states D3.
 
 **Gotchas / decisions:**
-- Left/right confusion cost many turns. Do not reason about orientation from the render; use the layout paragraph above. The 3D iso renders hide the oven and the far-left wall so the extra space is visible.
+- Dylan read the board's 400 mm width as shelf DEPTH; it is the side-to-side width. Depth stays 430.
+- The v11 unit is 400 wide = door opening: it goes in turned (narrowest width 350 mm, square to the diagonal).
+- Left/right confusion cost many turns earlier. Use the layout paragraph, not the render, for orientation.
 - Z-fighting made a black bar when two coplanar faces overlapped; avoid overlapping wall slabs.
-- Browser tips: Castorama is a single-page app, `get_page_text` right after `navigate` returns the previous page; put a `computer wait` of 2-3 s between them in `browser_batch`. Amazon.fr served English text and prices for Paris 75001.
-- The deploy script's header warns about `stats_page_watcher` on the DAQ machine; it only matters for the x17 hub, and shelf deploys have run without issue.
-- Prices are static in the `ITEMS` array in `buy.html` (read 2026-10-16); update them there.
+- Browser: Castorama is a SPA, wait 2-3 s between `navigate` and `get_page_text`. Castorama and Amazon
+  were already set to 91120 / Castorama Les Ulis in Dylan's Chrome. Amazon `find` on a search page can
+  exceed the context limit; use `get_page_text` instead.
+- Deploy header warns about `stats_page_watcher`; that only matters for the x17 hub.
+- Prices are static in the `ITEMS` array in `buy.html`; `KITCHEN_EUR` in `closet_riser.py` mirrors the
+  recommended total and must be updated by hand.
 
 **Key files & commands:**
-- `under_sink_shelf/build_model.py` — geometry source and design checks; `python3 under_sink_shelf/build_model.py` writes `model.json` (checks must pass)
-- `under_sink_shelf/render_blender.py` — `~/Software/blender-5.1.0-linux-x64/blender -b --factory-startup --python under_sink_shelf/render_blender.py` writes `renders/shelf_{iso,iso_open,front}.png`
-- `under_sink_shelf/plan_view.py` — `python3 under_sink_shelf/plan_view.py` writes `renders/shelf_plan.png` (matplotlib)
-- `under_sink_shelf/index.html` — Design tab (Three.js animation reads `model.json`); `under_sink_shelf/buy.html` — Cost & buy list tab
-- Publish: `./under_sink_shelf/publish_to_site.sh` copies `index.html`, `buy.html`, `model.json` and `renders/` into `dylan-cern-site/misc/shelf/`. Then deploy from the site repo with `./scripts/deploy-eos.sh` (needs a Kerberos ticket: `kinit dneff@CERN.CH`).
+- `under_sink_shelf/build_model.py` — geometry + design checks; `python3 under_sink_shelf/build_model.py` writes `model.json`
+- `under_sink_shelf/plan_view.py` — `renders/shelf_plan.png`
+- `under_sink_shelf/render_blender.py` — `~/Software/blender-5.1.0-linux-x64/blender -b --factory-startup --python under_sink_shelf/render_blender.py`
+- `under_sink_shelf/closet_riser.py [n]` — cut plan (`renders/closet_cut_plan.png`), cost table, sag check
+- Publish: `./under_sink_shelf/publish_to_site.sh`, then in `~/PycharmProjects/dylan-cern-site` commit and
+  `./scripts/deploy-eos.sh` (needs `kinit dneff@CERN.CH`)
