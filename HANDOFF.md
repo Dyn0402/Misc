@@ -40,6 +40,11 @@ Brackets then switched to the product Dylan found: VFANDV 20 stainless 40x40x16 
 7.79 EUR, https://www.amazon.fr/dp/B0D6YTK3KT (photo: screws 15 mm, 4 holes; title says 80 screws,
 photo 60). Totals now: recommended 99.47, all-Castorama 110.92, Amazon wherever possible 122.26.
 The other Amazon links in buy.html are still search links, not products.
+Jar riser (kitchen top closet, empty jars): 600 x 400 top on four 162 mm legs cut from Dylan's
+two 1 m x 20 mm dowels, 18 cm tall, one 4x40 screw + glue per leg. It only fits on the board
+because the two kitchen shelves are now cut NESTED (second turned 180 deg, narrow end at 191 mm,
+621 mm total instead of 860); board is then used to within the 10 mm end trims. Design tab cut
+list updated (also dropped the stale v4 notch row). Jar-closet shelf size not confirmed by Dylan.
 Published to the site on 2026-10-28.
 
 **Resume:** Shelf v10 and the Cost & buy list tab are live; wait for Dylan's feedback on the shape, then check Palaiseau stock.
