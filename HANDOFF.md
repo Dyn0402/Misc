@@ -84,3 +84,20 @@ Source lives here; the site repo only holds published copies.
 - `under_sink_shelf/closet_riser.py [n]` — cut plan (`renders/closet_cut_plan.png`), cost table, sag check
 - Publish: `./under_sink_shelf/publish_to_site.sh`, then in `~/PycharmProjects/dylan-cern-site` commit and
   `./scripts/deploy-eos.sh` (needs `kinit dneff@CERN.CH`)
+
+## P2 cosmic bench rates — updated 2026-10-30 (dylan-MS-7C84)
+
+**Resume:** Simulation done (3-fold 0.51 Hz, top pair 14.3 Hz); rerun `P2/cosmic_rate.py` once Saclay confirms geometry.
+
+**Goal:** Tell the Saclay P2 group what trigger rates to expect on their 3-scintillator cosmic bench.
+
+**Done:**
+- `P2/cosmic_rate.py` Monte Carlo (Guan angular spectrum, 160 m altitude), `P2/README.md`, `P2/results/`.
+
+**Next steps:**
+1. Get from Saclay: exact top-to-bottom distance, bar thickness, bottom-bar orientation, material above the bench.
+2. Rerun with `--dist/--gap/--emin`; optionally add a rotated-bottom-bar case.
+
+**Gotchas / decisions:**
+- Assumed 150 cm, 3 cm gap, parallel bars, E > 0.2 GeV, 100 % efficiency. Model is ~10-15 % low on absolute normalisation.
+- 3-fold equals top1 & bottom exactly for identical aligned bars (convexity).
