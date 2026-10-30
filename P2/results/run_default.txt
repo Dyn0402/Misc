@@ -1,0 +1,21 @@
+E > 0.2 GeV, altitude 160 m, gap 3.0 cm, dist 150.0 cm
+vertical I = 84.6 m^-2 s^-1 sr^-1;  horizontal-plane flux = 0.778 cm^-2 min^-1
+single bar                 15.818 +- 0.000 Hz   =    949.1 /min =     56946 /h
+top1 & top2                14.297 +- 0.001 Hz   =    857.8 /min =     51470 /h
+top1 & top2 & bottom        0.507 +- 0.001 Hz   =     30.4 /min =      1826 /h
+top1 & bottom               0.507 +- 0.001 Hz   =     30.4 /min =      1826 /h
+
+Sensitivity of 3-fold rate (Hz):
+  dist 100 cm : 1.045
+  dist 125 cm : 0.708
+  dist 150 cm : 0.508
+  dist 175 cm : 0.381
+  dist 200 cm : 0.296
+  gap    1 cm : t12 15.30  t123 0.508
+  gap    3 cm : t12 14.30  t123 0.508
+  gap    5 cm : t12 13.33  t123 0.508
+  gap   10 cm : t12 11.10  t123 0.508
+  Emin 0.05 GeV : t12 15.11  t123 0.545
+  Emin 0.20 GeV : t12 14.30  t123 0.508
+  Emin 0.50 GeV : t12 12.88  t123 0.445
+  Emin 1.00 GeV : t12 10.97  t123 0.365
