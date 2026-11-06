@@ -18,3 +18,7 @@ Estimates, to be measured: bin positions, wall length, hinge side (see the page'
 
 v2 (2026-11-06): two brackets instead of three, no rail or separate hinge, 10 cm door margin (was 3), table
 125 x 50 (was 140 x 55), folds down instead of up, wall behind the fridge and its doorway drawn (estimated).
+
+v3 (2026-11-06): the page has a support-style switch: steel brackets (v2), slim black steel, oak corbels (swing
+flat to the wall), steel cables. `VARIANTS` in `geom_block.js` holds each style's pivot depth, pivot height and
+support positions; `check_clearance.mjs` runs the door sweep for all four and exits non-zero if any fails.

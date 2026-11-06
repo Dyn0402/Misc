@@ -8,13 +8,15 @@ const G = {
   margin: 10,             // design clearance added to the swept radius
   hingeY: 120,            // table top height
   topT: 3.0,              // table top thickness (28 mm oak + a little for the bracket arm)
-  hingeD: 2.0,            // bracket pivot, this far from the wall
+  hingeD: 2.0,            // pivot axis, this far from the wall (set by the support style)
+  axisY: 117,             // pivot axis height (set by the support style)
+  slab: [0, 3.0],         // table slab, as heights above the pivot axis (set by the support style)
   depth: 50,              // table depth from the pivot (500 mm brackets)
   angleDeg: 60,           // fridge-side edge angle from the wall (tangent to the door arc + margin)
   hingeLen: 125,          // length of the pivot edge along the wall
   farSkewDeg: 20,         // far edge leans in by this much from square
   cornerR: 5,             // radius of the two outer corners
-  braceX: [72, 151],      // the two folding brackets
+  braceX: [72, 151],      // the two supports (set by the support style)
   armU: 45,               // where the brace joins the bracket arm, measured from the wall
   braceQy: 72,            // height of the brace's wall pivot
   stool: 70,
@@ -24,6 +26,15 @@ const G = {
   // ESTIMATES from the photo: measure them.
   back: { t: 15, openD0: 70, openW: 90, openH: 205, wallH: 260 },
 };
+// Support styles. Steel brackets pivot under the slab; the rail styles hinge on top of an oak rail.
+const VARIANTS = {
+  steel: { hingeD: 2.0, axisY: 117, slab: [0, 3.0], x: [72, 151] },
+  black: { hingeD: 2.0, axisY: 117, slab: [0, 3.0], x: [72, 151] },
+  oak:   { hingeD: 5.4, axisY: 120, slab: [-3.0, 0], x: [80, 156] },   // 5.4: rail depth = 2.2 corbel + 3.2 slab
+  cable: { hingeD: 3.2, axisY: 120, slab: [-3.0, 0], x: [84, 142] },
+};
+function setVariant(name) { const v = VARIANTS[name]; G.hingeD = v.hingeD; G.axisY = v.axisY; G.slab = v.slab.slice(); G.braceX = v.x.slice(); G.variant = name; }
+setVariant("steel");
 // Hinge pivot of the fridge doors, in (X, d) plan coordinates.
 const pivot = () => ({ x: 0, d: G.fridge.w });
 // Fridge-side edge: s = s0 + u / tan(alpha), u measured from the table hinge axis.
@@ -92,7 +103,7 @@ function doorPlan(thetaDeg) {
 // Local frame: u out from the pivot, v up from the pivot; the slab occupies v in [0, topT].
 function tablePlan(phiDeg) {
   const p = phiDeg*Math.PI/180, out = tableOutline(), pts = [];
-  for (const [s,u] of out) for (const v of [0, G.topT]) pts.push([s, G.hingeD + u*Math.cos(p) + v*Math.sin(p)]);
+  for (const [s,u] of out) for (const v of G.slab) pts.push([s, G.hingeD + u*Math.cos(p) + v*Math.sin(p)]);
   return hull(pts);
 }
 // Two-link folding stay from the wall pivot Q to the arm point P; returns the knee K (bends toward the room).
@@ -107,6 +118,6 @@ function stay(P) {
 // Arm point P after folding down by phi (the arm runs along the underside, v = -0.4).
 function armPoint(phiDeg, u = G.armU) {
   const p = phiDeg*Math.PI/180, v = -0.4;
-  return { d: G.hingeD + u*Math.cos(p) + v*Math.sin(p), y: (G.hingeY - G.topT) - u*Math.sin(p) + v*Math.cos(p) };
+  return { d: G.hingeD + u*Math.cos(p) + v*Math.sin(p), y: G.axisY - u*Math.sin(p) + v*Math.cos(p) };
 }
 // GEOM-END

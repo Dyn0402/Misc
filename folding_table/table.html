@@ -61,9 +61,16 @@
   so the table is longest at the wall, and it stays at least <span id="lMargin"></span> cm clear of the fridge door, out or folded. All dimensions in cm unless stated.</p>
 
   <h2>1. Fold and fridge-door animation</h2>
-  <p class="note">Drag to orbit, scroll to zoom. The fridge door hinges on the side away from the wall, as you described. The wall behind the fridge and its doorway are drawn from my estimates (see section 8).
+  <p class="note">Drag to orbit, scroll to zoom. The fridge door hinges on the side away from the wall, as you described. The wall behind the fridge and its doorway are drawn from my estimates (see section 9).
   The readout is computed from the actual shapes, not drawn by hand.</p>
   <div id="viewer"></div>
+  <div class="controls" id="variants" role="group" aria-label="Support style">
+    <span class="note">Support:</span>
+    <button data-v="steel" aria-pressed="true">Steel brackets</button>
+    <button data-v="black" aria-pressed="false">Slim black steel</button>
+    <button data-v="oak" aria-pressed="false">Oak corbels</button>
+    <button data-v="cable" aria-pressed="false">Steel cables</button>
+  </div>
   <div class="controls">
     <button id="bDown">Fold table down</button>
     <button id="bUp">Pull table out</button>
@@ -83,15 +90,39 @@
   The shaded sector is where the door sweeps. The dashed arc is the design margin around it.</p>
   <canvas id="plan" width="1500" height="980"></canvas>
 
-  <h2>3. What changed from v1</h2>
+  <h2>3. Support options</h2>
+  <p>The steel arms are what you see in v2. The three buttons above show the alternatives, with the same table, the same fridge-door check and the same wall. Each has been run through the clearance check
+  (the table stays at least 10 cm from the door, out or folded down).</p>
+  <table>
+    <tr><th>Option</th><th>Look</th><th>How it works</th><th>Good</th><th>Watch out</th></tr>
+    <tr><td><strong>Steel brackets</strong><br><span class="tag">as v2</span></td><td>Grey steel arms and braces under the table.</td>
+      <td>The brace locks when you raise the table. The brackets are the hinge.</td>
+      <td>Self-supporting: one hand to lift. Cheapest. Rated products exist.</td><td>This is the look you called ugly.</td></tr>
+    <tr><td><strong>Slim black steel</strong></td><td>Flat-bar brackets in matt black, about half the section, so they read as a line, not a hardware part.</td>
+      <td>Same as steel.</td><td>Same strength and ease; the least change. Black blends with the dark bins and floor.</td>
+      <td>Still metal. Industrial look, not a wood look. Pick one rated for 100 kg or more.</td></tr>
+    <tr><td><strong>Oak corbels</strong><br><span class="tag ok">no visible metal</span></td><td>Two triangular oak gussets, 22 mm, cut from the same panel, under the table. A piano hinge on a 54 mm oak rail along the wall.</td>
+      <td>Fold the table down: first swing each corbel flat against the wall, then lower the table. They sit side by side behind it. To use it, lift the table, swing the corbels out, and drop two 10 mm steel pegs into holes in the underside.</td>
+      <td>Matches the counters. Folded, you see only an oak panel.</td>
+      <td>You need a hand to hold the table up while you swing the corbels in. The corbel hinges are the weak point: use stainless pintle hinges or three 80 mm hinges each, with oak backing blocks. The folded table sits 5.4 cm from the wall.</td></tr>
+    <tr><td><strong>Steel cables</strong></td><td>Two thin stainless wires from wall eyes above the table to its outer edge, plus an oak rail and piano hinge.</td>
+      <td>Unhook the cables and hang them on the wall eyes; fold the table down. To use it, lift it and clip both cables to the edge.</td>
+      <td>Very light look, almost nothing under the table, and no hardware at the bins.</td>
+      <td>The cables run above the top at 50° and stay in the way of elbows near each end, and the brick takes the full pull on the two eyes (about 0.8 kN each). You need a hand to hold the table up while you clip them. They look less solid.</td></tr>
+  </table>
+  <p><strong>Ideas I did not draw:</strong> (a) two slim oak <em>legs</em> hinged at the outer corners. They need about 4 cm of extra stand-off for the folded table and put legs near the stools. (b) <em>Fixed oak corbels with a removable top</em>: the strongest and the most solid-looking, but then the top has to be stored somewhere. (c) <em>Pull-out lopers</em>, the traditional wooden slides, which only work with a cabinet or a deep rail behind the table.</p>
+  <p><strong>My pick:</strong> oak corbels if you want no visible metal, and slim black steel if you want it to work with one hand and cost the least. I would skip the cables because of the elbows and the point loads on the brick.</p>
+
+  <h2>4. What changed from v1</h2>
   <ul>
-    <li><strong>Two brackets, not three.</strong> See section 4.</li>
+    <li><strong>Two brackets, not three.</strong> See section 5.</li>
     <li><strong>More fridge clearance.</strong> The margin around the door's swing went from 3 cm to <span id="lMargin2"></span> cm, and the table is smaller: 125 cm along the wall (was 140) and 50 cm deep (was 55). The edge angle is 60° (was 55°).</li>
     <li><strong>Folds down, not up.</strong> The table hangs from the brackets against the wall, between 67 and 117 cm up. Nothing needs to hold it up. The oak rail and the separate hinge are gone: the bracket pivots are the hinge.</li>
     <li><strong>Back wall and doorway</strong> are in both drawings.</li>
   </ul>
 
-  <h2>4. Dimensions</h2>
+  <h2>5. Dimensions</h2>
+  <p class="note">For the steel-bracket version; the other supports change only the pivot depth (see the options table).</p>
   <table>
     <tr><th>Part</th><th>Size</th><th>Why</th></tr>
     <tr><td>Table top</td><td class="num" id="dTop"></td><td>Solid oak, 28 mm panel. The fridge-side edge is cut at 60° to the wall, so the top is widest at the wall.</td></tr>
@@ -105,7 +136,7 @@
   The third bracket (and the rail) would only add cost and holes in the brick. If you plan to sit on the table or put heavy equipment on it, add a third in the middle instead of relying on the rating.</p>
   <p class="note">The clearance numbers are produced by <code>folding_table/check_clearance.mjs</code>, which sweeps the door from 0 to 120° against the table at five fold angles, the bracket plates and the bins.</p>
 
-  <h2>5. Fixing to a brick wall</h2>
+  <h2>6. Fixing to a brick wall</h2>
   <ol>
     <li><strong>Find out which brick it is.</strong> French brick walls are often hollow terracotta (brique creuse) under 1–2 cm of plaster. Drill one 6 mm test hole at the height of the pivot. Red dust and then a steady resistance means solid brick (brique pleine). Dust that stops, then a sudden void, means hollow brick.</li>
     <li><strong>Hollow brick:</strong> chemical anchors with a mesh sleeve (scellement chimique avec tamis): M8 or M10 threaded rod, resin cartridge and 16 mm sleeve, as sold for hollow brick by fischer, Spit and Sika. A plug alone will not hold a lever load in hollow brick.</li>
@@ -115,7 +146,7 @@
     <li>Plaster is soft. Choose anchors long enough to pass the 1–2 cm of render and sit in the brick, and do not tighten them so far that the plaster crumbles.</li>
   </ol>
 
-  <h2>6. Wood and finish</h2>
+  <h2>7. Wood and finish</h2>
   <p><strong>Wood.</strong> Solid oak (chêne massif) edge-glued panel, 28 mm, with the grain running along the wall. Oak is hard enough for a table you will lean on, takes stain and oil evenly, and matches most
   wooden worktops. I do not know what your counters are made of. Take a stained offcut to the shop and hold it against the counter before you buy the panel. You need a piece about 140 × 60 cm; the usual 200 × 60 cm panel is enough, with an offcut left for tests.</p>
   <p><strong>Can you stain it and keep it easy to clean? Yes.</strong> Two routes that give a finished, wipe-clean surface:</p>
@@ -138,7 +169,7 @@
     <li>Clear the table before folding it down. Anything left on it slides off.</li>
   </ul>
 
-  <h2>7. Buying and building</h2>
+  <h2>8. Buying and building</h2>
   <table>
     <tr><th>Item</th><th>Spec</th><th>Status</th></tr>
     <tr><td>Oak panel</td><td>solid oak, 28 mm, at least 140 × 60 cm (cut the shape from it)</td><td><span class="tag gap">to source</span></td></tr>
@@ -158,7 +189,7 @@
     <li>Fold it down and open the fridge door fully to check the clearance on the real wall, then pull it out and do the same.</li>
   </ol>
 
-  <h2>8. Open questions</h2>
+  <h2>9. Open questions</h2>
   <ul>
     <li><strong>Door hinge side.</strong> You said the hinge is on the right. In the photo the handle grooves look to be on the right edge, which would mean a left hinge. If the hinge is on the wall side, the whole shape changes (the table would be widest away from the wall). Please check.</li>
     <li><strong>Wall behind the fridge.</strong> I drew it 15 cm thick, flush with the fridge back, with a 90 cm wide, 205 cm high doorway starting 11 cm from the fridge's right side. These are guesses from the photo. Please measure the doorway start and width.</li>
@@ -188,13 +219,15 @@ const G = {
   margin: 10,             // design clearance added to the swept radius
   hingeY: 120,            // table top height
   topT: 3.0,              // table top thickness (28 mm oak + a little for the bracket arm)
-  hingeD: 2.0,            // bracket pivot, this far from the wall
+  hingeD: 2.0,            // pivot axis, this far from the wall (set by the support style)
+  axisY: 117,             // pivot axis height (set by the support style)
+  slab: [0, 3.0],         // table slab, as heights above the pivot axis (set by the support style)
   depth: 50,              // table depth from the pivot (500 mm brackets)
   angleDeg: 60,           // fridge-side edge angle from the wall (tangent to the door arc + margin)
   hingeLen: 125,          // length of the pivot edge along the wall
   farSkewDeg: 20,         // far edge leans in by this much from square
   cornerR: 5,             // radius of the two outer corners
-  braceX: [72, 151],      // the two folding brackets
+  braceX: [72, 151],      // the two supports (set by the support style)
   armU: 45,               // where the brace joins the bracket arm, measured from the wall
   braceQy: 72,            // height of the brace's wall pivot
   stool: 70,
@@ -204,6 +237,15 @@ const G = {
   // ESTIMATES from the photo: measure them.
   back: { t: 15, openD0: 70, openW: 90, openH: 205, wallH: 260 },
 };
+// Support styles. Steel brackets pivot under the slab; the rail styles hinge on top of an oak rail.
+const VARIANTS = {
+  steel: { hingeD: 2.0, axisY: 117, slab: [0, 3.0], x: [72, 151] },
+  black: { hingeD: 2.0, axisY: 117, slab: [0, 3.0], x: [72, 151] },
+  oak:   { hingeD: 5.4, axisY: 120, slab: [-3.0, 0], x: [80, 156] },   // 5.4: rail depth = 2.2 corbel + 3.2 slab
+  cable: { hingeD: 3.2, axisY: 120, slab: [-3.0, 0], x: [84, 142] },
+};
+function setVariant(name) { const v = VARIANTS[name]; G.hingeD = v.hingeD; G.axisY = v.axisY; G.slab = v.slab.slice(); G.braceX = v.x.slice(); G.variant = name; }
+setVariant("steel");
 // Hinge pivot of the fridge doors, in (X, d) plan coordinates.
 const pivot = () => ({ x: 0, d: G.fridge.w });
 // Fridge-side edge: s = s0 + u / tan(alpha), u measured from the table hinge axis.
@@ -272,7 +314,7 @@ function doorPlan(thetaDeg) {
 // Local frame: u out from the pivot, v up from the pivot; the slab occupies v in [0, topT].
 function tablePlan(phiDeg) {
   const p = phiDeg*Math.PI/180, out = tableOutline(), pts = [];
-  for (const [s,u] of out) for (const v of [0, G.topT]) pts.push([s, G.hingeD + u*Math.cos(p) + v*Math.sin(p)]);
+  for (const [s,u] of out) for (const v of G.slab) pts.push([s, G.hingeD + u*Math.cos(p) + v*Math.sin(p)]);
   return hull(pts);
 }
 // Two-link folding stay from the wall pivot Q to the arm point P; returns the knee K (bends toward the room).
@@ -287,7 +329,7 @@ function stay(P) {
 // Arm point P after folding down by phi (the arm runs along the underside, v = -0.4).
 function armPoint(phiDeg, u = G.armU) {
   const p = phiDeg*Math.PI/180, v = -0.4;
-  return { d: G.hingeD + u*Math.cos(p) + v*Math.sin(p), y: (G.hingeY - G.topT) - u*Math.sin(p) + v*Math.cos(p) };
+  return { d: G.hingeD + u*Math.cos(p) + v*Math.sin(p), y: G.axisY - u*Math.sin(p) + v*Math.cos(p) };
 }
 // GEOM-END
 
@@ -295,15 +337,15 @@ function armPoint(phiDeg, u = G.armU) {
 const rad = (d) => d * Math.PI / 180, ease = (x) => x * x * (3 - 2 * x);
 const st = { phi: 0, theta: 0 };
 for (const kv of location.hash.slice(1).split('&')) { const [k, v] = kv.split('='); if (k in st) st[k] = +v; }
-const outline = tableOutline();
 const $ = (id) => document.getElementById(id);
 // ---- text fed by the geometry ----
-const outer = outline.filter(p => p[1] > G.depth - 3);
-$("dTop").textContent = `${G.hingeLen} cm at the wall, ${Math.round(Math.max(...outer.map(p => p[0])) - Math.min(...outer.map(p => p[0])))} cm at the outer edge, ${G.depth} cm deep, 28 mm`;
 const sweepGap = (phi) => { let m = 1e9; for (let t = 0; t <= 120; t += 0.5) m = Math.min(m, polyGap(doorPlan(t), tablePlan(phi))); return m; };
-$("dGap").textContent = `${sweepGap(0).toFixed(1)} out, ${sweepGap(90).toFixed(1)} folded`;
-$("lMargin").textContent = $("lMargin2").textContent = G.margin;
-
+function refreshText() {
+  const outline = tableOutline(), outer = outline.filter(p => p[1] > G.depth - 3);
+  $("dTop").textContent = `${G.hingeLen} cm at the wall, ${Math.round(Math.max(...outer.map(p => p[0])) - Math.min(...outer.map(p => p[0])))} cm at the outer edge, ${G.depth} cm deep, 28 mm`;
+  $("dGap").textContent = `${sweepGap(0).toFixed(1)} out, ${sweepGap(90).toFixed(1)} folded`;
+  $("lMargin").textContent = $("lMargin2").textContent = G.margin;
+}
 // ---- 3D scene (Three.js: Y up; plan (X, d) -> (X, y, -d)) ----
 const view = $("viewer");
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -362,27 +404,56 @@ function bin(c) {
   add(scene, new THREE.BoxGeometry(c.w + 1.5, 3, c.t + 1.5), std(0x1b1c1f), c.x0 + c.w / 2, c.h + 1.5, -(4 + c.t / 2));
 }
 bin(G.recycle); bin(G.trash);
-// table: pivots about its underside back edge; folding down swings the outer edge down
-const axisY = G.hingeY - G.topT;
-const tableG = new THREE.Group(); tableG.position.set(0, axisY, -G.hingeD); scene.add(tableG);
-{
-  const sh = new THREE.Shape(outline.map(([s, u]) => new THREE.Vector2(s, u)));
-  const geo = new THREE.ExtrudeGeometry(sh, { depth: G.topT, bevelEnabled: false });
-  geo.rotateX(-Math.PI / 2);
-  add(tableG, geo, new THREE.MeshStandardMaterial({ map: oakMap, roughness: 0.5, side: THREE.DoubleSide }));
-}
-// brackets: wall plate, arm under the table (moves with it), two-link brace from the wall pivot to the arm
-const links = [];
-for (const bx of G.braceX) {
-  add(scene, new THREE.BoxGeometry(4.5, 54, 0.6), steel, bx, axisY - 21, -0.3);
-  add(tableG, new THREE.BoxGeometry(3.2, 0.8, G.depth - 2), steel, bx, -0.4, -(G.depth - 2) / 2);
-  const pin = add(tableG, new THREE.CylinderGeometry(1.3, 1.3, 5, 14), steel, bx, 0, 0); pin.rotation.z = Math.PI / 2;
-  const mk = () => add(scene, new THREE.BoxGeometry(1.2, 1, 3), steel); links.push({ x: bx, a: mk(), b: mk() });
-}
-function placeLink(m, x, A, B) {
+// ---- the part that changes with the support style: table, hinge, supports ----
+let rig = null, tableG = null, links = [], plates = [], cables = [];
+const matBlack = std(0x17181a, { metalness: 0.3, roughness: 0.55 });
+function placeLink(m, x, A, B, off = 1.2) {
   const dd = B.d - A.d, dy = B.y - A.y, len = Math.hypot(dd, dy);
-  m.scale.y = len; m.position.set(x, (A.y + B.y) / 2, -(A.d + B.d) / 2 - 1.2); m.rotation.x = Math.atan2(-dd, dy);
+  m.scale.y = len; m.position.set(x, (A.y + B.y) / 2, -(A.d + B.d) / 2 - off); m.rotation.x = Math.atan2(-dd, dy);
 }
+function buildRig(name) {
+  document.querySelectorAll("#variants button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.v === name)));
+  setVariant(name); refreshText();
+  if (rig) { scene.remove(rig); rig.traverse(o => o.geometry && o.geometry.dispose()); }
+  rig = new THREE.Group(); scene.add(rig); links = []; plates = []; cables = [];
+  const [v0, v1] = G.slab, T = v1 - v0, outline = tableOutline();
+  tableG = new THREE.Group(); tableG.position.set(0, G.axisY, -G.hingeD); rig.add(tableG);
+  { const sh = new THREE.Shape(outline.map(([s, u]) => new THREE.Vector2(s, u)));
+    const geo = new THREE.ExtrudeGeometry(sh, { depth: T, bevelEnabled: false }); geo.rotateX(-Math.PI / 2); geo.translate(0, v0, 0);
+    add(tableG, geo, new THREE.MeshStandardMaterial({ map: oakMap, roughness: 0.5, side: THREE.DoubleSide })); }
+  const oakMat = new THREE.MeshStandardMaterial({ map: oakMap, roughness: 0.5 });
+  const s0 = outline[0][0], s1 = outline[1][0];
+  if (name === "steel" || name === "black") {
+    const m = name === "black" ? matBlack : steel, w = name === "black" ? 0.55 : 1;      // slim black bars are about half the section
+    for (const bx of G.braceX) {
+      add(rig, new THREE.BoxGeometry(4.5 * w + 0.6, 54, 0.6 * w), m, bx, G.axisY - 21, -0.3);
+      add(tableG, new THREE.BoxGeometry(3.2 * w, 0.8 * w, G.depth - 2), m, bx, -0.4, -(G.depth - 2) / 2);
+      const pin = add(tableG, new THREE.CylinderGeometry(1.3 * w, 1.3 * w, 4 * w + 1, 14), m, bx, 0, 0); pin.rotation.z = Math.PI / 2;
+      const mk = () => add(rig, new THREE.BoxGeometry(1.2 * w, 1, 3 * w), m); links.push({ x: bx, a: mk(), b: mk() });
+    }
+  } else {
+    // oak rail above the hinge, piano hinge on its front face
+    add(rig, new THREE.BoxGeometry(s1 - s0, 20, G.hingeD), oakMat, (s0 + s1) / 2, G.axisY + 10, -G.hingeD / 2);
+    const hg = add(rig, new THREE.CylinderGeometry(0.5, 0.5, s1 - s0, 10), steel, (s0 + s1) / 2, G.axisY, -G.hingeD); hg.rotation.z = Math.PI / 2;
+  }
+  if (name === "oak") {
+    // right-triangle oak corbels, 22 mm thick, hinged on a vertical axis at the wall; flat against the wall when stowed
+    const reach = 38, rise = 38, top = G.axisY + v0, sh = new THREE.Shape();
+    sh.moveTo(0, top); sh.lineTo(reach, top); sh.lineTo(0, top - rise); sh.closePath();
+    G.braceX.forEach((bx, i) => {
+      const geo = new THREE.ExtrudeGeometry(sh, { depth: 2.2, bevelEnabled: false }); geo.rotateY(Math.PI / 2); geo.translate(-1.1, 0, 0);
+      const g = new THREE.Group(); g.position.set(bx, 0, 0); rig.add(g); add(g, geo, oakMat);
+      plates.push({ g, sd: i === 0 ? 1 : -1 });                  // stow toward +X (left one) / -X (right one) so they sit behind the table, side by side
+      for (const ky of [top - 8, top - rise + 8]) add(rig, new THREE.CylinderGeometry(0.6, 0.6, 7, 8), steel, bx, ky, -0.5);   // hinge knuckles
+    });
+  }
+  if (name === "cable") {
+    const A = { d: 2, y: G.axisY + 58 }, mk = () => add(rig, new THREE.BoxGeometry(0.5, 1, 0.5), steel);
+    G.braceX.forEach((bx) => { add(rig, new THREE.SphereGeometry(1.1, 10, 8), steel, bx, A.y, -A.d); cables.push({ x: bx, A, m: mk() }); });
+    }
+  update();
+}
+const cablePoint = (phi, bx) => { const v = G.slab[0] + (G.slab[1] - G.slab[0]) / 2, p = rad(phi); return { d: G.hingeD + G.depth * Math.cos(p) + v * Math.sin(p), y: G.axisY - G.depth * Math.sin(p) + v * Math.cos(p) }; };
 // stools
 const stools = new THREE.Group(); scene.add(stools);
 const stoolX = [95, 137], stoolD = G.depth + 10;
@@ -391,6 +462,7 @@ for (const sx of stoolX) {
   for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 + Math.PI / 4;
     add(stools, new THREE.CylinderGeometry(1.2, 1.5, 68, 8), dark, sx + Math.cos(a) * 12, 34, -stoolD + Math.sin(a) * 12); }
 }
+let variantName = new URLSearchParams(location.hash.slice(1)).get('v') || 'steel';
 function resize() { const w = view.clientWidth, h = view.clientHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 addEventListener("resize", resize); resize();
 
@@ -426,14 +498,15 @@ function drawPlan() {
   // table and brackets
   const gap = polyGap(doorPlan(st.theta), tablePlan(st.phi));
   poly(tablePlan(st.phi), "rgba(185,138,82,0.88)", gap < 0.3 ? warn : fg, gap < 0.3 ? 4 : 2);
-  for (const x of G.braceX) poly(box(x - 2.2, x + 2.2, 0, 1.2), "#7d838a", null);
+  for (const x of G.braceX) poly(box(x - 2.2, x + 2.2, 0, G.variant === "oak" ? 2.2 : 1.2), G.variant === "oak" ? "#b98a52" : "#7d838a", null);
+  if (G.variant === "cable") for (const x of G.braceX) { const [cx0, cy0] = P(x, 2); cx.beginPath(); cx.arc(cx0, cy0, 5, 0, 7); cx.fillStyle = fg; cx.fill(); }
   // stools
   if ($("cStools").checked) for (const sx of stoolX) { const [x, y] = P(sx, G.depth + 10); cx.beginPath(); cx.arc(x, y, 17 * S, 0, 7); cx.strokeStyle = mut; cx.lineWidth = 2; cx.stroke(); }
   // labels
   text("fridge", -30, 24, fg, -30, 8, 24); text("recycle", G.recycle.x0 + 40, 14, "#ddd", 0, 8); text("trash", G.trash.x0 + 28, 12, "#ddd", 0, 8);
   text("door hinge", pv.x - 6, pv.d + 6, mut, 8, 26); text("stools", stoolX[1] - 8, G.depth + 40, mut, 0, 0);
   // dimensions
-  const s0 = outline[0][0], s1 = outline[1][0];
+  const outline = tableOutline(), s0 = outline[0][0], s1 = outline[1][0];
   const [a, y] = P(s0, 100), [b] = P(s1, 100); cx.strokeStyle = acc; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(a, y); cx.lineTo(b, y); cx.stroke();
   cx.fillStyle = acc; cx.font = "22px system-ui"; cx.fillText(`${G.hingeLen} cm along the wall`, (a + b) / 2 - 90, y - 8);
   const [e0, ey] = P(0, 100), [e1] = P(s0, 100); cx.beginPath(); cx.moveTo(e0, ey); cx.lineTo(e1, ey); cx.stroke(); cx.fillText(`${s0.toFixed(0)}`, (e0 + e1) / 2 - 12, ey - 8);
@@ -445,7 +518,14 @@ const stat = $("status");
 function update() {
   upper.rotation.y = rad(st.theta);
   tableG.rotation.x = -rad(st.phi);
-  for (const L of links) { const { Q, P, K } = stay(armPoint(st.phi)); placeLink(L.a, L.x, Q, K); placeLink(L.b, L.x, K, P); }
+  const sup = 1 - ease(Math.max(0, Math.min(1, st.phi / 10)));          // corbels swing out of the way in the first 10 degrees
+  if (links.length) for (const L of links) { const { Q, P, K } = stay(armPoint(st.phi)); placeLink(L.a, L.x, Q, K); placeLink(L.b, L.x, K, P); }
+  for (const pl of plates) pl.g.rotation.y = -pl.sd * rad(90) * (1 - sup);
+  for (const c of cables) {
+    const P0 = cablePoint(0), A = c.A, L = Math.hypot(P0.d - A.d, P0.y - A.y), P = cablePoint(st.phi);
+    const toP = Math.atan2(P.d - A.d, P.y - A.y), s = ease(Math.max(0, Math.min(1, (st.phi - 2) / 23))), b = toP * (1 - s) + Math.PI * (176 / 180) * s;
+    placeLink(c.m, c.x, A, { d: A.d + L * Math.sin(b), y: A.y + L * Math.cos(b) }, 0);
+  }
   stools.visible = $("cStools").checked;
   $("vPhi").textContent = st.phi < 1 ? "out" : st.phi > 89 ? "folded down" : st.phi.toFixed(0) + "°";
   $("vTheta").textContent = st.theta < 1 ? "closed" : st.theta.toFixed(0) + "°";
@@ -472,8 +552,9 @@ $("bDemo").onclick = lock(async () => {
 });
 $("sPhi").oninput = (e) => { st.phi = +e.target.value; update(); }; $("sTheta").oninput = (e) => { st.theta = +e.target.value; update(); };
 $("cStools").onchange = update;
+document.querySelectorAll("#variants button").forEach(b => b.onclick = () => { variantName = b.dataset.v; buildRig(variantName); });
 matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", drawPlan);
-update();
+buildRig(variantName);
 (function loop() { controls.update(); renderer.render(scene, camera); requestAnimationFrame(loop); })();
 </script>
 </body>
