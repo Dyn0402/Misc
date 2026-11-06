@@ -5,27 +5,31 @@
 const G = {
   fridge: { w: 59, depth: 63, h: 200, freezerH: 80, doorT: 6 },
   doorR: 59.3,            // swept radius of the door slab about its hinge: sqrt(59^2 + 6^2)
-  margin: 3,              // design clearance added to the swept radius
+  margin: 10,             // design clearance added to the swept radius
   hingeY: 120,            // table top height
-  railT: 3.2,             // wall rail thickness: the table hinge axis sits this far from the wall
-  topT: 3.0,              // table top thickness
-  depth: 55,              // table depth from the hinge axis
-  angleDeg: 55,           // fridge-side edge angle from the wall (tangent to the door arc + margin)
-  hingeLen: 140,          // length of the hinged edge along the wall
+  topT: 3.0,              // table top thickness (28 mm oak + a little for the bracket arm)
+  hingeD: 2.0,            // bracket pivot, this far from the wall
+  depth: 50,              // table depth from the pivot (500 mm brackets)
+  angleDeg: 60,           // fridge-side edge angle from the wall (tangent to the door arc + margin)
+  hingeLen: 125,          // length of the pivot edge along the wall
   farSkewDeg: 20,         // far edge leans in by this much from square
   cornerR: 5,             // radius of the two outer corners
-  railX: [32, 180],       // wall rail span
-  braceX: [75, 118, 161], // folding brackets
+  braceX: [72, 151],      // the two folding brackets
+  armU: 45,               // where the brace joins the bracket arm, measured from the wall
+  braceQy: 72,            // height of the brace's wall pivot
   stool: 70,
   recycle: { x0: 60, w: 45, t: 35, h: 60 },
   trash:   { x0: 110, w: 30, t: 28, h: 50 },
+  // Wall directly behind the fridge (plane X = -fridge depth, perpendicular to the table wall), with a doorway.
+  // ESTIMATES from the photo: measure them.
+  back: { t: 15, openD0: 70, openW: 90, openH: 205, wallH: 260 },
 };
 // Hinge pivot of the fridge doors, in (X, d) plan coordinates.
 const pivot = () => ({ x: 0, d: G.fridge.w });
 // Fridge-side edge: s = s0 + u / tan(alpha), u measured from the table hinge axis.
 function edgeS0() {
   const a = G.angleDeg * Math.PI / 180, R = G.doorR + G.margin;
-  const cy = G.fridge.w - G.railT;                     // pivot distance from the table hinge axis
+  const cy = G.fridge.w - G.hingeD;                    // pivot distance from the table hinge axis
   return -cy / Math.tan(a) + R / Math.sin(a);
 }
 // Table plan outline in (s = X, u = depth from hinge axis), counter-clockwise, rounded outer corners.
@@ -84,12 +88,25 @@ function doorPlan(thetaDeg) {
   const f = G.fridge, loc = [[-f.doorT,0],[0,0],[0,f.w],[-f.doorT,f.w]];  // (x', z') with z' toward the wall
   return loc.map(([x,z]) => [P.x + x*c + z*s, P.d - (-x*s + z*c)]); // -> (X, d)
 }
-// Table plan footprint (convex hull of both faces) when folded by phi (deg) about the hinge axis.
+// Table plan footprint (convex hull of both faces) when folded down by phi (deg) about the pivot axis.
+// Local frame: u out from the pivot, v up from the pivot; the slab occupies v in [0, topT].
 function tablePlan(phiDeg) {
   const p = phiDeg*Math.PI/180, out = tableOutline(), pts = [];
-  for (const [s,u] of out) for (const v of [0, -G.topT]) {      // v: local height below the hinge axis (top face at 0)
-    pts.push([s, G.railT + u*Math.cos(p) - v*Math.sin(p)]);
-  }
+  for (const [s,u] of out) for (const v of [0, G.topT]) pts.push([s, G.hingeD + u*Math.cos(p) + v*Math.sin(p)]);
   return hull(pts);
+}
+// Two-link folding stay from the wall pivot Q to the arm point P; returns the knee K (bends toward the room).
+function stay(P) {
+  const Q = { d: 1.0, y: G.braceQy };
+  const P0 = armPoint(0);
+  const l = Math.hypot(P0.d - Q.d, P0.y - Q.y) / 2 * 1.00001;
+  const dx = P.d - Q.d, dy = P.y - Q.y, D = Math.max(1e-6, Math.hypot(dx, dy)), h = Math.sqrt(Math.max(0, l*l - D*D/4));
+  const ux = dx/D, uy = dy/D;
+  return { Q, P, K: { d: Q.d + dx/2 + uy*h, y: Q.y + dy/2 - ux*h }, l };
+}
+// Arm point P after folding down by phi (the arm runs along the underside, v = -0.4).
+function armPoint(phiDeg, u = G.armU) {
+  const p = phiDeg*Math.PI/180, v = -0.4;
+  return { d: G.hingeD + u*Math.cos(p) + v*Math.sin(p), y: (G.hingeY - G.topT) - u*Math.sin(p) + v*Math.cos(p) };
 }
 // GEOM-END

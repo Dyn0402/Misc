@@ -50,22 +50,23 @@
 <body>
 <div class="wrap">
   <p class="crumb">Misc / kitchen folding table</p>
-  <h1>Folding kitchen table — plan v1</h1>
+  <h1>Folding kitchen table — plan v2</h1>
   <nav class="tabs" aria-label="Shelf pages">
     <a href="index.html">Design</a>
     <a href="buy.html">Cost &amp; buy list</a>
     <a href="table.html" aria-current="page">Folding table</a>
   </nav>
-  <p class="lede">A wall-hung bar table for the kitchen, on the wall beside the fridge (the wall the fridge's side stands against). It is hinged to an oak rail on the
-  brick, held up by three folding brackets, and folds flat against the wall. The fridge-side edge is cut at an angle so the table is longest at the wall and the fridge door
-  opens past it even with the table down. Table top is 120 cm, for a 70 cm stool. All dimensions in cm unless stated.</p>
+  <p class="lede">A wall-hung bar table for the kitchen, on the wall the fridge's side stands against. Two folding brackets screw to the brick. The table pulls out
+  to 120 cm, for a 70 cm stool, and folds <em>down</em> against the wall, where its finished face looks out like an oak panel. The fridge-side edge is cut at an angle
+  so the table is longest at the wall, and it stays at least <span id="lMargin"></span> cm clear of the fridge door, out or folded. All dimensions in cm unless stated.</p>
 
   <h2>1. Fold and fridge-door animation</h2>
-  <p class="note">Drag to orbit, scroll to zoom. The fridge door hinges on the side away from the wall, as you described. The readout is computed from the actual shapes, not drawn by hand.</p>
+  <p class="note">Drag to orbit, scroll to zoom. The fridge door hinges on the side away from the wall, as you described. The wall behind the fridge and its doorway are drawn from my estimates (see section 8).
+  The readout is computed from the actual shapes, not drawn by hand.</p>
   <div id="viewer"></div>
   <div class="controls">
-    <button id="bDown">Table down</button>
-    <button id="bUp">Table up</button>
+    <button id="bDown">Fold table down</button>
+    <button id="bUp">Pull table out</button>
     <button id="bOpen">Open door</button>
     <button id="bClose">Close door</button>
     <button id="bDemo">▶ Demo</button>
@@ -78,41 +79,45 @@
   <div id="status" class="card"></div>
 
   <h2>2. Plan view, from above</h2>
-  <p class="note">Standing in the room and facing the wall, so the fridge is on the right as in your photo. The shaded sector is where the door sweeps. The dashed line is the 3 cm design margin.</p>
-  <canvas id="plan" width="1880" height="640"></canvas>
+  <p class="note">Standing in the room and facing the wall, so the fridge is on the right as in your photo. The wall behind the fridge runs down the right-hand side, with the doorway below the fridge.
+  The shaded sector is where the door sweeps. The dashed arc is the design margin around it.</p>
+  <canvas id="plan" width="1500" height="980"></canvas>
 
-  <h2>3. Where it goes</h2>
-  <p>The table sits on the wall that runs along the fridge's left side, starting beside the fridge front and running toward the room. The two bins stand below it. The table is 120 cm
-  up, the taller bin is 60 cm, so there is 57 cm of air above the bins. The photo of the wall is kept in the repo and is not published.</p>
-  <p class="note">Positions of the bins and the stools are my estimates from the photo. Measure the real gap from the fridge front to the first bin, and tell me if it is not about 15 cm.</p>
+  <h2>3. What changed from v1</h2>
+  <ul>
+    <li><strong>Two brackets, not three.</strong> See section 4.</li>
+    <li><strong>More fridge clearance.</strong> The margin around the door's swing went from 3 cm to <span id="lMargin2"></span> cm, and the table is smaller: 125 cm along the wall (was 140) and 50 cm deep (was 55). The edge angle is 60° (was 55°).</li>
+    <li><strong>Folds down, not up.</strong> The table hangs from the brackets against the wall, between 67 and 117 cm up. Nothing needs to hold it up. The oak rail and the separate hinge are gone: the bracket pivots are the hinge.</li>
+    <li><strong>Back wall and doorway</strong> are in both drawings.</li>
+  </ul>
 
   <h2>4. Dimensions</h2>
   <table>
     <tr><th>Part</th><th>Size</th><th>Why</th></tr>
-    <tr><td>Table top</td><td class="num" id="dTop"></td><td>Solid oak, 28 mm panel. The fridge-side edge is cut at 55° to the wall, so the top is widest at the wall.</td></tr>
+    <tr><td>Table top</td><td class="num" id="dTop"></td><td>Solid oak, 28 mm panel. The fridge-side edge is cut at 60° to the wall, so the top is widest at the wall.</td></tr>
     <tr><td>Height</td><td class="num">120 cm to the top</td><td>Your stool is 70 cm: 50 cm from seat to table.</td></tr>
-    <tr><td>Fridge-side gap</td><td class="num" id="dGap"></td><td>Smallest distance between the door slab and the table, over the whole door swing, with the table down. Includes the 3 cm margin.</td></tr>
-    <tr><td>Wall rail</td><td class="num">148 × 27 cm, 32 mm thick oak</td><td>Takes the hinge and spreads the load over the anchors. It starts 32 cm from the fridge front, where it clears the door by 5 cm.</td></tr>
-    <tr><td>Hinge</td><td class="num">piano hinge, 140 cm</td><td>Screwed to the top face at the back edge and to the rail face. Closed it puts the top face against the rail, so the finished face is protected when folded.</td></tr>
-    <tr><td>Brackets</td><td class="num">3 folding brackets, 600 mm</td><td>At 75, 118 and 161 cm from the fridge. The brace is pinned at 72 cm up the wall, above the bins. When the table goes up, the brace drops and hangs against the wall behind the bins.</td></tr>
-    <tr><td>Folded</td><td class="num">about 7 cm off the wall</td><td>Rail 3.2 + top 3.0 + hinge. The door clears it by 5 cm.</td></tr>
+    <tr><td>Clearance from the fridge door</td><td class="num" id="dGap"></td><td>Smallest distance between the door slab and the table, over the whole swing. The first figure is the table out, the second folded down.</td></tr>
+    <tr><td>Brackets</td><td class="num">2 folding brackets, 500 mm</td><td>At 72 and 151 cm from the fridge front, about 22 cm in from each end of the pivot edge. The brace pivots at 72 cm up the wall.</td></tr>
+    <tr><td>Folded down</td><td class="num">hangs 67 to 117 cm up</td><td>Its bottom edge is 7 cm above the 60 cm recycle bin. It is about 5 cm off the wall. If your bin has a lid that opens upward, check it clears.</td></tr>
   </table>
-  <p class="note">The clearance numbers are produced by <code>folding_table/check_clearance.mjs</code>, which sweeps the door from 0 to 120° against the table at five fold angles.</p>
+  <p><strong>Do we need three supports? No, two.</strong> The brackets are what hold the table, so the question is the load on each one. If a 60 kg person leans on the outer edge right above one bracket, that is 0.6 kN. The brace carries about 0.9 kN along its length and the pivot is pulled
+  about 0.7 kN out of the wall. A 500 mm folding bracket rated for 100 kg takes about 1 kN, and a normal load is far smaller. Between the brackets, a 28 mm oak top spans 79 cm. A 40 kg load in the middle bends it by about half a millimetre.
+  The third bracket (and the rail) would only add cost and holes in the brick. If you plan to sit on the table or put heavy equipment on it, add a third in the middle instead of relying on the rating.</p>
+  <p class="note">The clearance numbers are produced by <code>folding_table/check_clearance.mjs</code>, which sweeps the door from 0 to 120° against the table at five fold angles, the bracket plates and the bins.</p>
 
   <h2>5. Fixing to a brick wall</h2>
   <ol>
-    <li><strong>Find out which brick it is.</strong> French brick walls are often hollow terracotta (brique creuse) under 1–2 cm of plaster. Drill one 6 mm test hole at the rail height. Red dust and then a steady resistance means solid brick (brique pleine). Dust that stops, then a sudden void, means hollow brick.</li>
+    <li><strong>Find out which brick it is.</strong> French brick walls are often hollow terracotta (brique creuse) under 1–2 cm of plaster. Drill one 6 mm test hole at the height of the pivot. Red dust and then a steady resistance means solid brick (brique pleine). Dust that stops, then a sudden void, means hollow brick.</li>
     <li><strong>Hollow brick:</strong> chemical anchors with a mesh sleeve (scellement chimique avec tamis): M8 or M10 threaded rod, resin cartridge and 16 mm sleeve, as sold for hollow brick by fischer, Spit and Sika. A plug alone will not hold a lever load in hollow brick.</li>
     <li><strong>Solid brick:</strong> frame anchors (chevilles à cadre) 10 × 100 mm or longer, or the same resin without the sleeve. Keep each hole at least 5 cm from a brick edge and out of the mortar joints where you can.</li>
-    <li><strong>Pattern:</strong> 6 anchors through the rail (two rows of three, at the brackets' X positions), plus 2 per bracket plate at the brace pivot. Pre-drill the rail with counterbored holes and plug them with oak dowels cut from the offcut.</li>
-    <li><strong>Load:</strong> a 60 kg person leaning on the outer edge pulls about 0.9 kN on the top of each bracket pair and pushes about 1.2 kN along the brace. Three brackets rated for 100 kg each leave a wide margin. The anchors are the part to over-build.</li>
+    <li><strong>Pattern:</strong> 4 fixings per bracket plate, 8 in all: two at the top, near the pivot, which take the pull-out, and two at the bottom, near the brace pivot. Mark the holes on the plate, level it, then drill.</li>
     <li><strong>Check there is nothing in the wall</strong> (cables, pipes) with a detector before drilling. The fridge and the sink wall may share services.</li>
+    <li>Plaster is soft. Choose anchors long enough to pass the 1–2 cm of render and sit in the brick, and do not tighten them so far that the plaster crumbles.</li>
   </ol>
 
   <h2>6. Wood and finish</h2>
   <p><strong>Wood.</strong> Solid oak (chêne massif) edge-glued panel, 28 mm, with the grain running along the wall. Oak is hard enough for a table you will lean on, takes stain and oil evenly, and matches most
-  wooden worktops. I do not know what your counters are made of. Take a stained offcut to the shop and hold it against the counter before you buy the panel. A 200 × 60 cm panel is enough
-  for the top (about 0.61 m²) and the offcut makes the rail if it is wide enough. Otherwise buy a 27 × 100 mm oak board for the rail.</p>
+  wooden worktops. I do not know what your counters are made of. Take a stained offcut to the shop and hold it against the counter before you buy the panel. You need a piece about 140 × 60 cm; the usual 200 × 60 cm panel is enough, with an offcut left for tests.</p>
   <p><strong>Can you stain it and keep it easy to clean? Yes.</strong> Two routes that give a finished, wipe-clean surface:</p>
   <table>
     <tr><th>Route</th><th>What you do</th><th>Good</th><th>Watch out</th></tr>
@@ -120,46 +125,47 @@
       <td>Sand to P150, one coat of tinted hardwax oil (Osmo Polyx-Oil tints, or Rubio Monocoat Oil Plus 2C, which colours and seals in one coat). Wipe off the excess.</td>
       <td>Colour and protection in one step. Food-safe when cured. Scratches and rings can be spot-repaired.</td>
       <td>Full hardness takes about a week. It needs a re-oil every year or two, and it is less proof against a spilled pan of wine than a varnish.</td></tr>
-    <tr><td>Stain, then water-based polyurethane<br><span class="tag ok">hardest to stain</span></td>
+    <tr><td>Stain, then water-based polyurethane<br><span class="tag ok">hardest-wearing</span></td>
       <td>Sand to P150, one coat of water-based stain, then 3 coats of water-based polyurethane varnish rated for worktops (vernis polyuréthane phase aqueuse, satin), light sanding with P240 between coats.</td>
       <td>A sealed film: the easiest to wipe, and water, coffee and oil sit on top.</td>
       <td>Looks less like bare wood. A deep scratch cannot be spot-repaired: the whole top is re-sanded.</td></tr>
   </table>
   <ul>
     <li>Test both on an offcut cut from the same panel, and look at it next to your counter in daylight.</li>
-    <li>Finish every face, the edges and the underside with the same number of coats, or the top will cup. The edge faces and underside can take one coat less than the top for the oil route.</li>
-    <li>Finish the table <em>before</em> it goes on the wall. Finish the top face the most carefully: it ends up against the rail when folded, so any sticky finish should be fully cured before the first fold.</li>
+    <li>Finish every face, the edges and the underside with the same number of coats, or the top will cup.</li>
+    <li>Finish the table <em>before</em> it goes on the wall. Folded down, its top face is the one you see from the room, so that is the face to do most carefully.</li>
     <li>Round the outer edges with a 3 mm radius (a few passes of sandpaper on a block). It chips less and wipes cleaner than a sharp arris.</li>
+    <li>Clear the table before folding it down. Anything left on it slides off.</li>
   </ul>
 
   <h2>7. Buying and building</h2>
   <table>
     <tr><th>Item</th><th>Spec</th><th>Status</th></tr>
-    <tr><td>Oak panel</td><td>solid oak, 28 mm, at least 200 × 60 cm (cut the trapezoid from it)</td><td><span class="tag gap">to source</span></td></tr>
-    <tr><td>Oak for the rail</td><td>150 × 27 cm × 32 mm, or a 100 mm board</td><td><span class="tag gap">to source</span></td></tr>
-    <tr><td>Folding brackets</td><td>3 × 600 mm folding table brackets (supports rabattables), steel, rated 100 kg or more each</td><td><span class="tag gap">to source</span></td></tr>
-    <tr><td>Piano hinge</td><td>140 cm, steel or stainless, at least 1.5 mm</td><td><span class="tag gap">to source</span></td></tr>
-    <tr><td>Anchors</td><td>depends on the drill test: about 14 M8 or M10 anchors, with resin if hollow brick</td><td><span class="tag gap">after drill test</span></td></tr>
+    <tr><td>Oak panel</td><td>solid oak, 28 mm, at least 140 × 60 cm (cut the shape from it)</td><td><span class="tag gap">to source</span></td></tr>
+    <tr><td>Folding brackets</td><td>2 × 500 mm folding table brackets (supports rabattables), steel, rated 100 kg or more each, with a brace that folds flat to 50 cm or less</td><td><span class="tag gap">to source</span></td></tr>
+    <tr><td>Anchors</td><td>depends on the drill test: 8 × M8 or M10, with resin if hollow brick</td><td><span class="tag gap">after drill test</span></td></tr>
+    <tr><td>Screws for the arms</td><td>wood screws that stop 8 mm short of the top face (the panel is 28 mm)</td><td><span class="tag gap">to source</span></td></tr>
     <tr><td>Finish</td><td>one of the two routes above</td><td><span class="tag gap">to choose</span></td></tr>
-    <tr><td>Tools</td><td>jigsaw and clamped straight edge (or have the shop cut the trapezoid), SDS drill, stud/pipe detector, spirit level, orbital sander</td><td><span class="tag ok">check what you own</span></td></tr>
+    <tr><td>Tools</td><td>jigsaw and clamped straight edge (or have the shop cut the shape), SDS drill, pipe and cable detector, spirit level, orbital sander</td><td><span class="tag ok">check what you own</span></td></tr>
   </table>
   <p class="note">I have not checked any shop pages or prices for this project, so there is no cost table yet. Say if you want it priced like the shelf.</p>
   <ol>
     <li>Drill test, then choose the anchors.</li>
-    <li>Cut the trapezoid from the panel (outline from <code>check_clearance.mjs</code>, which prints the corner points) and round the two outer corners to a 5 cm radius.</li>
+    <li>Cut the shape from the panel (<code>check_clearance.mjs</code> prints the corner points) and round the two outer corners to a 5 cm radius.</li>
     <li>Sand, stain, and finish. Let it cure for a week.</li>
-    <li>Fix the rail with its top edge 135 cm up and its fridge end 32 cm from the fridge front. Check it is level.</li>
-    <li>Screw the hinge to the rail, then to the top face at the back edge. Hang the table level.</li>
-    <li>Fit the brackets at 75, 118 and 161 cm, with the brace pivot at 72 cm up the wall.</li>
-    <li>Fold it up and open the fridge door fully, to check the clearance on the real wall.</li>
+    <li>Mark the bracket plates 72 and 151 cm from the fridge front, with the pivot 117 cm up. Check they are level and parallel, then anchor them.</li>
+    <li>Screw the table to the arms, with its back edge at the wall.</li>
+    <li>Fold it down and open the fridge door fully to check the clearance on the real wall, then pull it out and do the same.</li>
   </ol>
 
   <h2>8. Open questions</h2>
   <ul>
     <li><strong>Door hinge side.</strong> You said the hinge is on the right. In the photo the handle grooves look to be on the right edge, which would mean a left hinge. If the hinge is on the wall side, the whole shape changes (the table would be widest away from the wall). Please check.</li>
+    <li><strong>Wall behind the fridge.</strong> I drew it 15 cm thick, flush with the fridge back, with a 90 cm wide, 205 cm high doorway starting 11 cm from the fridge's right side. These are guesses from the photo. Please measure the doorway start and width.</li>
+    <li><strong>Bin positions.</strong> I assumed the recycle bin starts 60 cm from the fridge front and the trash bin follows it. At that position the recycle bin is only about 4 cm from the swinging freezer door, so measure it.</li>
+    <li><strong>Bracket brace.</strong> Models differ in how the brace folds. The animation shows a knee-jointed stay, straight when the table is out. Pick a bracket whose folded length is 50 cm or less.</li>
     <li>What species and finish are the counters?</li>
-    <li>Wall length to the left of the fridge: the table needs 177 cm from the fridge front, plus stool room.</li>
-    <li>Do you want legs for the outer edge instead of a brace? Not needed for 100 kg brackets, but a folding leg is a few euros.</li>
+    <li>Wall length to the left of the fridge: the table needs 172 cm from the fridge front, plus stool room.</li>
   </ul>
 </div>
 
@@ -178,23 +184,24 @@ const rad = (d) => d * Math.PI / 180, ease = (x) => x * x * (3 - 2 * x);
 const st = { phi: 0, theta: 0 };
 for (const kv of location.hash.slice(1).split('&')) { const [k, v] = kv.split('='); if (k in st) st[k] = +v; }
 const outline = tableOutline();
+const $ = (id) => document.getElementById(id);
 // ---- text fed by the geometry ----
-const wMax = Math.max(...outline.map(p => p[0])) - Math.min(...outline.map(p => p[0]));
-const outerNear = outline.reduce((m, p) => p[1] > 54 ? Math.min(m, p[0]) : m, 1e9), outerFar = outline.reduce((m, p) => p[1] > 54 ? Math.max(m, p[0]) : m, 0);
-document.getElementById("dTop").textContent = `${G.hingeLen} cm at the wall, ${Math.round(outerFar - outerNear)} cm at the outer edge, ${G.depth} cm deep, 28 mm`;
-let minGap = 1e9; for (let t = 0; t <= 120; t += 0.5) minGap = Math.min(minGap, polyGap(doorPlan(t), tablePlan(0)));
-document.getElementById("dGap").textContent = `${minGap.toFixed(1)} cm`;
+const outer = outline.filter(p => p[1] > G.depth - 3);
+$("dTop").textContent = `${G.hingeLen} cm at the wall, ${Math.round(Math.max(...outer.map(p => p[0])) - Math.min(...outer.map(p => p[0])))} cm at the outer edge, ${G.depth} cm deep, 28 mm`;
+const sweepGap = (phi) => { let m = 1e9; for (let t = 0; t <= 120; t += 0.5) m = Math.min(m, polyGap(doorPlan(t), tablePlan(phi))); return m; };
+$("dGap").textContent = `${sweepGap(0).toFixed(1)} out, ${sweepGap(90).toFixed(1)} folded`;
+$("lMargin").textContent = $("lMargin2").textContent = G.margin;
 
 // ---- 3D scene (Three.js: Y up; plan (X, d) -> (X, y, -d)) ----
-const view = document.getElementById("viewer");
+const view = $("viewer");
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); view.appendChild(renderer.domElement);
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue("--card").trim() || "#ffffff");
 const camera = new THREE.PerspectiveCamera(36, 1, 5, 5000);
-camera.position.set(310, 200, -400);
+camera.position.set(330, 200, -380);
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(60, 95, -20); controls.maxPolarAngle = Math.PI * 0.52; controls.update();
+controls.target.set(20, 100, -70); controls.maxPolarAngle = Math.PI * 0.52; controls.update();
 scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8478, 1.5));
 const sun = new THREE.DirectionalLight(0xffffff, 1.1); sun.position.set(200, 400, -300); scene.add(sun);
 const std = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.7, metalness: 0, ...o });
@@ -210,129 +217,131 @@ function woodTexture() {
   }
   const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.repeat.set(1 / 120, 1 / 30); return t;
 }
-const oak = std(0xffffff, { map: woodTexture(), roughness: 0.55 });
+const oakMap = woodTexture();
 const steel = std(0xb9bec3, { metalness: 0.6, roughness: 0.35 }), dark = std(0x24262a, { roughness: 0.6 });
+const plaster = std(0xe8e6e0, { roughness: 0.95, side: THREE.DoubleSide });
 
-// room
+// room: floor, the table wall (plane z = 0, from the back wall onward), the wall behind the fridge with its doorway
+const B = G.back, bx0 = -G.fridge.depth - B.t, bxc = -G.fridge.depth - B.t / 2;
 add(scene, new THREE.PlaneGeometry(1200, 800), std(0x3a2b27, { roughness: 0.9 }), 100, 0, -400).rotation.x = -Math.PI / 2;
-add(scene, new THREE.PlaneGeometry(1200, 280), std(0xe8e6e0, { roughness: 0.95, side: THREE.DoubleSide }), 100, 140, 0.01);
-add(scene, new THREE.BoxGeometry(1200, 8, 1.2), std(0xd9d6cd), 100, 4, -0.6);
+add(scene, new THREE.PlaneGeometry(700 - bx0, B.wallH), plaster, (700 + bx0) / 2, B.wallH / 2, 0.01);
+add(scene, new THREE.BoxGeometry(700 - bx0, 8, 1.2), std(0xd9d6cd), (700 + bx0) / 2, 4, -0.6);
+const seg = (d0, d1, y0, y1) => add(scene, new THREE.BoxGeometry(B.t, y1 - y0, d1 - d0), plaster, bxc, (y0 + y1) / 2, -(d0 + d1) / 2);
+seg(0, B.openD0, 0, B.wallH); seg(B.openD0 + B.openW, 500, 0, B.wallH); seg(B.openD0, B.openD0 + B.openW, B.openH, B.wallH);
+// door frame and a glimpse of the room beyond
+const frame = std(0xf2f0ea);
+for (const d of [B.openD0, B.openD0 + B.openW]) add(scene, new THREE.BoxGeometry(B.t + 1, B.openH, 3), frame, bxc, B.openH / 2, -d);
+add(scene, new THREE.BoxGeometry(B.t + 1, 3, B.openW + 3), frame, bxc, B.openH, -(B.openD0 + B.openW / 2));
+add(scene, new THREE.PlaneGeometry(500, B.wallH), std(0xb9b4a8, { roughness: 1 }), bx0 - 260, B.wallH / 2, -200).rotation.y = Math.PI / 2;
+add(scene, new THREE.PlaneGeometry(260, 500), std(0x8a6a4a, { roughness: 0.8 }), bx0 - 130, 0.05, -250).rotation.x = -Math.PI / 2;
 // fridge
-const F = G.fridge, fridge = new THREE.Group(); scene.add(fridge);
-add(fridge, new THREE.BoxGeometry(F.depth - F.doorT, F.h, F.w), steel, -(F.depth + F.doorT) / 2, F.h / 2, -F.w / 2);
+const F = G.fridge;
+add(scene, new THREE.BoxGeometry(F.depth - F.doorT, F.h, F.w), steel, -(F.depth + F.doorT) / 2, F.h / 2, -F.w / 2);
 function door(y0, y1) {
   const g = new THREE.Group(); g.position.set(0, y0, -F.w); scene.add(g); const h = y1 - y0;
   add(g, new THREE.BoxGeometry(F.doorT, h - 0.6, F.w), steel, -F.doorT / 2, h / 2, F.w / 2);
   add(g, new THREE.BoxGeometry(1.6, Math.min(70, h * .6), 3), dark, 0.8, h * .55, F.w - 4.5);
   return g;
 }
-const upper = door(F.freezerH, F.h), lower = door(0, F.freezerH - 0.6);
-// bins (3D: 4 cm off the wall so the brace can hang behind them)
-function bin(c, x) {
-  add(scene, new THREE.BoxGeometry(c.w, c.h, c.t), std(0x25272b, { roughness: 0.5 }), x + c.w / 2, c.h / 2, -(4 + c.t / 2));
-  add(scene, new THREE.BoxGeometry(c.w + 1.5, 3, c.t + 1.5), std(0x1b1c1f), x + c.w / 2, c.h + 1.5, -(4 + c.t / 2));
+const upper = door(F.freezerH, F.h); door(0, F.freezerH - 0.6);
+// bins (3D: 4 cm off the wall)
+function bin(c) {
+  add(scene, new THREE.BoxGeometry(c.w, c.h, c.t), std(0x25272b, { roughness: 0.5 }), c.x0 + c.w / 2, c.h / 2, -(4 + c.t / 2));
+  add(scene, new THREE.BoxGeometry(c.w + 1.5, 3, c.t + 1.5), std(0x1b1c1f), c.x0 + c.w / 2, c.h + 1.5, -(4 + c.t / 2));
 }
-bin(G.recycle, G.recycle.x0); bin(G.trash, G.trash.x0);
-// wall rail
-const railW = G.railX[1] - G.railX[0];
-add(scene, new THREE.BoxGeometry(railW, 27, G.railT), oak, G.railX[0] + railW / 2, 121.5, -G.railT / 2);
-// table
-const tableG = new THREE.Group(); tableG.position.set(0, G.hingeY, -G.railT); scene.add(tableG);
+bin(G.recycle); bin(G.trash);
+// table: pivots about its underside back edge; folding down swings the outer edge down
+const axisY = G.hingeY - G.topT;
+const tableG = new THREE.Group(); tableG.position.set(0, axisY, -G.hingeD); scene.add(tableG);
 {
   const sh = new THREE.Shape(outline.map(([s, u]) => new THREE.Vector2(s, u)));
   const geo = new THREE.ExtrudeGeometry(sh, { depth: G.topT, bevelEnabled: false });
-  geo.rotateX(-Math.PI / 2); geo.translate(0, -G.topT, 0);
-  add(tableG, geo, new THREE.MeshStandardMaterial({ map: oak.map, roughness: 0.5, side: THREE.DoubleSide }));
-  const s0 = outline[0][0], hl = G.hingeLen;
-  const hinge = add(tableG, new THREE.CylinderGeometry(0.55, 0.55, hl, 12), steel, s0 + hl / 2, 0.55, 0.0); hinge.rotation.z = Math.PI / 2;
+  geo.rotateX(-Math.PI / 2);
+  add(tableG, geo, new THREE.MeshStandardMaterial({ map: oakMap, roughness: 0.5, side: THREE.DoubleSide }));
 }
-// brackets: plate on the wall, brace pinned at Q, free end meets the table underside at P
-const Q = { d: G.railT, y: 72 }, uP = 48, braces = [];
-const L = Math.hypot(G.railT + uP - Q.d, G.hingeY - G.topT - Q.y);
+// brackets: wall plate, arm under the table (moves with it), two-link brace from the wall pivot to the arm
+const links = [];
 for (const bx of G.braceX) {
-  add(scene, new THREE.BoxGeometry(6, 16, 0.8), steel, bx, Q.y, -0.4);
-  add(tableG, new THREE.BoxGeometry(5, 0.8, 8), steel, bx, -G.topT - 0.4, -uP);
-  const g = new THREE.Group(); g.position.set(bx, Q.y, -Q.d - 0.9); scene.add(g);
-  add(g, new THREE.BoxGeometry(1.2, L, 3), steel, 0, L / 2, 0); braces.push(g);
+  add(scene, new THREE.BoxGeometry(4.5, 54, 0.6), steel, bx, axisY - 21, -0.3);
+  add(tableG, new THREE.BoxGeometry(3.2, 0.8, G.depth - 2), steel, bx, -0.4, -(G.depth - 2) / 2);
+  const pin = add(tableG, new THREE.CylinderGeometry(1.3, 1.3, 5, 14), steel, bx, 0, 0); pin.rotation.z = Math.PI / 2;
+  const mk = () => add(scene, new THREE.BoxGeometry(1.2, 1, 3), steel); links.push({ x: bx, a: mk(), b: mk() });
+}
+function placeLink(m, x, A, B) {
+  const dd = B.d - A.d, dy = B.y - A.y, len = Math.hypot(dd, dy);
+  m.scale.y = len; m.position.set(x, (A.y + B.y) / 2, -(A.d + B.d) / 2 - 1.2); m.rotation.x = Math.atan2(-dd, dy);
 }
 // stools
 const stools = new THREE.Group(); scene.add(stools);
-for (const sx of [105, 148]) {
-  add(stools, new THREE.CylinderGeometry(17, 17, 3, 24), std(0x6b6258), sx, 68.5, -75);
+const stoolX = [95, 137], stoolD = G.depth + 10;
+for (const sx of stoolX) {
+  add(stools, new THREE.CylinderGeometry(17, 17, 3, 24), std(0x6b6258), sx, 68.5, -stoolD);
   for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 + Math.PI / 4;
-    add(stools, new THREE.CylinderGeometry(1.2, 1.5, 68, 8), dark, sx + Math.cos(a) * 12, 34, -75 + Math.sin(a) * 12); }
-}
-
-function braceAngle(phi) {
-  const p = rad(phi), dP = G.railT + uP * Math.cos(p) + G.topT * Math.sin(p), yP = G.hingeY + uP * Math.sin(p) - G.topT * Math.cos(p);
-  const toP = Math.atan2(dP - Q.d, yP - Q.y), s = ease(Math.max(0, Math.min(1, (phi - 3) / 42)));
-  return toP * (1 - s) + Math.PI * s;
+    add(stools, new THREE.CylinderGeometry(1.2, 1.5, 68, 8), dark, sx + Math.cos(a) * 12, 34, -stoolD + Math.sin(a) * 12); }
 }
 function resize() { const w = view.clientWidth, h = view.clientHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 addEventListener("resize", resize); resize();
 
 // ---- plan view ----
-const cv = document.getElementById("plan"), cx = cv.getContext("2d"), S = 6.4, X0 = 1400, Y0 = 40;   // px = X0 - X*S, py = Y0 + d*S
+const cv = $("plan"), cx = cv.getContext("2d"), S = 5.2, X0 = 1040, Y0 = 40;   // px = X0 - X*S, py = Y0 + d*S
 const P = (X, d) => [X0 - X * S, Y0 + d * S];
 const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 function poly(pts, fill, stroke, lw = 2, dash = []) {
   cx.beginPath(); pts.forEach(([X, d], i) => { const [x, y] = P(X, d); i ? cx.lineTo(x, y) : cx.moveTo(x, y); }); cx.closePath();
   if (fill) { cx.fillStyle = fill; cx.fill(); } if (stroke) { cx.setLineDash(dash); cx.lineWidth = lw; cx.strokeStyle = stroke; cx.stroke(); cx.setLineDash([]); }
 }
+const box = (X1, X2, d1, d2) => [[X1, d1], [X2, d1], [X2, d2], [X1, d2]];
 function drawPlan() {
   cx.clearRect(0, 0, cv.width, cv.height); const fg = css("--fg"), mut = css("--mut"), acc = css("--acc"), warn = css("--warn");
-  cx.font = "22px system-ui"; cx.fillStyle = mut;
-  // wall
-  cx.fillStyle = mut; const [wx0, wy] = P(G.railX[1] + 25, 0), [wx1] = P(-75, 0); cx.fillRect(wx1, wy - 10, wx0 - wx1, 10);
-  cx.fillStyle = mut; cx.fillText("brick wall", wx0 + 10, wy - 2);
+  const text = (t, X, d, col = mut, dx = 0, dy = 0, size = 22) => { const [x, y] = P(X, d); cx.fillStyle = col; cx.font = `${size}px system-ui`; cx.fillText(t, x + dx, y + dy); };
+  // walls: the table wall along the top, the wall behind the fridge down the right, with the doorway
+  const wall = "rgba(130,126,118,0.75)", dEnd = 175, bx1 = -G.fridge.depth;
+  poly(box(190, bx0, -9, 0), wall, null); poly(box(bx1, bx0, 0, B.openD0), wall, null); poly(box(bx1, bx0, B.openD0 + B.openW, dEnd), wall, null);
+  cx.setLineDash([10, 8]); cx.strokeStyle = mut; cx.lineWidth = 2; { const [a, y1] = P(bx1, B.openD0), [b, y2] = P(bx0, B.openD0 + B.openW); cx.strokeRect(Math.min(a, b), y1, Math.abs(b - a), y2 - y1); } cx.setLineDash([]);
+  text("wall the table is on (brick)", 185, -2, mut, 0, -8); text("wall behind the fridge", -64, 150, mut, -170, 0);
+  text(`doorway (${B.openW} cm, estimated)`, -70, B.openD0 + B.openW / 2, mut, 12, 6);
   // swept sector (door at full radius) and margin
-  const pv = pivot();
-  cx.beginPath(); { const [px, py] = P(pv.x, pv.d); cx.moveTo(px, py);
-    // door sector: from the closed door (toward the wall, up in the plan) round through the open door (toward the room, to the left)
-    cx.arc(px, py, G.doorR * S, -Math.PI / 2, -Math.PI / 2 - rad(Math.max(st.theta, 0.01)), true); cx.closePath(); }
+  const pv = pivot(), [px, py] = P(pv.x, pv.d);
+  cx.beginPath(); cx.moveTo(px, py); cx.arc(px, py, G.doorR * S, -Math.PI / 2, -Math.PI / 2 - rad(Math.max(st.theta, 0.01)), true); cx.closePath();
   cx.fillStyle = "rgba(120,160,220,0.16)"; cx.fill();
-  cx.beginPath(); { const [px, py] = P(pv.x, pv.d); cx.arc(px, py, (G.doorR + G.margin) * S, -Math.PI / 2, -Math.PI, true); }
+  cx.beginPath(); cx.arc(px, py, (G.doorR + G.margin) * S, -Math.PI / 2, -Math.PI, true);
   cx.setLineDash([8, 6]); cx.strokeStyle = "rgba(120,160,220,0.9)"; cx.lineWidth = 2; cx.stroke(); cx.setLineDash([]);
   // fridge and door
-  poly([[-G.fridge.depth, 0], [-G.fridge.doorT, 0], [-G.fridge.doorT, G.fridge.w], [-G.fridge.depth, G.fridge.w]], "#b9bec3", fg, 2);
+  poly(box(-G.fridge.depth, -G.fridge.doorT, 0, G.fridge.w), "#b9bec3", fg, 2);
   poly(doorPlan(st.theta), "#9aa0a6", fg, 2);
-  // cans
-  for (const c of [G.recycle, G.trash]) poly([[c.x0, 4], [c.x0 + c.w, 4], [c.x0 + c.w, 4 + c.t], [c.x0, 4 + c.t]], "#3a3c40", null);
-  // rail and table
-  poly([[G.railX[0], 0], [G.railX[1], 0], [G.railX[1], G.railT], [G.railX[0], G.railT]], "#8a6334", fg, 1.5);
+  // bins
+  for (const c of [G.recycle, G.trash]) poly(box(c.x0, c.x0 + c.w, 4, 4 + c.t), "#3a3c40", null);
+  // table and brackets
   const gap = polyGap(doorPlan(st.theta), tablePlan(st.phi));
-  poly(tablePlan(st.phi), st.phi < 45 ? "rgba(185,138,82,0.85)" : "rgba(185,138,82,0.95)", gap < 0.3 ? warn : fg, gap < 0.3 ? 4 : 2);
+  poly(tablePlan(st.phi), "rgba(185,138,82,0.88)", gap < 0.3 ? warn : fg, gap < 0.3 ? 4 : 2);
+  for (const x of G.braceX) poly(box(x - 2.2, x + 2.2, 0, 1.2), "#7d838a", null);
   // stools
-  if (document.getElementById("cStools").checked) for (const sx of [105, 148]) { const [x, y] = P(sx, 75); cx.beginPath(); cx.arc(x, y, 17 * S, 0, 7); cx.strokeStyle = mut; cx.lineWidth = 2; cx.stroke(); }
+  if ($("cStools").checked) for (const sx of stoolX) { const [x, y] = P(sx, G.depth + 10); cx.beginPath(); cx.arc(x, y, 17 * S, 0, 7); cx.strokeStyle = mut; cx.lineWidth = 2; cx.stroke(); }
   // labels
-  cx.fillStyle = fg; cx.font = "24px system-ui";
-  let [lx, ly] = P(-30, 30); cx.fillText("fridge", lx - 36, ly + 8);
-  [lx, ly] = P(G.recycle.x0 + 5, 25); cx.fillStyle = "#ddd"; cx.fillText("recycle", lx - 80, ly + 8);
-  [lx, ly] = P(G.trash.x0 + 5, 20); cx.fillText("trash", lx - 70, ly + 28);
-  cx.fillStyle = mut; [lx, ly] = P(G.railX[1] - 4, 100); cx.fillText("stools", lx - 30, ly);
-  [lx, ly] = P(pv.x + 18, pv.d + 14); cx.fillText("door hinge", lx - 50, ly + 22);
+  text("fridge", -30, 24, fg, -30, 8, 24); text("recycle", G.recycle.x0 + 40, 14, "#ddd", 0, 8); text("trash", G.trash.x0 + 28, 12, "#ddd", 0, 8);
+  text("door hinge", pv.x - 6, pv.d + 6, mut, 8, 26); text("stools", stoolX[1] - 8, G.depth + 40, mut, 0, 0);
   // dimensions
-  const o = outline; const s0 = o[0][0], s1 = o[1][0];
-  const dim = (X1, X2, d, text) => { const [a, y] = P(X1, d), [b] = P(X2, d); cx.strokeStyle = acc; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(a, y); cx.lineTo(b, y); cx.stroke(); cx.fillStyle = acc; cx.font = "22px system-ui"; cx.fillText(text, (a + b) / 2 - 40, y - 8); };
-  dim(s0, s1, 108, `${G.hingeLen} cm along the wall`);
-  const [fx, fy] = P(0, 62); cx.fillStyle = mut; cx.fillText(`fridge-side edge starts ${s0.toFixed(0)} cm from the fridge front`, fx - 160, fy + 135);
+  const s0 = outline[0][0], s1 = outline[1][0];
+  const [a, y] = P(s0, 100), [b] = P(s1, 100); cx.strokeStyle = acc; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(a, y); cx.lineTo(b, y); cx.stroke();
+  cx.fillStyle = acc; cx.font = "22px system-ui"; cx.fillText(`${G.hingeLen} cm along the wall`, (a + b) / 2 - 90, y - 8);
+  const [e0, ey] = P(0, 100), [e1] = P(s0, 100); cx.beginPath(); cx.moveTo(e0, ey); cx.lineTo(e1, ey); cx.stroke(); cx.fillText(`${s0.toFixed(0)}`, (e0 + e1) / 2 - 12, ey - 8);
+  text(`min. gap to the door ${sweepGap(st.phi).toFixed(1)} cm`, 175, 125, acc, 0, 0);
 }
 
 // ---- status + loop ----
-const stat = document.getElementById("status");
+const stat = $("status");
 function update() {
   upper.rotation.y = rad(st.theta);
-  tableG.rotation.x = rad(st.phi);
-  braces.forEach(b => b.rotation.x = -braceAngle(st.phi));
-  stools.visible = document.getElementById("cStools").checked;
-  document.getElementById("vPhi").textContent = st.phi < 1 ? "down" : st.phi > 89 ? "up" : st.phi.toFixed(0) + "°";
-  document.getElementById("vTheta").textContent = st.theta < 1 ? "closed" : st.theta.toFixed(0) + "°";
-  document.getElementById("sPhi").value = st.phi; document.getElementById("sTheta").value = st.theta;
-  const gap = polyGap(doorPlan(st.theta), tablePlan(st.phi)), open = st.theta > 1, folded = st.phi > 85;
-  const real = polyGap(doorPlan(st.theta), tablePlan(st.phi));
-  let msg = folded ? "Table folded against the wall" : st.phi < 1 ? "Table down" : "Table moving";
+  tableG.rotation.x = -rad(st.phi);
+  for (const L of links) { const { Q, P, K } = stay(armPoint(st.phi)); placeLink(L.a, L.x, Q, K); placeLink(L.b, L.x, K, P); }
+  stools.visible = $("cStools").checked;
+  $("vPhi").textContent = st.phi < 1 ? "out" : st.phi > 89 ? "folded down" : st.phi.toFixed(0) + "°";
+  $("vTheta").textContent = st.theta < 1 ? "closed" : st.theta.toFixed(0) + "°";
+  $("sPhi").value = st.phi; $("sTheta").value = st.theta;
+  const open = st.theta > 1, folded = st.phi > 85, real = polyGap(doorPlan(st.theta), tablePlan(st.phi));
+  let msg = folded ? "Table folded down against the wall" : st.phi < 1 ? "Table out" : "Table moving";
   msg += open ? `, fridge door ${st.theta.toFixed(0)}° open.` : ", fridge door closed.";
-  if (open) msg += real > 0.3 ? ` Door clears the table by ${real.toFixed(1)} cm (design margin 3 cm included).` : " COLLISION.";
+  if (open) msg += real > 0.3 ? ` Door clears the table by ${real.toFixed(1)} cm.` : " COLLISION.";
   stat.textContent = msg; stat.className = "card " + (open && real <= 0.3 ? "bad" : "ok");
   drawPlan();
 }
@@ -343,8 +352,7 @@ function tween(key, to, ms = 1400) {
     requestAnimationFrame(f); });
 }
 const lock = (fn) => async () => { if (anim.run) return; anim.run = true; try { await fn(); } finally { anim.run = null; } };
-const $ = (id) => document.getElementById(id);
-$("bDown").onclick = lock(() => tween("phi", 0)); $("bUp").onclick = lock(() => tween("phi", 90));
+$("bDown").onclick = lock(() => tween("phi", 90)); $("bUp").onclick = lock(() => tween("phi", 0));
 $("bOpen").onclick = lock(() => tween("theta", 115)); $("bClose").onclick = lock(() => tween("theta", 0));
 $("bDemo").onclick = lock(async () => {
   await tween("phi", 0, 900); await tween("theta", 0, 300); await tween("theta", 115, 2200); await tween("theta", 0, 1600);
