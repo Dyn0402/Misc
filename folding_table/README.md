@@ -22,3 +22,7 @@ v2 (2026-11-06): two brackets instead of three, no rail or separate hinge, 10 cm
 v3 (2026-11-06): the page has a support-style switch: steel brackets (v2), slim black steel, oak corbels (swing
 flat to the wall), steel cables. `VARIANTS` in `geom_block.js` holds each style's pivot depth, pivot height and
 support positions; `check_clearance.mjs` runs the door sweep for all four and exits non-zero if any fails.
+
+v4 (2026-11-06): oak corbels chosen. Model switched to 18 mm oak boards (Castorama 60x200 and 50x200, in stock at Les Ulis),
+rail of three 18 mm layers, table hinge edge 120 cm. Page section 8 is the shopping list with Castorama links and prices
+(read 2026-11-06) and what is shared with the under-sink shelf list (screws, glue, clamps, saw, sandpaper, brush).

@@ -7,13 +7,13 @@ const G = {
   doorR: 59.3,            // swept radius of the door slab about its hinge: sqrt(59^2 + 6^2)
   margin: 10,             // design clearance added to the swept radius
   hingeY: 120,            // table top height
-  topT: 3.0,              // table top thickness (28 mm oak + a little for the bracket arm)
+  topT: 1.8,              // table top thickness: 18 mm oak board
   hingeD: 2.0,            // pivot axis, this far from the wall (set by the support style)
-  axisY: 117,             // pivot axis height (set by the support style)
-  slab: [0, 3.0],         // table slab, as heights above the pivot axis (set by the support style)
+  axisY: 118.2,           // pivot axis height (set by the support style)
+  slab: [0, 1.8],         // table slab, as heights above the pivot axis (set by the support style)
   depth: 50,              // table depth from the pivot (500 mm brackets)
   angleDeg: 60,           // fridge-side edge angle from the wall (tangent to the door arc + margin)
-  hingeLen: 125,          // length of the pivot edge along the wall
+  hingeLen: 120,          // length of the pivot edge along the wall
   farSkewDeg: 20,         // far edge leans in by this much from square
   cornerR: 5,             // radius of the two outer corners
   braceX: [72, 151],      // the two supports (set by the support style)
@@ -28,10 +28,10 @@ const G = {
 };
 // Support styles. Steel brackets pivot under the slab; the rail styles hinge on top of an oak rail.
 const VARIANTS = {
-  steel: { hingeD: 2.0, axisY: 117, slab: [0, 3.0], x: [72, 151] },
-  black: { hingeD: 2.0, axisY: 117, slab: [0, 3.0], x: [72, 151] },
-  oak:   { hingeD: 5.4, axisY: 120, slab: [-3.0, 0], x: [80, 156] },   // 5.4: rail depth = 2.2 corbel + 3.2 slab
-  cable: { hingeD: 3.2, axisY: 120, slab: [-3.0, 0], x: [84, 142] },
+  steel: { hingeD: 2.0, axisY: 118.2, slab: [0, 1.8], x: [72, 151] },
+  black: { hingeD: 2.0, axisY: 118.2, slab: [0, 1.8], x: [72, 151] },
+  oak:   { hingeD: 5.4, axisY: 120, slab: [-1.8, 0], x: [80, 156] },   // 5.4 = rail of three 18 mm layers; corbel 18 mm folds flat behind the 18 mm top
+  cable: { hingeD: 3.6, axisY: 120, slab: [-1.8, 0], x: [84, 142] },
 };
 function setVariant(name) { const v = VARIANTS[name]; G.hingeD = v.hingeD; G.axisY = v.axisY; G.slab = v.slab.slice(); G.braceX = v.x.slice(); G.variant = name; }
 setVariant("steel");
