@@ -101,3 +101,36 @@ Source lives here; the site repo only holds published copies.
 **Gotchas / decisions:**
 - Assumed 150 cm, 3 cm gap, parallel bars, E > 0.2 GeV, 100 % efficiency. Model is ~10-15 % low on absolute normalisation.
 - 3-fold equals top1 & bottom exactly for identical aligned bars (convexity).
+
+## Kitchen folding table — updated 2026-11-06 (dylan-Yoga)
+
+**Resume:** Oak-corbel fold-down table designed + shopping list live; next is the drill test on the brick, then buying at Castorama.
+
+**Goal:** Wall-hung oak bar table (120 cm top) on the fridge-side wall in Palaiseau, folds down against the wall, fridge door
+opens past it. Live as the "Folding table" tab: https://dylan-neff.web.cern.ch/misc/shelf/table.html (source `folding_table/`).
+
+**Done:**
+- Page with Three.js animation (4 support styles: steel, slim black, **oak corbels (chosen)**, cables), plan view, door-swing
+  clearance check, dimensions, brick fixing, finish, section 8 shopping list with Castorama links/prices (read 2026-11-06) and what
+  overlaps the shelf list. Deployed to EOS; site repo pushed.
+- Design: 2 supports, 10 cm margin around the fridge door, top 120 x 50 trapezoid, 18 mm oak boards (Castorama 60x200 + 50x200, in stock
+  Les Ulis), rail = 3 glued 18 mm layers, piano hinge, corbels fold flat to the wall then the table folds down. Wall behind the fridge and doorway drawn.
+- Core list about 214 EUR (solid-brick anchors).
+
+**In progress / where it stopped:**
+- Nothing half-done. Photo of the wall is in `folding_table/photos/wall.jpg` (not published).
+
+**Next steps:**
+1. Dylan: 6 mm drill test (solid vs hollow brick) to choose anchors; measure doorway start/width behind the fridge, bin positions, wall length, counter wood/finish.
+2. Confirm fridge door hinge side (Dylan said right; photo handle grooves look right, which would suggest a left hinge and change the table shape).
+3. Buy (list in section 8); then update the page with measured values and any changes.
+
+**Gotchas / decisions:**
+- Always deploy site updates to EOS without asking (memory: feedback-deploy-site-updates): `./scripts/deploy-eos.sh` in `dylan-cern-site` after `under_sink_shelf/publish_to_site.sh`.
+- Bin positions and the back-wall doorway (15 cm thick, 90 x 205, starts 11 cm from the fridge side) are estimates; the recycle bin is ~4 cm from the freezer door swing at the assumed spot.
+- Clearance numbers come from `node folding_table/check_clearance.mjs` (all four styles must PASS). Geometry lives in `folding_table/geom_block.js`; rebuild the page with `python3 folding_table/build_page.py`.
+- Shelf 4x40 screws are too long for the 18 mm top; hinge needs the 3.5x16 pack. Oak corbel hinge strength is the weak point (use 3 hinges each if unsure).
+
+**Key files & commands:**
+- `folding_table/README.md`, `table.src.html`, `geom_block.js`, `check_clearance.mjs`, `build_page.py`
+- `bash under_sink_shelf/publish_to_site.sh` then deploy from the site repo
