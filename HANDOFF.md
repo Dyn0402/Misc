@@ -23,67 +23,52 @@
 - `desktop_audio/NOTES.md` — findings and options
 - `aplay -l`, `wpctl status` — list outputs
 
-## Under-sink shelf — updated 2026-10-28 (dylan-MS-7C84)
+## Under-sink shelf — updated 2026-11-07 (dylan-MS-7C84)
 
-**Resume:** Shelf v11 + closet riser + jar riser all designed and live; next is buying (Castorama trip) and building.
+**Resume:** Buy list, aisles and Castorama cut sheet live; Dylan went to Les Ulis to buy. Ask what they bought/cut, then build.
 
 **Goal:** Two-shelf under-sink shelf for Dylan's cabinet in Palaiseau (the main item), plus two risers
 cut from the same board and batten: one for the clothes closet, one for jars in a kitchen top closet.
-Live at https://dylan-neff.web.cern.ch/misc/shelf/ (Design tab `index.html`, Cost & buy list `buy.html`).
-Source lives here; the site repo only holds published copies.
+Live at https://dylan-neff.web.cern.ch/misc/shelf/ (tabs: Design `index.html`, Cost & buy list `buy.html`,
+Découpe `cuts.html`, Folding table `table.html`). Source lives here; the site repo only holds published copies.
 
-**Layout (confirmed by Dylan, drawn and agreed in chat):** standing at the door looking in, the right is a solid wall (dishwasher behind it) and the shelves go against it. Cabinet = 40 cm wide at the door x 50 cm deep, its back is the outer kitchen wall. To the LEFT is an extra space 70 cm wide, same 50 cm depth, level with the cabinet, on the SAME straight back wall (110 cm from dishwasher wall to far left). The oven stands in front of it and blocks it. A corner counter covers everything. The basin starts 6 cm from the dishwasher wall and reaches 6 cm over the extra space. The extra space is not deeper than the cabinet; earlier versions wrongly put it behind the back wall.
+**Layout (confirmed by Dylan, drawn and agreed in chat):** standing at the door looking in, the right is a solid wall (dishwasher behind it) and the shelves go against it. Cabinet = 40 cm wide at the door x 50 cm deep, its back is the outer kitchen wall. To the LEFT is an extra space 70 cm wide, same 50 cm depth, level with the cabinet, on the SAME straight back wall (110 cm from dishwasher wall to far left). The oven stands in front of it and blocks it. A corner counter covers everything. The basin starts 6 cm from the dishwasher wall and reaches 6 cm over the extra space.
 
-**Axes (output frame, model.json / renders / page):** +x toward the dishwasher wall (right), so left = -x; +y away from you (y=0 door line, y=500 back wall); z up; right-handed. `build_model.py` is AUTHORED in the old frame (origin back-right corner, x grows to the left, y grows to the front) and `rot()` turns it 180 degrees about z on output. So constants in the file read as "distance left of the dishwasher wall" and "distance in front of the back wall". `plan_view.py` uses the authoring frame.
+**Axes (output frame, model.json / renders / page):** +x toward the dishwasher wall (right), y=0 door line, y=500 back wall, z up. `build_model.py` is AUTHORED in the old frame (origin back-right, x grows left, y grows to the front) and `rot()` turns it 180 degrees about z on output. `plan_view.py` uses the authoring frame.
 
-**Done (2026-10-28):**
-- Shelf v11 (Dylan's idea): shelves use the full 400 mm board width. 400 back edge, 63 mm straight on the
-  left at the back, the v10 diagonal extended, 100 front edge, 430 deep, 1170 cm2. Back-left corner is 15 mm
-  past the door opening, in the open extra space (`check()` allows x up to 415 only at y <= 100). Post B
-  moved to authoring x 363; rinse bottle moved 20 mm left. Model, plan view and Blender renders re-run.
-- Nested cut: both shelves from 618 mm of board in 4 cuts (crosscut; one shared diagonal from edge A at
-  63 mm to edge B at 555 mm; two 100 mm front cuts). Written up in section 4 of the Design tab with
-  `renders/closet_cut_plan.png`. Section 4 also has a new guide to cutting the battens/dowels accurately.
-- Closet riser: 750 x 400 top (closet ~76 cm wide with obstacles), four 182 mm batten legs, 200 mm tall,
-  2 screws per leg, brackets/glue optional. Jar riser: 600 x 400 top, four 162 mm legs from Dylan's two
-  1 m x 20 mm dowels, 180 mm tall. All fit on ONE board + ONE batten (board used to within the 10 mm end
-  trims; ~180 mm batten left). `closet_riser.py` has the cost scaling for more closet risers.
-- Buy list: coping saw replaced by Stanley JET-CUT fine 450 mm crosscut saw (17.90 Castorama; Amazon
-  500 mm 16.92). Screws: 2 x Diall 20-pack 4x40 A2 (11.78; Les Ulis had 1 pack in stock). Brackets:
-  VFANDV 20 stainless 40x40x16 with 15 mm screws, 7.79, https://www.amazon.fr/dp/B0D6YTK3KT (found by Dylan).
-  Totals: recommended 99.47, all-Castorama 110.92, Amazon wherever possible 122.26. Amazon free delivery
-  to 91120 from 45 EUR; Dylan appears not to have Prime.
-
-**In progress / where it stopped:**
-- Nothing half-done. Everything published and deployed 2026-10-28.
+**Done (2026-11-07):**
+- New **Découpe** tab `under_sink_shelf/cuts.html`, French with English under each line, for the Castorama cutting desk.
+  Pine board 2000 x 400: crosscut 618, crosscut 750, the rest (~624) stays whole for the jar riser (Dylan: recut it later).
+  On the 618 piece: diagonal from 63 mm on edge A to 555 mm on edge B (same end), ~39 deg to B; then each shelf cut
+  square 430 mm from its 400 mm end (front edge comes out 101-102). Section 5 = straight oak cuts for the table, for later.
+- Buy list rebuilt for **Castorama Les Ulis**, stock/price/aisle read from castorama.fr on 7 Nov: big Allée column, Amazon
+  column removed (old comparison kept at the bottom), phone layout. Basket EUR 125.00 (`KITCHEN_EUR` in `closet_riser.py` updated).
+  Picks: board 75, batten 72, 200-pack A2 4x40 (114; Dylan wanted 200 for the table too), Diall stainless chair brackets
+  15x40x40 4-pack x3 (113; galvanised 25-pack not stocked), short stainless screws "look in aisle 114" (none in stock
+  online, EUR 8.38 is an estimate), Pattex glue (aisle unknown), Magnusson 500 mm 11 TPI saw (119) with alternatives,
+  clamps 117, brush 17, linseed oil 22. Sandpaper removed (Dylan has 150 grit); Dylan has a drill and wood bits.
+- Folding-table look-list under the buy list (oak 136, hinges 113, dowel 134, anchors 114, oil 27, hacksaw 119, jigsaw 121)
+  plus what to check in store. Design tab's stale notes fixed (screws, saw, store name, v11 title).
 
 **Next steps:**
-1. Dylan buys the timber at Castorama and the brackets on Amazon, then builds; answer build questions.
-2. Size of the jar closet's shelf not confirmed; the 600 x 400 top is the maximum, cut smaller if needed.
-3. Other Amazon links in `buy.html` are still searches, not product pages (only brackets are pinned).
-4. Still unconfirmed guesses: extra space 70 cm wide, oven body depth, basin 6 cm over the extra space,
-   82 mm from top shelf to basin, counter geometry. Re-measure before cutting.
-5. Glue: Pattex Power says "water resistant" with no D-class; Sader Pro D3 100 g (9.89) states D3.
+1. Ask Dylan what was bought and whether Castorama did the diagonal; update the list if they swapped anything.
+2. Build questions. The short bracket screws: shelf side must be <= 16 mm (18 mm shelf).
+3. Still unconfirmed guesses: extra space 70 cm, oven depth, basin overhang, 82 mm top shelf to basin. Re-measure before cutting.
 
 **Gotchas / decisions:**
+- Castorama stock: product pages are a SPA; navigate, wait ~4 s, then read `main.innerText` ("Stock en magasin : N pièces",
+  "Situé dans l'allée N"). The search page's in-store filter is unreliable (URL param ignored, marketplace items shown).
+  `search?term=<EAN>` redirects to the product page. JET-CUT fine saw, galvanised bracket pack, Diall 3x16 / A2 3x20 screws
+  were NOT in stock at Les Ulis on 7 Nov.
 - Dylan read the board's 400 mm width as shelf DEPTH; it is the side-to-side width. Depth stays 430.
-- The v11 unit is 400 wide = door opening: it goes in turned (narrowest width 350 mm, square to the diagonal).
-- Left/right confusion cost many turns earlier. Use the layout paragraph, not the render, for orientation.
-- Z-fighting made a black bar when two coplanar faces overlapped; avoid overlapping wall slabs.
-- Browser: Castorama is a SPA, wait 2-3 s between `navigate` and `get_page_text`. Castorama and Amazon
-  were already set to 91120 / Castorama Les Ulis in Dylan's Chrome. Amazon `find` on a search page can
-  exceed the context limit; use `get_page_text` instead.
-- Deploy header warns about `stats_page_watcher`; that only matters for the x17 hub.
-- Prices are static in the `ITEMS` array in `buy.html`; `KITCHEN_EUR` in `closet_riser.py` mirrors the
-  recommended total and must be updated by hand.
+- The v11 unit is 400 wide = door opening: it goes in turned (narrowest width 350 mm).
+- Prices are static in the `ITEMS` array in `buy.html`; `KITCHEN_EUR` mirrors the basket by hand.
 
 **Key files & commands:**
-- `under_sink_shelf/build_model.py` — geometry + design checks; `python3 under_sink_shelf/build_model.py` writes `model.json`
-- `under_sink_shelf/plan_view.py` — `renders/shelf_plan.png`
-- `under_sink_shelf/render_blender.py` — `~/Software/blender-5.1.0-linux-x64/blender -b --factory-startup --python under_sink_shelf/render_blender.py`
-- `under_sink_shelf/closet_riser.py [n]` — cut plan (`renders/closet_cut_plan.png`), cost table, sag check
-- Publish: `./under_sink_shelf/publish_to_site.sh`, then in `~/PycharmProjects/dylan-cern-site` commit and
-  `./scripts/deploy-eos.sh` (needs `kinit dneff@CERN.CH`)
+- `under_sink_shelf/build_model.py`, `plan_view.py`, `render_blender.py`, `closet_riser.py [n]` — geometry, renders, cut plan
+- `under_sink_shelf/cuts.html` — shop cut sheet (hand-drawn SVG, board coords u along / v across)
+- Publish: `bash under_sink_shelf/publish_to_site.sh`, then in `~/PycharmProjects/dylan-cern-site` commit, push and
+  `./scripts/deploy-eos.sh` (needs Kerberos)
 
 ## P2 cosmic bench rates — updated 2026-10-30 (dylan-MS-7C84)
 
@@ -104,7 +89,7 @@ Source lives here; the site repo only holds published copies.
 
 ## Kitchen folding table — updated 2026-11-06 (dylan-Yoga)
 
-**Resume:** Oak-corbel fold-down table designed + shopping list live; next is the drill test on the brick, then buying at Castorama.
+**Resume:** Oak-corbel fold-down table designed; Dylan looked at the oak on 11-07. Next: drill test, hinge side, then buy.
 
 **Goal:** Wall-hung oak bar table (120 cm top) on the fridge-side wall in Palaiseau, folds down against the wall, fridge door
 opens past it. Live as the "Folding table" tab: https://dylan-neff.web.cern.ch/misc/shelf/table.html (source `folding_table/`).
@@ -123,7 +108,9 @@ opens past it. Live as the "Folding table" tab: https://dylan-neff.web.cern.ch/m
 **Next steps:**
 1. Dylan: 6 mm drill test (solid vs hollow brick) to choose anchors; measure doorway start/width behind the fridge, bin positions, wall length, counter wood/finish.
 2. Confirm fridge door hinge side (Dylan said right; photo handle grooves look right, which would suggest a left hinge and change the table shape).
-3. Buy (list in section 8); then update the page with measured values and any changes.
+3. Buy (list in section 8; aisles at Les Ulis are on the buy-list tab's look-list); then update the page with measured values.
+4. Ask what Dylan saw in store: oak colour/flatness, hinge screw-hole sizes, whether the cutting desk rips oak and the price per cut.
+5. Shelf purchase covers the table's 4x40 rail screws (200-pack), glue, clamps, brush and saw.
 
 **Gotchas / decisions:**
 - Always deploy site updates to EOS without asking (memory: feedback-deploy-site-updates): `./scripts/deploy-eos.sh` in `dylan-cern-site` after `under_sink_shelf/publish_to_site.sh`.
