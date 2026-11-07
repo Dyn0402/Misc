@@ -45,7 +45,7 @@ BACK_LEFT = 0       # same straight back wall as the cabinet: no deeper (v8)
 BASIN_X = (60, 460)  # basin outer x range: 60 mm clear of the dishwasher wall, 60 mm over the space (v8)
 
 # --- structure -------------------------------------------------------------
-LEG = 27             # 27 x 27 batten posts
+LEG = 25             # 25 x 25 solid batten posts (tasseau raboté pin)
 T = 18               # shelf board thickness
 Z_LOW = 300          # underside of middle shelf: 30 cm off the floor
 Z_UP = 500           # underside of top shelf: 50 cm off the floor

@@ -110,8 +110,8 @@
       <tr><td>Pine board</td><td>1</td><td>40 × 200 × 1.8 cm</td><td>Castorama PPA18400. Cut the two shelves nested (below): together they take 618 mm of the board, leaving room for the closet riser top (750 mm) and the jar riser top (600 mm).</td></tr>
       <tr><td>Middle shelf</td><td>1</td><td>400 back, 430 deep, 100 front × 18</td><td>The board's full width, so both long sides are factory edges. Cut out together with the top shelf: see the nested cut below.</td></tr>
       <tr><td>Top shelf</td><td>1</td><td>Same outline as the middle shelf</td><td>Turned 180° on the board so its diagonal runs beside the middle shelf's (see the cut plan).</td></tr>
-      <tr><td>Base posts</td><td>3</td><td>27 × 27 × 300</td><td>Under the middle shelf.</td></tr>
-      <tr><td>Middle posts</td><td>3</td><td>27 × 27 × 182</td><td>Between the shelves.</td></tr>
+      <tr><td>Base posts</td><td>3</td><td>25 × 25 × 300</td><td>Under the middle shelf.</td></tr>
+      <tr><td>Middle posts</td><td>3</td><td>25 × 25 × 182</td><td>Between the shelves.</td></tr>
       <tr><td>Corner brackets</td><td>9</td><td>40 × 40 mm</td><td>One per joint, as in v2.</td></tr>
     </table>
     <p class="note">Batten total: 1446 mm plus about 12 mm of kerf. One 2.4 m batten is enough, with room for the four closet riser legs.</p>
@@ -165,17 +165,17 @@
     <table>
       <tr><th>Item</th><th>Result</th><th>Price</th><th>Status</th></tr>
       <tr><td>Pine board</td><td><a href="https://www.castorama.fr/tablette-en-pin-massif-40-x-200-cm-ep-18-mm-ppa18400/3760002269221_CAFR.prd">Tablette en pin massif 40 × 200 cm, 18 mm (PPA18400)</a></td><td>€16.90</td><td><span class="tag ok">buy</span></td></tr>
-      <tr><td>27 × 27 batten</td><td>The 27 × 27 lamelles are discontinued. Replacement: <a href="https://www.castorama.fr/baguette-d-angle-rabotee-pin-27-x-27-mm-l-2-4-m/3663602871934_CAFR.prd">Baguette d'angle rabotée pin 27 × 27 mm, 2.4 m</a> (same profile, pine, not water-resistant).</td><td>€8.69</td><td><span class="tag ok">buy</span></td></tr>
+      <tr><td>25 × 25 batten</td><td>Solid square post stock: <a href="https://www.castorama.fr/tasseau-rabote-pin-25-x-25-mm-l-2-4-m/3663602858201_CAFR.prd">Tasseau raboté pin 25 × 25 mm, 2.4 m</a> (allée 72). Not the baguette d'angle 27 × 27, which is L-shaped trim. Any solid square tasseau 25–35 mm works.</td><td>€7.49</td><td><span class="tag ok">buy</span></td></tr>
       <tr><td>Screws</td><td><a href="https://www.castorama.fr/vis-a-bois-en-acier-inoxydable-a2-pozidriv-4x40-mm-200-pieces/3663602748496_CAFR.prd">Vis à bois inox A2 Pozidriv 4 × 40 mm, 200 pièces</a> (allée 114)</td><td>€19.90</td><td><span class="tag ok">buy</span></td></tr>
       <tr><td>Boiled linseed oil 1 L</td><td>Castorama "Huile de lin pour protéger Phébus 1 L" product page.</td><td>€8.79</td><td><span class="tag ok">buy</span></td></tr>
             <tr><td>Crosscut saw, brackets, glue, clamps, sandpaper, brush</td><td>Checked on 16 and 28 Oct 2026. Prices and the Amazon comparison are on the <a href="buy.html">Cost &amp; buy list</a> tab.</td><td>—</td><td><span class="tag ok">see tab</span></td></tr>
     </table>
-    <p class="note">Prices on all four product pages were re-checked in the browser on 16 Oct 2026 and match the table. Note that the batten page lists "Bord incliné" (a bevelled edge profile), so the posts will have slightly eased edges. Stock and aisles at Les Ulis were checked on 7 Nov; they are on the Cost &amp; buy list tab. Prices are from the product pages; the baguette's search snippet showed €7.89, the page €8.69.</p>
+    <p class="note">Prices on all four product pages were re-checked in the browser on 16 Oct 2026 and match the table. On 7 Nov the batten was changed: the earlier baguette d'angle 27 × 27 is L-shaped corner trim, not a solid post. Stock and aisles at Les Ulis were checked on 7 Nov; they are on the Cost &amp; buy list tab. Prices are from the product pages.</p>
   </div>
 
   <h2>7. Screws</h2>
   <div class="card">
-    <p>Size comes from the parts: the shelves are 18 mm and the posts are 27 mm. A 4 × 40 mm screw goes through the shelf and 22 mm into the post, enough to hold without splitting the post. The 4 mm shank needs a 2.5 mm pilot hole, as in the build notes.</p>
+    <p>Size comes from the parts: the shelves are 18 mm and the posts are solid 25 × 25 mm. A 4 × 40 mm screw goes through the shelf and 22 mm into the end of the post, along its length, so it can't come out the side, enough to hold without splitting the post. The 4 mm shank needs a 2.5 mm pilot hole, as in the build notes.</p>
     <p>Buy stainless (A2), because the cabinet is damp. The Castorama 200-pack (€19.90) covers the 24 needed for the shelves and both risers, and 12 more for the folding table's rail. The 9 brackets need short screws (16 mm or less on the shelf side, because the shelf is only 18 mm thick), not these 40 mm ones; they are on the Cost &amp; buy list. The photo's screws are not used: their size was uncertain, and the screws to buy are now specified.</p>
   </div>
 
@@ -200,9 +200,9 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 const CAPTIONS = [
-  "Step 1 — Stand the three base posts (27 × 27 × 300 mm) on the floor: back-left, back-right and front-right corners.",
+  "Step 1 — Stand the three base posts (25 × 25 × 300 mm) on the floor: back-left, back-right and front-right corners.",
   "Step 2 — Lower the middle shelf onto the base posts. Its underside is 300 mm above the floor, so you can store things under it. Glue each joint, then fix it with a bracket.",
-  "Step 3 — Stand the three middle posts (27 × 27 × 182 mm) on the middle shelf, directly above the base posts.",
+  "Step 3 — Stand the three middle posts (25 × 25 × 182 mm) on the middle shelf, directly above the base posts.",
   "Step 4 — Lower the top shelf onto the middle posts. Its underside is 500 mm above the floor, and its top is 82 mm below the basin bottom.",
 ];
 const STEP_MS = 3200, MOVE_MS = 1400;

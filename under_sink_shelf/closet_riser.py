@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Closet risers from the same stock as the under-sink shelf: cut plan, cost and sag check.
 
-A riser is one 750 x 400 x 18 mm pine top on four 27 x 27 mm batten legs, 200 mm tall
+A riser is one 750 x 400 x 18 mm pine top on four 25 x 25 mm batten legs, 200 mm tall
 overall. It stands on an existing closet shelf (80 x 40 cm, ~76 cm usable) and splits the ~40 cm gap above
 it in two (182 mm clear under the top, about 200 mm above it).
 
@@ -31,9 +31,9 @@ BRACKETS = 4                     # one per leg-to-top joint, like the kitchen sh
 
 # --- stock (buy.html) ----------------------------------------------------------
 BOARD_L, BOARD_W, BOARD_EUR = 2000, 400, 16.90      # Tablette pin massif 40 x 200 cm, 18 mm
-BATTEN_L, BATTEN_EUR = 2400, 8.69                  # baguette pin 27 x 27 mm, 2.4 m
+BATTEN_L, BATTEN_EUR = 2400, 7.49                  # tasseau raboté pin 25 x 25 mm, 2.4 m (solid)
 BRACKET_PACK, BRACKET_EUR = 20, 7.79               # Amazon B0D6YTK3KT, 20 stainless 40 x 40 x 16 with screws
-KITCHEN_EUR = 125.00                               # recommended basket in buy.html (2026-11-07)
+KITCHEN_EUR = 123.80                               # recommended basket in buy.html (2026-11-07, 25 mm tasseau)
 KERF = 3                                           # saw cut, plus a little for squaring
 END_TRIM = 10                                      # off each factory end, in case it is not square
 

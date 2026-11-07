@@ -145,7 +145,7 @@
     <ul>
       <li><strong>Castorama versus Amazon overall:</strong> the timber is only at Castorama, so a Castorama trip is needed either way. Buying everything else on Amazon too costs more (about €122 against €111), mostly because of clamps, brush and sandpaper. The cheapest mix is Castorama for everything except the brackets.</li>
       <li><strong>Screws: the 200-pack.</strong> You need 24 of the 4 × 40 mm for the shelf and risers, plus 12 for the folding table's rail. The 200-pack (€19.90, 5 in stock at Les Ulis, allée 114) covers both with spares; two packs of 20 (€11.78) would cover only the shelf. On Amazon, 200 A2 Torx 4 × 40 cost €14.90.</li>
-      <li><strong>Timber: Castorama only.</strong> I found no like-for-like 18 mm × 40 × 200 cm pine board or 27 × 27 × 2.4 m pine batten on Amazon. The results were craft strips and cutting boards.</li>
+      <li><strong>Timber: Castorama only.</strong> I found no like-for-like 18 mm × 40 × 200 cm pine board or 25 × 25 × 2.4 m pine batten on Amazon. The results were craft strips and cutting boards.</li>
       <li><strong>Brackets: Castorama, in store.</strong> Diall stainless chair brackets, 15 mm wide, 40 × 40 mm, 4 per pack (€7.59, 5 packs in stock, allée 113): three packs give 12, for the 9 kitchen joints and 3 spare. Stainless suits the damp cabinet and 15 mm is narrower than the 27 mm posts. They come without screws. The galvanised pack of 25 (€13.90) is not stocked at Les Ulis. On Amazon, VFANDV's 20 stainless brackets with screws are €7.79 but need waiting for delivery.</li>
       <li><strong>Tools and consumables: Castorama is cheaper.</strong> Clamps and the brush cost less there. Saws cost about the same on Amazon, but the Castorama one can be picked up today.</li>
       <li><strong>Linseed oil:</strong> Amazon does not list the Phébus 1 L. The closest 1 L is a baked linseed oil at €9.30 with 8 reviews.</li>
@@ -155,13 +155,13 @@
   <h2>Notes on the picks</h2>
   <div class="card">
     <ul>
-      <li>The brackets go on the three post-to-shelf joints of each shelf. The 15 mm Diall brackets are narrower than the 27 mm posts. Pre-drill 2 mm for the short screws, and keep the shelf-side screws at 16 mm or shorter so they cannot come through the 18 mm shelf.</li>
-      <li>The batten page lists a bevelled edge, so the posts will have slightly eased edges.</li>
+      <li>The brackets go on the three post-to-shelf joints of each shelf. The 15 mm Diall brackets are narrower than the 25 mm posts. Pre-drill 2 mm for the short screws, and keep the shelf-side screws at 16 mm or shorter so they cannot come through the 18 mm shelf.</li>
+      <li><strong>The posts must be a solid square stick (tasseau), not a moulding.</strong> The earlier pick, the baguette d'angle 27 × 27, is L-shaped corner trim only a few mm thick and cannot take the screws. Labels to avoid: baguette, baguette d'angle, quart de rond, moulure. Any solid square batten from 25 × 25 to 35 × 35 mm works (the design checks pass across that range); the cut lengths stay the same.</li>
       <li>For the damp cabinet the glue should be water-resistant (D3). The Pattex Power pick is rated "water resistant", with no D-class on the listing. Sader Pro D3 (100 g, €9.89) is the one that states D3.</li>
       <li>A pilot drill bit (2.5 mm) and a countersink are not on the list. Add them if you do not have them.</li>
       <li>The saw is a straight hand saw rather than the coping saw on earlier versions of this list: every cut left is straight.</li>
       <li><strong>Jar riser for the kitchen top closet:</strong> a top of up to 600 × 400 mm on four 20 mm dowel legs, 162 mm long, 18 cm tall overall. The legs come from your two 1 m dowels, so it costs nothing extra. The top fits on the same board only if the two kitchen shelves are cut nested (turned 180° to each other, see the cut plan on the Design tab), which brings them from 860 mm of board down to 618 mm. The shop leaves the end of the board (about 624 mm) as this piece; cut it to the closet's size yourself. Fix each leg with one 4 × 40 screw down through the top into a 2.5 mm pilot hole in the centre of the dowel end, plus glue. After all three pieces, about 175 mm of batten and the dowel offcuts are left.</li>
-      <li><strong>Closet riser:</strong> a 750 × 400 mm top (the closet is about 76 cm wide with obstacles) on four 27 × 27 mm legs, 182 mm long, 200 mm tall overall. Fix each leg with two 4 × 40 screws down through the top. Brackets and glue are optional on the riser: its legs are short and only carry weight straight down. The cut plan is in <code>closet_riser.py</code>.</li>
+      <li><strong>Closet riser:</strong> a 750 × 400 mm top (the closet is about 76 cm wide with obstacles) on four 25 × 25 mm legs, 182 mm long, 200 mm tall overall. Fix each leg with two 4 × 40 screws down through the top. Brackets and glue are optional on the riser: its legs are short and only carry weight straight down. The cut plan is in <code>closet_riser.py</code>.</li>
     </ul>
   </div>
 </div>
@@ -174,8 +174,8 @@ const ITEMS = [
   { id:"board", name:"Pine board 40 × 200 cm, 18 mm", need:"1 board: both kitchen shelves nested (618 mm), the closet riser top (750 mm), the rest (about 624 mm) for the jar riser top", aisle:"75",
     c:{ t:"Tablette en pin massif PPA18400", p:16.90, u:"https://www.castorama.fr/tablette-en-pin-massif-40-x-200-cm-ep-18-mm-ppa18400/3760002269221_CAFR.prd", s:"72 in stock" },
     a:null, pick:"c" },
-  { id:"batten", name:"Pine batten 27 × 27 × 2400 mm", need:"1: kitchen posts (1446 mm) + 4 riser legs of 182 mm", aisle:"72",
-    c:{ t:"Baguette d'angle rabotée pin 27 × 27 mm, 2.4 m", p:8.69, u:"https://www.castorama.fr/baguette-d-angle-rabotee-pin-27-x-27-mm-l-2-4-m/3663602871934_CAFR.prd", s:"47 in stock; bevelled edge" },
+  { id:"batten", name:"Solid pine batten 25 × 25 × 2400 mm", need:"1: kitchen posts (1446 mm) + 4 riser legs of 182 mm", aisle:"72",
+    c:{ t:"Tasseau raboté pin 25 × 25 mm, 2.4 m", p:7.49, u:"https://www.castorama.fr/tasseau-rabote-pin-25-x-25-mm-l-2-4-m/3663602858201_CAFR.prd", s:"solid square section, square edges; Les Ulis stock not checked. Not the baguette d'angle (L-shaped trim)" },
     a:null, pick:"c" },
   { id:"screws", name:"Stainless wood screws 4 × 40 mm (A2)", need:"about 24 for the shelf and risers, 12 more for the folding table's rail", aisle:"114",
     c:{ t:"Diall A2 Pozidriv 4 × 40, 200 pcs", p:19.90, u:"https://www.castorama.fr/vis-a-bois-en-acier-inoxydable-a2-pozidriv-4x40-mm-200-pieces/3663602748496_CAFR.prd", s:"5 in stock" },
@@ -183,7 +183,7 @@ const ITEMS = [
   { id:"brackets", name:"Corner brackets 40 × 40 mm, stainless", need:"9 for the kitchen shelf (riser brackets optional)", aisle:"113",
     c:{ t:"Diall équerres de chaise inox 15 × 40 × 40, 4 pcs, × 3 packs", p:22.77, u:"https://www.castorama.fr/4-equerres-de-chaise-acier-inox-l-15-x-h-40-x-p-40-mm/3454975692321_CAFR.prd", s:"€7.59 per pack, 5 packs in stock; no screws" },
     a:{ t:"VFANDV stainless 40 × 40 × 16 mm, 20 pcs with screws", p:7.79, u:"https://www.amazon.fr/dp/B0D6YTK3KT", s:"4.4★ (121); delivery wait" }, pick:"c" },
-  { id:"brscrews", name:"Short stainless screws for the brackets", need:"2 per bracket leg, about 36. Shelf side: 3 or 3.5 mm × 12 to 16 mm long, no longer (the shelf is 18 mm). Post side: up to 25 mm is fine.", aisle:"114",
+  { id:"brscrews", name:"Short stainless screws for the brackets", need:"2 per bracket leg, about 36. Shelf side: 3 or 3.5 mm × 12 to 16 mm long, no longer (the shelf is 18 mm). Post side: 16 mm too (the post is 25 mm thick); one pack size for both sides.", aisle:"114",
     c:{ t:"Look in the screw aisle for A2 inox 3 × 12–16 or 3.5 × 16, 2 packs", p:8.38, u:CA+"vis%20inox%20a2%203%20x%2016", s:"none showed in stock online; price estimated from the €4.19 Diall A2 20-pack" },
     a:{ t:"Included in the Amazon bracket pack", p:0, u:"https://www.amazon.fr/dp/B0D6YTK3KT", s:"15 mm" }, pick:"c" },
   { id:"glue", name:"Water-resistant wood glue", need:"1 bottle (225 g is plenty, also for the table's rail)", aisle:"?",
