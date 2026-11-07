@@ -77,6 +77,19 @@
   </nav>
   <p class="lede">Everything the shelf build needs, for Castorama Les Ulis. Stock, prices and aisle numbers (allée) were read from castorama.fr on 7 Nov 2026 with Les Ulis selected. The October price comparison with Amazon.fr is at the bottom. The list also covers the closet riser and the jar riser, which come out of the same board and batten. Tick what you already own and the totals update.</p>
 
+  <h2>What goes where</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>Build</th><th>Wood</th><th>Brackets</th><th>Screws</th></tr></thead>
+      <tbody>
+      <tr><td><strong>Under-sink shelf</strong> (damp: stainless, water-resistant glue)</td><td>Both shelves from the pine board; 6 posts from the 25 × 25 tasseau (3 × 300, 3 × 182)</td><td><strong>9</strong>: one at each post-to-shelf joint (3 under the middle shelf, 3 on top of it, 3 under the top shelf). Buy 3 packs of 4 = 12, so 3 spare.</td><td>About 12 of the 4 × 40, plus 36 short ones for the brackets (2 per bracket leg)</td></tr>
+      <tr><td><strong>Closet riser</strong> (dry)</td><td>750 × 400 top from the board; 4 legs of 182 from the same tasseau</td><td><strong>None.</strong> The legs only carry weight straight down; two 4 × 40 screws per leg plus glue are enough. The 3 spare brackets can go on if it wobbles.</td><td>8 of the 4 × 40</td></tr>
+      <tr><td><strong>Jar riser</strong> (dry)</td><td>Top from the end of the board; 4 legs of 162 from your 20 mm dowels</td><td><strong>None</strong></td><td>4 of the 4 × 40, one into the centre of each dowel end, plus glue</td></tr>
+      </tbody>
+    </table>
+    <p class="note">Nothing extra is bought for the two risers: they share the board, the tasseau, the 4 × 40 screws and the glue bottle with the shelf. They don't need stainless or water-resistant glue, but the same stock is used because it is already in the basket.</p>
+  </div>
+
   <div class="totals">
     <div class="tot main"><div class="v" id="t-pick">…</div><div class="k">Basket at Castorama Les Ulis</div></div>
     <div class="tot"><div class="v" id="t-have">…</div><div class="k">Lines ticked as already owned</div></div>
@@ -180,7 +193,7 @@ const ITEMS = [
   { id:"screws", name:"Stainless wood screws 4 × 40 mm (A2)", need:"about 24 for the shelf and risers, 12 more for the folding table's rail", aisle:"114",
     c:{ t:"Diall A2 Pozidriv 4 × 40, 200 pcs", p:19.90, u:"https://www.castorama.fr/vis-a-bois-en-acier-inoxydable-a2-pozidriv-4x40-mm-200-pieces/3663602748496_CAFR.prd", s:"5 in stock" },
     a:{ t:"A2 Torx 4 × 40 countersunk, full thread, 200 pcs", p:14.90, u:AM+"vis+bois+inox+A2+4x40+200+pi%C3%A8ces", s:"4.5★ (78)" }, pick:"c" },
-  { id:"brackets", name:"Corner brackets 40 × 40 mm, stainless", need:"9 for the kitchen shelf (riser brackets optional)", aisle:"113",
+  { id:"brackets", name:"Corner brackets 40 × 40 mm, stainless", need:"9, all under the sink (3 packs of 4 = 12, 3 spare). The risers need none.", aisle:"113",
     c:{ t:"Diall équerres de chaise inox 15 × 40 × 40, 4 pcs, × 3 packs", p:22.77, u:"https://www.castorama.fr/4-equerres-de-chaise-acier-inox-l-15-x-h-40-x-p-40-mm/3454975692321_CAFR.prd", s:"€7.59 per pack, 5 packs in stock; no screws" },
     a:{ t:"VFANDV stainless 40 × 40 × 16 mm, 20 pcs with screws", p:7.79, u:"https://www.amazon.fr/dp/B0D6YTK3KT", s:"4.4★ (121); delivery wait" }, pick:"c" },
   { id:"brscrews", name:"Short stainless screws for the brackets", need:"2 per bracket leg, about 36. Shelf side: 3 or 3.5 mm × 12 to 16 mm long, no longer (the shelf is 18 mm). Post side: 16 mm too (the post is 25 mm thick); one pack size for both sides.", aisle:"114",
