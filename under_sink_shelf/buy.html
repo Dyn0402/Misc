@@ -28,9 +28,22 @@
   .tot .v { font-size: 1.7rem; font-weight: 650; }
   .tot .k { color: var(--mut); font-size: .85rem; }
   .tot.main { border-color: var(--acc); }
-  table { width: 100%; border-collapse: collapse; font-size: .93rem; min-width: 760px; }
+  table { width: 100%; border-collapse: collapse; font-size: .93rem; min-width: 520px; }
   th, td { text-align: left; padding: 8px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { color: var(--mut); font-weight: 600; }
+  @media (max-width: 640px) {
+    #list { min-width: 0; }
+    #list thead { display: none; }
+    #list tr { display: grid; grid-template-columns: 30px 52px 1fr auto; border-bottom: 1px solid var(--line); padding: 6px 0; }
+    #list td { border: none; padding: 4px 6px; }
+    #list td.aisle { width: auto; font-size: 1.3rem; padding: 0 4px; text-align: left; }
+    #list td:nth-child(3) { grid-column: 3 / 5; }
+    #list td:nth-child(4) { grid-column: 3 / 4; }
+    #list td:nth-child(5) { grid-column: 4 / 5; }
+    nav.tabs a { padding: 8px 10px; }
+  }
+  td.aisle { font-size: 1.5rem; font-weight: 700; color: var(--acc); text-align: center; white-space: nowrap; width: 4.5em; }
+  th.aisle { text-align: center; }
   td.num, th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
   tr.own td { opacity: .45; }
   tr.own td:first-child { opacity: 1; }
@@ -55,12 +68,10 @@
     <a href="cuts.html">Découpe</a>
     <a href="table.html">Folding table</a>
   </nav>
-  <p class="lede">Everything the shelf build needs, for Castorama Les Ulis. Stock, prices and aisle numbers (allée) were read from castorama.fr on 7 Nov 2026 with Les Ulis selected; Amazon.fr is kept for comparison. The list also covers the closet riser and the jar riser, which come out of the same board and batten. Tick what you already own and the totals update.</p>
+  <p class="lede">Everything the shelf build needs, for Castorama Les Ulis. Stock, prices and aisle numbers (allée) were read from castorama.fr on 7 Nov 2026 with Les Ulis selected. The October price comparison with Amazon.fr is at the bottom. The list also covers the closet riser and the jar riser, which come out of the same board and batten. Tick what you already own and the totals update.</p>
 
   <div class="totals">
-    <div class="tot main"><div class="v" id="t-pick">…</div><div class="k">Recommended basket (cheapest sensible pick per line)</div></div>
-    <div class="tot"><div class="v" id="t-cast">…</div><div class="k">Everything from Castorama</div></div>
-    <div class="tot"><div class="v" id="t-amz">…</div><div class="k">Amazon wherever it has the item (timber still from Castorama)</div></div>
+    <div class="tot main"><div class="v" id="t-pick">…</div><div class="k">Basket at Castorama Les Ulis</div></div>
     <div class="tot"><div class="v" id="t-have">…</div><div class="k">Lines ticked as already owned</div></div>
   </div>
 
@@ -68,7 +79,7 @@
   <div class="card">
     <table id="list">
       <thead>
-        <tr><th>Own it</th><th>Item and amount needed</th><th>Allée</th><th>Castorama</th><th class="num">€</th><th>Amazon.fr (similar)</th><th class="num">€</th><th>Buy</th></tr>
+        <tr><th>Own it</th><th class="aisle">Allée</th><th>Item and amount needed</th><th>Castorama product</th><th class="num">€</th></tr>
       </thead>
       <tbody></tbody>
     </table>
@@ -80,14 +91,21 @@
     <p>The table is not bought today, only looked at. These shelf picks are chosen so they also serve it:</p>
     <ul>
       <li><strong>Screws: the 200-pack of 4 × 40 A2</strong> (allée 114). 24 go into the shelf and risers, 12 into the table's rail, and the rest are spares.</li>
-      <li><strong>Saw: Stanley STHT20350-1, 500 mm, 8 teeth per inch</strong> (allée 119, only 1 in stock). The JET-CUT fine on earlier versions of this list is not stocked at Les Ulis. 8 TPI cuts a little rougher than "fine" but faster, which suits the long oak cuts too. If it's gone, the 400 mm 7 TPI saw (€5.19, allée 119, 9 in stock) does the job for the shelf.</li>
+      <li><strong>Saw: Magnusson 500 mm, 11 teeth per inch, coupe fine</strong> (€16.90, allée 119, 12 in stock). The fine teeth leave a clean edge in pine and oak, and 500 mm is long enough for the oak later. If it's not on the shelf, in order of preference (all allée 119):
+        <ul>
+          <li>Magnusson 450 mm, 11 TPI, €11.50: the same teeth, a bit shorter. Fine for the shelf and the battens.</li>
+          <li>Magnusson 500 mm, 9 TPI "coupe universelle", €18.90: faster, slightly rougher edge.</li>
+          <li>Stanley STHT20350-1, 500 mm, 8 TPI, €18.90 (only 1 in stock).</li>
+          <li>Budget: 400 mm, 7 TPI, €5.19. Rough but works for the shelf; sand the cut ends.</li>
+        </ul>
+        Avoid saws labelled plaque de plâtre / cloison sèche (drywall) or métaux (metal). Look for "bois" and 8 to 11 dents par pouce (TPI). A Magnusson mitre box with its own saw (boîte à onglet et scie, €11.90, allée 72, next to the battens) is a good extra for square batten cuts.</li>
       <li><strong>Glue and clamps:</strong> one 225 g Pattex bottle and the pair of 300 mm clamps cover gluing the table's rail as well.</li>
-      <li><strong>Optional, for both:</strong> a carpenter's square (équerre de menuisier) to mark every cut, and a mitre box (boîte à onglets) for square batten cuts.</li>
+      <li><strong>Optional, for both:</strong> a carpenter's square (équerre de menuisier) to mark every cut,.</li>
       <li><strong>Looking at the oak:</strong> the 60 × 200 × 18 mm oak board is in allée 136 (€66.90, 9 in stock). Hold it next to a photo of your counter, and check the boards for twist and cracks. The cut plan for it is on the <a href="cuts.html">Découpe</a> tab for when you buy it.</li>
     </ul>
   </div>
 
-  <h2>What the comparison found</h2>
+  <h2>What the Castorama / Amazon comparison found (Oct)</h2>
   <div class="card">
     <ul>
       <li><strong>Castorama versus Amazon overall:</strong> the timber is only at Castorama, so a Castorama trip is needed either way. Buying everything else on Amazon too costs more (about €122 against €111), mostly because of clamps, brush and sandpaper. The cheapest mix is Castorama for everything except the brackets.</li>
@@ -106,7 +124,7 @@
       <li>The batten page lists a bevelled edge, so the posts will have slightly eased edges.</li>
       <li>For the damp cabinet the glue should be water-resistant (D3). The Pattex Power pick is rated "water resistant", with no D-class on the listing. Sader Pro D3 (100 g, €9.89) is the one that states D3.</li>
       <li>A pilot drill bit (2.5 mm) and a countersink are not on the list. Add them if you do not have them.</li>
-      <li>The saw is a straight hand saw rather than the coping saw on earlier versions of this list: every cut left is straight. Sand the cut ends afterwards to clean up the 8 TPI edge.</li>
+      <li>The saw is a straight hand saw rather than the coping saw on earlier versions of this list: every cut left is straight.</li>
       <li><strong>Jar riser for the kitchen top closet:</strong> a top of up to 600 × 400 mm on four 20 mm dowel legs, 162 mm long, 18 cm tall overall. The legs come from your two 1 m dowels, so it costs nothing extra. The top fits on the same board only if the two kitchen shelves are cut nested (turned 180° to each other, see the cut plan on the Design tab), which brings them from 860 mm of board down to 618 mm. The shop leaves the end of the board (about 624 mm) as this piece; cut it to the closet's size yourself. Fix each leg with one 4 × 40 screw down through the top into a 2.5 mm pilot hole in the centre of the dowel end, plus glue. After all three pieces, about 175 mm of batten and the dowel offcuts are left.</li>
       <li><strong>Closet riser:</strong> a 750 × 400 mm top (the closet is about 76 cm wide with obstacles) on four 27 × 27 mm legs, 182 mm long, 200 mm tall overall. Fix each leg with two 4 × 40 screws down through the top. Brackets and glue are optional on the riser: its legs are short and only carry weight straight down. The cut plan is in <code>closet_riser.py</code>.</li>
     </ul>
@@ -136,9 +154,10 @@ const ITEMS = [
   { id:"glue", name:"Water-resistant wood glue", need:"1 bottle (225 g is plenty, also for the table's rail)", aisle:"?",
     c:{ t:"Pattex Power white, water resistant, 225 g", p:9.69, u:"https://www.castorama.fr/colle-a-bois-pattex-power-blanc-resiste-a-l-eau-225g/3178041344210_CAFR.prd", s:"19 in stock; aisle not listed, ask (usually near the screws)" },
     a:{ t:"Wood assembly glue D3, interior/exterior", p:9.89, u:AM+"colle+%C3%A0+bois+D3+r%C3%A9sistante+%C3%A0+l%27eau", s:"" }, pick:"c" },
-  { id:"saw", name:"Hand saw (égoïne)", need:"1 (all cuts are straight: the legs, the diagonal if the shop won't, later the oak)", aisle:"119",
-    c:{ t:"Stanley STHT20350-1, 500 mm, 8 TPI", p:18.90, u:"https://www.castorama.fr/scie-egoine-a-bois-stanley-stht20350-1-lame-en-acier-trempe-500-mm-8-dents-par-pouce/3253561203510_CAFR.prd", s:"1 in stock. Backup: 400 mm 7 TPI €5.19, 9 in stock, same aisle" },
-    a:{ t:"Stanley 2-15-599 JetCut fine 500 mm", p:16.92, u:AM+"scie+%C3%A9go%C3%AFne+stanley+jetcut+fine", s:"4.7★ (1.7K)" }, pick:"c" },
+  { id:"saw", name:"Hand saw (égoïne), fine cut", need:"1 (all cuts are straight: the legs, the diagonal if the shop won't, later the oak). If it's not there, any of the alternatives below works.", aisle:"119",
+    c:{ t:"Magnusson scie à bois 500 mm, 11 dents, coupe fine", p:16.90, u:"https://www.castorama.fr/scie-a-bois-magnusson-500-mm-11-dents-coupe-fine/3663602494348_CAFR.prd",
+        s:"12 in stock. Alternatives, all allée 119: Magnusson 450 mm 11 TPI €11.50 (9 in stock); Magnusson 500 mm 9 TPI universelle €18.90 (6); Stanley STHT20350-1 500 mm 8 TPI €18.90 (1); budget 400 mm 7 TPI €5.19 (9)" },
+    a:{ t:"Stanley 2-15-599 JetCut fine 500 mm", p:16.92, u:AM+"scie+%C3%A9go%C3%AFne+stanley+jetcut+fine", s:"" }, pick:"c" },
   { id:"clamps", name:"Screw clamps (about 300 mm)", need:"2", aisle:"117",
     c:{ t:"Serre-joint à visser 300 × 80 mm, pack of 2", p:8.99, u:"https://www.castorama.fr/serre-joint-a-visser-300-x-80-mm-vendu-par-2/3663602819493_CAFR.prd", s:"17 in stock" },
     a:{ t:"Screw clamp, 60 mm jaw, 300 mm opening (single)", p:22.99, u:AM+"serre-joint+%C3%A0+vis+300mm+lot+de+2", s:"" }, pick:"c" },
@@ -168,7 +187,7 @@ function render() {
     const buy = !it.a ? '<span class="tag c">Castorama</span>' :
       it.pick === "a" ? '<span class="tag a">Amazon</span>' : '<span class="tag c">Castorama</span>';
     const cb = `<input type="checkbox" data-id="${it.id}" ${owned.has(it.id) ? "checked" : ""} aria-label="I already have ${it.name}">`;
-    tr.innerHTML = `<td>${cb}</td><td><strong>${it.name}</strong><span class="sub">${it.need}</span></td><td class="num"><strong>${it.aisle || ""}</strong></td>${cell(it.c)}${cell(it.a)}<td>${buy}</td>`;
+    tr.innerHTML = `<td>${cb}</td><td class="aisle">${it.aisle || ""}</td><td><strong>${it.name}</strong><span class="sub">${it.need}</span></td>${cell(it.c)}`;
     body.appendChild(tr);
   }
   let pick = 0, cast = 0, amz = 0, have = 0;
@@ -180,8 +199,6 @@ function render() {
     amz += it.a ? it.a.p : it.c.p;
   }
   document.getElementById("t-pick").textContent = eur(pick);
-  document.getElementById("t-cast").textContent = eur(cast);
-  document.getElementById("t-amz").textContent = eur(amz);
   document.getElementById("t-have").textContent = eur(have);
 }
 
