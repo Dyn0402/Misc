@@ -32,7 +32,14 @@
   th, td { text-align: left; padding: 8px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { color: var(--mut); font-weight: 600; }
   @media (max-width: 640px) {
-    #list { min-width: 0; }
+    #list, #tablelook { min-width: 0; }
+    #tablelook thead { display: none; }
+    #tablelook tr { display: grid; grid-template-columns: 30px 52px 1fr auto; border-bottom: 1px solid var(--line); padding: 6px 0; }
+    #tablelook td { border: none; padding: 4px 6px; }
+    #tablelook td.aisle { width: auto; font-size: 1.3rem; padding: 0 4px; text-align: left; }
+    #tablelook td:nth-child(3) { grid-column: 3 / 5; }
+    #tablelook td:nth-child(4) { grid-column: 3 / 4; }
+    #tablelook td:nth-child(5) { grid-column: 4 / 5; }
     #list thead { display: none; }
     #list tr { display: grid; grid-template-columns: 30px 52px 1fr auto; border-bottom: 1px solid var(--line); padding: 6px 0; }
     #list td { border: none; padding: 4px 6px; }
@@ -86,6 +93,35 @@
   </div>
   <p class="note">The totals count each line as listed. Delivery is not included. "Stock" is what castorama.fr showed for Les Ulis on 7 Nov; it can change by the time you get there. Already owned, so not on the list: sandpaper (150-grit sheets), a drill and wood drill bits (check you have a 2.5 mm one for the pilot holes, and a countersink).</p>
 
+  <h2>Folding table: things to look at today</h2>
+  <p class="note">Not buying yet. The same Les Ulis check as above (7 Nov). Full list and reasons on the <a href="table.html">Folding table</a> tab, section 8.</p>
+  <div class="card">
+    <table id="tablelook">
+      <thead><tr><th></th><th class="aisle">Allée</th><th>Item</th><th>Castorama product</th><th class="num">€</th></tr></thead>
+      <tbody>
+      <tr><td></td><td class="aisle">136</td><td><strong>Oak board 60 × 200 cm, 18 mm</strong><span class="sub">The top, one rail layer and the two corbels</span></td><td><a href="https://www.castorama.fr/tablette-en-chene-massif-60-x-200-cm-x-ep-18-mm/3428350090293_CAFR.prd">Tablette en chêne massif 60 × 200, ép. 18</a><span class="sub">9 in stock</span></td><td class="num">66,90 €</td></tr>
+      <tr><td></td><td class="aisle">136</td><td><strong>Oak board 50 × 200 cm, 18 mm</strong><span class="sub">The other two rail layers; most of it is left over</span></td><td><a href="https://www.castorama.fr/tablette-en-chene-massif-50-x-200-cm-ep-18-mm/3428350073760_CAFR.prd">Tablette en chêne massif 50 × 200, ép. 18</a><span class="sub">5 in stock</span></td><td class="num">55,90 €</td></tr>
+      <tr><td></td><td class="aisle">113</td><td><strong>Piano hinge 1740 × 32 mm</strong><span class="sub">Top to rail, cut to 120 cm</span></td><td><a href="https://www.castorama.fr/charniere-a-piano-nickelee-diall-1740-x-32-mm/3101781014372_CAFR.prd">Charnière à piano nickelée Diall</a><span class="sub">12 in stock</span></td><td class="num">5,89 €</td></tr>
+      <tr><td></td><td class="aisle">113</td><td><strong>Stainless hinges 100 × 50 mm, 2 packs of 2</strong><span class="sub">The corbel hinges, 2 per corbel</span></td><td><a href="https://www.castorama.fr/charniere-inox-qcl-100-x-50-mm-vendue-par-2/3454975706745_CAFR.prd">Charnière inox QCL 100 × 50, par 2</a><span class="sub">4 packs in stock</span></td><td class="num">11,90 a pack €</td></tr>
+      <tr><td></td><td class="aisle">134</td><td><strong>Beech dowel 10 mm × 1 m</strong><span class="sub">Four 40 mm pegs, corbels to the top</span></td><td><a href="https://www.castorama.fr/tourillon-en-bois-d-hetre-lisse-diametre-10-mm-l-1-m/3663602871378_CAFR.prd">Tourillon hêtre lisse Ø 10, 1 m</a><span class="sub">30 in stock</span></td><td class="num">2,09 €</td></tr>
+      <tr><td></td><td class="aisle">114</td><td><strong>Wall anchors (solid brick)</strong><span class="sub">About 13 fixings; only after the 6 mm drill test</span></td><td><a href="https://www.castorama.fr/cheville-rallongee-fischer-duoxpand-10-x-80-mm-4-pieces/4048962440461_CAFR.prd">Fischer DuoXpand 10 × 80, 4 pcs, × 4</a><span class="sub">10 packs in stock; the listing mentions a countersunk screw</span></td><td class="num">6,89 a pack €</td></tr>
+      <tr><td></td><td class="aisle">27</td><td><strong>Worktop oil, 0.5 L</strong><span class="sub">Three coats on the whole table</span></td><td><a href="https://www.castorama.fr/huile-plan-de-travail-biosourcee-aspect-chene-clair-mat-syntilor-0-5-l/3239910250015_CAFR.prd">Syntilor huile plan de travail, chêne clair mat</a><span class="sub">2 in stock</span></td><td class="num">23,50 €</td></tr>
+      <tr><td></td><td class="aisle">119</td><td><strong>Hacksaw</strong><span class="sub">To cut the piano hinge to length</span></td><td><a href="https://www.castorama.fr/scie-a-metaux-grande-taille-magnusson/3663602820178_CAFR.prd">Magnusson scie à métaux grande taille</a><span class="sub">22 in stock; a cheaper 425 mm one is on the table page</span></td><td class="num">14,50 €</td></tr>
+      <tr><td></td><td class="aisle">121</td><td><strong>Jigsaw (optional)</strong><span class="sub">The rounded corners and angled ends in oak</span></td><td><a href="https://www.castorama.fr/scie-sauteuse-filaire-pendualire-4-niveaux-520-w-maxi-3100-tr-min-bosch-pst-750/3165140616850_CAFR.prd">Bosch PST 750, 520 W</a><span class="sub">9 in stock; was 69,90 on 6 Nov</span></td><td class="num">89,90 €</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card" style="margin-top:12px">
+    <p><strong>What to check while you're there</strong></p>
+    <ul>
+      <li><strong>The oak boards (allée 136):</strong> pick the flattest ones. Sight along each long edge for bow and twist, and lay the board on the floor to see if it rocks. Look for cracks at the ends, loose knots and glue lines that have opened between the strips. Compare the colour with a photo of your counter; and look at the tint shown on the Syntilor oil tin (allée 27).</li>
+      <li><strong>The cutting desk:</strong> ask whether they would rip the oak lengthwise into ~10 cm strips, 2 m long, and what it costs per cut. That is the plan on the Découpe tab for when you buy it.</li>
+      <li><strong>Hinges (allée 113):</strong> look at the screw holes on the piano hinge and the 100 × 50 hinges, and check whether screws come in the pack. Note the hole size, so the right short screws can be bought (16 mm at most into the 18 mm top).</li>
+      <li><strong>Anchors (allée 114):</strong> just look; which ones to buy depends on the drill test (solid or hollow brick). If hollow, the resin kits are on the table page.</li>
+      <li><strong>Cable detector:</strong> the Magnusson one is not in stock at Les Ulis; borrow one or check another store before drilling.</li>
+    </ul>
+  </div>
+
   <h2>Buying with the folding table in mind</h2>
   <div class="card">
     <p>The table is not bought today, only looked at. These shelf picks are chosen so they also serve it:</p>
@@ -101,7 +137,6 @@
         Avoid saws labelled plaque de plâtre / cloison sèche (drywall) or métaux (metal). Look for "bois" and 8 to 11 dents par pouce (TPI). A Magnusson mitre box with its own saw (boîte à onglet et scie, €11.90, allée 72, next to the battens) is a good extra for square batten cuts.</li>
       <li><strong>Glue and clamps:</strong> one 225 g Pattex bottle and the pair of 300 mm clamps cover gluing the table's rail as well.</li>
       <li><strong>Optional, for both:</strong> a carpenter's square (équerre de menuisier) to mark every cut,.</li>
-      <li><strong>Looking at the oak:</strong> the 60 × 200 × 18 mm oak board is in allée 136 (€66.90, 9 in stock). Hold it next to a photo of your counter, and check the boards for twist and cracks. The cut plan for it is on the <a href="cuts.html">Découpe</a> tab for when you buy it.</li>
     </ul>
   </div>
 
