@@ -34,7 +34,7 @@ def boxp(u0, u1, w0, w1, z0, z1, kind, new=False):
 
 def post(n, z0, z1, new=False):
     u, w = POSTS[n]
-    return boxp(u, u + LEG, w, w + LEG, z0, z1, "post", new)
+    return dict(boxp(u, u + LEG, w, w + LEG, z0, z1, "post", new), id=f"{n}{z0}")
 
 
 def bracket(n, zj, shelf_above, new=False):
@@ -51,6 +51,11 @@ def bracket(n, zj, shelf_above, new=False):
     else:  # left face
         a = boxp(u - BR_T, u, cw - BR_W / 2, cw + BR_W / 2, zp0, zp1, "steel", new)
         b = boxp(u - BR_L, u, cw - BR_W / 2, cw + BR_W / 2, zs0, zs1, "steel", new)
+    # drawn right after the post it is screwed to (it is always on a face the view can see),
+    # but before any shelf above it
+    pid = f"{n}0" if zj == ZL else f"{n}{ZL + T}"   # base post under the middle shelf, else the middle post
+    for o in (a, b):
+        o["follow"] = pid
     return [a, b]
 
 
@@ -142,7 +147,16 @@ class Fig:
     def svg(self, aria, scale=1.0):
         body = []
         v = self.v
-        objs = sorted(self.objs, key=lambda o: (round(o["z0"]), v.depth(*centroid(o))))
+        key = {}
+        for o in self.objs:
+            if "id" in o:
+                key[o["id"]] = (round(o["z0"]), v.depth(*centroid(o)))
+        def k(o):
+            if "follow" in o:
+                z, d = key[o["follow"]]
+                return (z, d + 1e-3 * (1 + o["z1"] - o["z0"]))
+            return (round(o["z0"]), v.depth(*centroid(o)))
+        objs = sorted(self.objs, key=k)
         for o in objs:
             k = o["kind"]
             for pts, n in faces(o):
@@ -322,27 +336,45 @@ def fig_section():
     # dimension: 18 / 22
     lbl(16, 41, "tip 22 mm into the post", "end")
 
-    # right: bracket screw. shelf upside down as you fit it (bracket on the shelf, which lies on the table)
+    # right: a bracket in the corner, as you fit it (shelf upside down on the table, post standing on it).
+    # The post sits straight on the wood; the L wraps the outside of the corner: one leg flat on the shelf,
+    # one leg up the post face.
     bx = 110
-    R(bx, 30, 60, 18, "pine-a")          # shelf 30..48
-    R(bx + 5, 30 - BR_T * 0.8, 40, BR_T * 0.8, "steel-a")  # bracket leg on the shelf face
-    R(bx + 2, -12, 25, 42 - BR_T * 0.8, "post-a")  # post standing on the shelf
-    R(bx + 27, -10 + 0, BR_T * 0.8, 40 - BR_T * 0.8 + 0, "steel-a")  # bracket leg on the post face (up)
-    sx = bx + 37
-    # short screw
-    out.append(f'<polygon class="screw" points="{ox + (sx - 3) * s:.1f},{oy + (30 - 2.4) * s:.1f} {ox + (sx + 3) * s:.1f},{oy + (30 - 2.4) * s:.1f} '
-               f'{ox + (sx + 1.2) * s:.1f},{oy + (30 - 2.4 + 12) * s:.1f} {ox + sx * s:.1f},{oy + (30 - 2.4 + 13.5) * s:.1f} {ox + (sx - 1.2) * s:.1f},{oy + (30 - 2.4 + 12) * s:.1f}"/>')
-    # drill with tape flag
-    dx0 = bx + 52
-    out.append(f'<rect class="bit" x="{ox + (dx0 - 1) * s:.1f}" y="{oy + 4 * s:.1f}" width="{2 * s:.1f}" height="{(30 - 4 + 12) * s - 0:.1f}"/>')
-    out.append(f'<rect class="tape" x="{ox + (dx0 - 4) * s:.1f}" y="{oy + 14 * s:.1f}" width="{8 * s:.1f}" height="{4 * s:.1f}"/>')
-    out.append(f'<path class="dim" d="M{ox + (dx0 + 6) * s:.1f},{oy + 18 * s:.1f}v{24 * s:.1f}"/>')
-    lbl(bx + 30, -15, "Bracket screw", "middle", "b")
-    lbl(dx0 + 8, 16, "tape flag on the", "start")
-    lbl(dx0 + 8, 19.5, "2 mm bit", "start")
-    lbl(dx0 + 8, 34, "~12 mm deep", "start")
-    lbl(bx + 30, 53, "screw ≤ 16 mm: the shelf is only 18", "middle")
-    wv, hv = ox + (bx + 100) * s, oy + 66 * s
+    th = 2.0                                       # bracket metal, drawn a little thick to show
+    R(bx, 30, 95, 18, "pine-a")                    # shelf 30..48
+    R(bx + 2, -14, 25, 44, "post-a")               # post standing directly on the shelf
+    R(bx + 27, 30 - th, 40, th, "steel-a")         # leg flat on the shelf
+    R(bx + 27, 30 - 40, th, 40 - th, "steel-a")    # leg up the post face
+
+    def screw_v(x, y0, L):                         # pointing down
+        out.append(f'<polygon class="screw" points="{ox + (x - 3) * s:.1f},{oy + y0 * s:.1f} {ox + (x + 3) * s:.1f},{oy + y0 * s:.1f} '
+                   f'{ox + (x + 1.2) * s:.1f},{oy + (y0 + L - 1.5) * s:.1f} {ox + x * s:.1f},{oy + (y0 + L) * s:.1f} {ox + (x - 1.2) * s:.1f},{oy + (y0 + L - 1.5) * s:.1f}"/>')
+
+    def screw_h(y, x0, L):                         # pointing left, into the post
+        out.append(f'<polygon class="screw" points="{ox + x0 * s:.1f},{oy + (y - 3) * s:.1f} {ox + x0 * s:.1f},{oy + (y + 3) * s:.1f} '
+                   f'{ox + (x0 - L + 1.5) * s:.1f},{oy + (y + 1.2) * s:.1f} {ox + (x0 - L) * s:.1f},{oy + y * s:.1f} {ox + (x0 - L + 1.5) * s:.1f},{oy + (y - 1.2) * s:.1f}"/>')
+
+    screw_v(bx + 40, 30 - th, 14)
+    screw_v(bx + 56, 30 - th, 14)
+    screw_h(5, bx + 27 + th, 14)
+    screw_h(19, bx + 27 + th, 14)
+    # drill with its tape flag, shown at full depth: the tape touches the wood when the hole is 12 deep
+    dx0 = bx + 82
+    out.append(f'<rect class="bit" x="{ox + (dx0 - 1) * s:.1f}" y="{oy - 3 * s:.1f}" width="{2 * s:.1f}" height="{45 * s:.1f}"/>')
+    out.append(f'<rect class="tape" x="{ox + (dx0 - 4) * s:.1f}" y="{oy + 25 * s:.1f}" width="{8 * s:.1f}" height="{5 * s:.1f}"/>')
+    out.append(f'<path class="dim" d="M{ox + (dx0 + 6) * s:.1f},{oy + 30 * s:.1f}v{12 * s:.1f}"/>')
+    lbl(bx + 45, -20, "Bracket: an L around the outside of the corner", "middle", "b")
+    lbl(bx + 31, -3, "leg up the post", "start")
+    lbl(bx + 31, 0.5, "2 screws into the post", "start")
+    lbl(bx + 31, 22, "leg flat on the shelf, 2 screws", "start")
+    lbl(dx0 + 4, -9, "tape flag on the", "middle")
+    lbl(dx0 + 4, -5.5, "2 mm bit", "middle")
+    lbl(dx0 + 8, 37.5, "12", "start")
+    lbl(bx - 2, -5, "post sits", "end")
+    lbl(bx - 2, -1.5, "straight on", "end")
+    lbl(bx - 2, 2, "the wood", "end")
+    lbl(bx + 47, 53, "shelf-side screws ≤ 16 mm: the shelf is only 18", "middle")
+    wv, hv = ox + (bx + 110) * s, oy + 66 * s
     return (f'<svg viewBox="0 -30 {wv:.0f} {hv + 30:.0f}" style="max-width:{wv:.0f}px" role="img" '
             'aria-label="Cross-sections: the 4 by 40 screw through a 4 mm hole into a 2.5 mm pilot, and a short bracket screw with a tape depth stop on the drill bit">'
             + "".join(out) + "</svg>")
