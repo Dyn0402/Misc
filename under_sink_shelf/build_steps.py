@@ -20,8 +20,8 @@ LEG, T, ZL, ZU = M.LEG, M.T, M.Z_LOW, M.Z_UP
 POSTS = {n: (W - (x - 15) - LEG, y - 15) for n, (x, y) in M.POSTS.items()}   # (u0, w0)
 CENTRE = {n: (u + LEG / 2, w + LEG / 2) for n, (u, w) in POSTS.items()}
 # which post face the bracket goes on: the face toward the middle of the shelf
-FACE = {"R": "front", "F": "back", "B": "front"}
-NORMAL = {"front": (0, 1, 0), "back": (0, -1, 0), "left": (-1, 0, 0)}
+FACE = {"R": "front", "F": "back", "B": "right"}
+NORMAL = {"front": (0, 1, 0), "back": (0, -1, 0), "left": (-1, 0, 0), "right": (1, 0, 0)}
 BR_W, BR_L, BR_T = 15, 40, 3
 
 
@@ -52,6 +52,9 @@ def bracket(n, zj, shelf_above, new=False):
     elif FACE[n] == "back":
         a = boxp(cu - BR_W / 2, cu + BR_W / 2, w - BR_T, w, zp0, zp1, "steel", new)
         b = boxp(cu - BR_W / 2, cu + BR_W / 2, w - BR_L, w, zs0, zs1, "steel", new)
+    elif FACE[n] == "right":
+        a = boxp(u + LEG, u + LEG + BR_T, cw - BR_W / 2, cw + BR_W / 2, zp0, zp1, "steel", new)
+        b = boxp(u + LEG, u + LEG + BR_L, cw - BR_W / 2, cw + BR_W / 2, zs0, zs1, "steel", new)
     else:  # left face
         a = boxp(u - BR_T, u, cw - BR_W / 2, cw + BR_W / 2, zp0, zp1, "steel", new)
         b = boxp(u - BR_L, u, cw - BR_W / 2, cw + BR_W / 2, zs0, zs1, "steel", new)
@@ -597,7 +600,7 @@ def page():
         <li>Glue the end of a base post. End grain soaks up glue: spread a thin coat, wait about 5 minutes, add a second coat.</li>
         <li>Stand the post on its square and press it down.</li>
         <li>Fit a <strong>bracket</strong> in the corner between the post and the shelf, on the post face that points into the shelf
-          (the front face for the two back posts, the back face for the front-right one), so the flat leg points into the shelf, away from the edges. (In the drawings the front-right one is hidden behind its post.)</li>
+          so its flat leg points into the shelf, never toward an edge: <strong>back-right</strong> on the post's front face, <strong>back-left</strong> on its right-hand face (the leg runs along the back wall, not toward the diagonal), <strong>front-right</strong> on its back face. Use the same face at every level. (Some are hidden behind their post in the drawings.)</li>
         <li>Pilot 2 mm (tape stop at about 12 mm) and drive the short screws: 2 into the shelf, 2 into the post.</li>
         <li>Do the other two posts the same way.</li>
         <li>Turn it <strong>the right way up</strong>, standing on its posts on the floor.</li>
