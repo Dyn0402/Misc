@@ -20,7 +20,8 @@ LEG, T, ZL, ZU = M.LEG, M.T, M.Z_LOW, M.Z_UP
 POSTS = {n: (W - (x - 15) - LEG, y - 15) for n, (x, y) in M.POSTS.items()}   # (u0, w0)
 CENTRE = {n: (u + LEG / 2, w + LEG / 2) for n, (u, w) in POSTS.items()}
 # which post face the bracket goes on: the face toward the middle of the shelf
-FACE = {"R": "front", "F": "left", "B": "front"}
+FACE = {"R": "front", "F": "back", "B": "front"}
+NORMAL = {"front": (0, 1, 0), "back": (0, -1, 0), "left": (-1, 0, 0)}
 BR_W, BR_L, BR_T = 15, 40, 3
 
 
@@ -48,6 +49,9 @@ def bracket(n, zj, shelf_above, new=False):
     if FACE[n] == "front":
         a = boxp(cu - BR_W / 2, cu + BR_W / 2, w + LEG, w + LEG + BR_T, zp0, zp1, "steel", new)
         b = boxp(cu - BR_W / 2, cu + BR_W / 2, w + LEG, w + LEG + BR_L, zs0, zs1, "steel", new)
+    elif FACE[n] == "back":
+        a = boxp(cu - BR_W / 2, cu + BR_W / 2, w - BR_T, w, zp0, zp1, "steel", new)
+        b = boxp(cu - BR_W / 2, cu + BR_W / 2, w - BR_L, w, zs0, zs1, "steel", new)
     else:  # left face
         a = boxp(u - BR_T, u, cw - BR_W / 2, cw + BR_W / 2, zp0, zp1, "steel", new)
         b = boxp(u - BR_L, u, cw - BR_W / 2, cw + BR_W / 2, zs0, zs1, "steel", new)
@@ -56,6 +60,7 @@ def bracket(n, zj, shelf_above, new=False):
     pid = f"{n}0" if zj == ZL else f"{n}{ZL + T}"   # base post under the middle shelf, else the middle post
     for o in (a, b):
         o["follow"] = pid
+        o["normal"] = NORMAL[FACE[n]]
     return [a, b]
 
 
@@ -63,6 +68,9 @@ def flip(objs, H):
     """Turn everything upside down: 180 degrees about the front-back axis."""
     out = []
     for o in objs:
+        if "normal" in o:
+            nx, ny, nz = o["normal"]
+            o = dict(o, normal=(-nx, ny, nz))
         out.append(dict(o, poly=[(W - u, w) for u, w in o["poly"]][::-1], z0=H - o["z1"], z1=H - o["z0"]))
     return out
 
@@ -154,7 +162,9 @@ class Fig:
         def k(o):
             if "follow" in o:
                 z, d = key[o["follow"]]
-                return (z, d + 1e-3 * (1 + o["z1"] - o["z0"]))
+                # on a face the view can see: right after its post; on a hidden face: just before it
+                sign = 1 if v.vis(o["normal"]) else -1
+                return (z, d + sign * 1e-3 * (1 + o["z1"] - o["z0"]))
             return (round(o["z0"]), v.depth(*centroid(o)))
         objs = sorted(self.objs, key=k)
         for o in objs:
@@ -389,8 +399,8 @@ def fig_step3a():
     f.label(W - 200, 330, T, "middle shelf, upside down|(underside up)", -60, 70)
     u, w = POSTS["R"]
     f.label(W - u - LEG / 2 - 12, w + LEG / 2, T, "glue the foot,|stand it on its square", -120, -60, "b")
-    cu, cw = CENTRE["F"]
-    f.label(W - cu + LEG / 2 + 20, cw, T + 3, "bracket on the inner face,|2 short screws per leg", 90, 40)
+    cu, cw = CENTRE["R"]
+    f.label(W - cu, cw + LEG / 2 + 25, T + 3, "bracket on the inner face,|2 short screws per leg", 90, 60)
     return f.svg("Step 3: the middle shelf lies upside down on the table; the three 300 mm base posts stand on it, each with a bracket")
 
 
@@ -411,7 +421,7 @@ def fig_step4():
     f.add(base_posts() + low_brackets() + [mid_shelf()] + mid_posts(True) + mid_brackets(True))
     f.label(*CENTRE["R"], ZU, "182 mm posts straight above the|base posts, over the screw heads", 60, -40, "b")
     cu, cw = CENTRE["F"]
-    f.label(cu - LEG / 2 - 25, cw, ZL + T + 3, "glue + bracket only|(no long screw here)", 40, 90)
+    f.label(cu - LEG / 2, cw, ZL + T + 60, "glue + bracket only|(no long screw here)", -60, 120)
     f.height(W + 45, 430, [0, ZL, ZL + T, ZU])
     return f.svg("Step 4: the three 182 mm middle posts glued on the middle shelf above the base posts, each with a bracket")
 
@@ -425,8 +435,8 @@ def fig_step5a():
     f.label(W - 200, 330, T, "top shelf, upside down", -80, 60)
     u, w = POSTS["B"]
     f.label(W - u - LEG / 2, w + LEG / 2, H, "the lower part, upside down,|middle posts glued onto their squares", -40, -40)
-    cu, cw = CENTRE["F"]
-    f.label(W - cu + LEG / 2 + 20, cw, T + 3, "3 brackets: easy to|reach this way up", 90, 40, "b")
+    cu, cw = CENTRE["R"]
+    f.label(W - cu, cw + LEG / 2 + 25, T + 3, "3 brackets: easy to|reach this way up", 90, 60, "b")
     return f.svg("Step 5: the top shelf lies upside down; the lower part is turned over onto it and the three brackets are fitted")
 
 
@@ -587,7 +597,7 @@ def page():
         <li>Glue the end of a base post. End grain soaks up glue: spread a thin coat, wait about 5 minutes, add a second coat.</li>
         <li>Stand the post on its square and press it down.</li>
         <li>Fit a <strong>bracket</strong> in the corner between the post and the shelf, on the post face that points into the shelf
-          (the front face for the two back posts, the inner side for the front-right one), so it is out of sight.</li>
+          (the front face for the two back posts, the back face for the front-right one), so the flat leg points into the shelf, away from the edges. (In the drawings the front-right one is hidden behind its post.)</li>
         <li>Pilot 2 mm (tape stop at about 12 mm) and drive the short screws: 2 into the shelf, 2 into the post.</li>
         <li>Do the other two posts the same way.</li>
         <li>Turn it <strong>the right way up</strong>, standing on its posts on the floor.</li>
