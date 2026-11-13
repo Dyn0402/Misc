@@ -330,8 +330,8 @@ def fig_section():
     R(17.5, 18, 25, 50, "post-a")
     cx = 30
     # clearance hole + countersink
-    R(cx - 2, 0, 4, 18, "hole")
-    out.append(f'<polygon class="hole" points="{ox + (cx - 4) * s:.1f},{oy:.1f} {ox + (cx + 4) * s:.1f},{oy:.1f} {ox + (cx + 2) * s:.1f},{oy + 2 * s:.1f} {ox + (cx - 2) * s:.1f},{oy + 2 * s:.1f}"/>')
+    R(cx - 2.5, 0, 5, 18, "hole")
+    out.append(f'<polygon class="hole" points="{ox + (cx - 4) * s:.1f},{oy:.1f} {ox + (cx + 4) * s:.1f},{oy:.1f} {ox + (cx + 2.5) * s:.1f},{oy + 1.5 * s:.1f} {ox + (cx - 2.5) * s:.1f},{oy + 1.5 * s:.1f}"/>')
     # pilot
     out.append(f'<rect class="pilot" x="{ox + (cx - 1.25) * s:.1f}" y="{oy + 18 * s:.1f}" width="{2.5 * s:.1f}" height="{25 * s:.1f}"/>')
     # screw
@@ -339,9 +339,9 @@ def fig_section():
                f'{ox + (cx + 1.6) * s:.1f},{oy + 38 * s:.1f} {ox + cx * s:.1f},{oy + 40 * s:.1f} {ox + (cx - 1.6) * s:.1f},{oy + 38 * s:.1f} {ox + (cx - 2) * s:.1f},{oy + 2 * s:.1f}"/>')
     lbl(30, -3, "4 × 40 screw", "middle", "b")
     lead(cx + 4, 1, 64, 3); lbl(65, 4, "countersink")
-    lead(cx + 2, 10, 64, 11); lbl(65, 12, "4 mm hole right")
+    lead(cx + 2, 10, 64, 11); lbl(65, 12, "5 mm (3/16\") hole right")
     lbl(65, 15.5, "through the shelf")
-    lead(cx + 1.3, 32, 64, 32); lbl(65, 33, "2.5 mm pilot,")
+    lead(cx + 1.3, 32, 64, 32); lbl(65, 33, "2.5 mm (3/32\") pilot,")
     lbl(65, 36.5, "~25 mm into the post")
     lbl(-2, 9, "shelf 18", "end")
     lbl(17, 55, "post", "end")
@@ -381,7 +381,7 @@ def fig_section():
     lbl(bx + 31, 0.5, "2 screws into the post", "start")
     lbl(bx + 31, 22, "leg flat on the shelf, 2 screws", "start")
     lbl(dx0 + 4, -9, "tape flag on the", "middle")
-    lbl(dx0 + 4, -5.5, "2 mm bit", "middle")
+    lbl(dx0 + 4, -5.5, "2 mm (5/64\") bit", "middle")
     lbl(dx0 + 8, 37.5, "12", "start")
     lbl(bx - 2, -5, "post sits", "end")
     lbl(bx - 2, -1.5, "straight on", "end")
@@ -389,7 +389,7 @@ def fig_section():
     lbl(bx + 47, 53, "shelf-side screws ≤ 16 mm: the shelf is only 18", "middle")
     wv, hv = ox + (bx + 110) * s, oy + 66 * s
     return (f'<svg viewBox="0 -30 {wv:.0f} {hv + 30:.0f}" style="max-width:{wv:.0f}px" role="img" '
-            'aria-label="Cross-sections: the 4 by 40 screw through a 4 mm hole into a 2.5 mm pilot, and a short bracket screw with a tape depth stop on the drill bit">'
+            'aria-label="Cross-sections: the 4 by 40 screw through a 5 mm hole into a 2.5 mm pilot, and a short bracket screw with a tape depth stop on the drill bit">'
             + "".join(out) + "</svg>")
 
 
@@ -414,7 +414,7 @@ def fig_step3b():
         cu, cw = CENTRE[n]
         f.screw(cu, cw, ZL + T, "4 × 40" if n == "B" else None, -1)
     f.label(150, 330, ZL + T, "turned right way up,|standing on its posts", -80, 40)
-    f.label(*CENTRE["R"], ZL + T, "2.5 mm pilot through|the 4 mm hole, then screw", 70, -60, "b")
+    f.label(*CENTRE["R"], ZL + T, "2.5 mm pilot through|the 5 mm hole, then screw", 70, -60, "b")
     f.height(W + 45, 430, [0, ZL, ZL + T])
     return f.svg("Step 3, continued: the shelf turned upright on its posts, with a 4 by 40 screw driven down into each post")
 
@@ -564,6 +564,19 @@ def page():
     </ul>
   </div>
 
+  <h2>Drill bits</h2>
+  <div class="card">
+    <table>
+      <tr><th>Hole</th><th>Metric</th><th>US bit</th><th>Depth</th><th>Step</th></tr>
+      <tr><td>Clearance hole through the shelf (6)</td><td class="v">5 mm</td><td class="v">3/16"</td><td>right through, scrap board under</td><td>2</td></tr>
+      <tr><td>Countersink on the TOP face (6)</td><td class="v">6 mm</td><td class="v">1/4"</td><td>only the cone, until the bit is at full width</td><td>2</td></tr>
+      <tr><td>Pilot into the post end, through the clearance hole (6)</td><td class="v">2.5 mm</td><td class="v">3/32"</td><td>tape 43 mm from the tip (18 shelf + 25 post)</td><td>3, 5</td></tr>
+      <tr><td>Pilots for the short bracket screws (36)</td><td class="v">2 mm</td><td class="v">5/64"</td><td>tape 12 mm from the tip</td><td>3, 4, 5</td></tr>
+    </table>
+    <p class="note">The clearance hole must be wider than the 4 mm screw, or its thread bites the shelf and holds it off the post instead of pulling it down. 5 mm or 3/16" both work; 4 mm (or 5/32") is too tight. 7/64" also does for the 2.5 mm pilot in pine.</p>
+    <p class="note">Countersinking with a twist bit: use a pointed twist (metal) bit, not a brad-point wood bit, which has a centre spur and cuts a flat-bottomed hole. Run it slowly with light pressure, or turn it by hand; it chatters and grabs. A 1/4" cone is narrower than the 8 mm screw head, so drive the last turn of each 4 × 40 slowly and let the head press itself flush in the pine. Do not overtighten. Try one on an offcut first. A countersink bit is cleaner if you buy one; then cut until the cone is just wider than the head.</p>
+  </div>
+
   <h2>1. Mark the post centres (both shelves)</h2>
   <div class="card step">
     <div class="figs">{fig_plan()}</div>
@@ -581,13 +594,13 @@ def page():
     <div class="figs">{fig_section()}</div>
     <div>
       <ol>
-        <li>At each centre, drill <strong>4 mm right through</strong> the shelf, with a scrap board underneath so the wood does not splinter where the bit comes out. Six holes in all.</li>
-        <li><strong>Countersink</strong> each hole on the TOP face so the screw head sits flush.</li>
+        <li>At each centre, drill <strong>5 mm (3/16") right through</strong> the shelf, with a scrap board underneath so the wood does not splinter where the bit comes out. Six holes in all.</li>
+        <li><strong>Countersink</strong> each hole on the TOP face with the 1/4" bit: only the cone, stop when the bit reaches its full width.</li>
         <li>Turn each shelf over and draw a <strong>25 mm square centred on each hole</strong> (12.5 mm each way). The posts are glued onto these squares.</li>
       </ol>
-      <p class="note">The 4 mm hole is wider than the screw, so the screw grips only the post and pulls the shelf down tight on it.
-      The 2.5 mm pilot into the post is drilled later, through this hole, once the post is in place.</p>
-      <p class="note warn">Bracket screws: 16 mm long at most on the shelf side. Wrap tape round the 2 mm bit about 12 mm from the tip as a depth stop.</p>
+      <p class="note">The 5 mm hole is wider than the 4 mm screw, so the screw grips only the post and pulls the shelf down tight on it.
+      The 2.5 mm (3/32") pilot into the post is drilled later, through this hole, once the post is in place.</p>
+      <p class="note warn">Bracket screws: 16 mm long at most on the shelf side. Wrap tape round the 2 mm (5/64") bit about 12 mm from the tip as a depth stop.</p>
     </div>
   </div>
 
@@ -601,10 +614,10 @@ def page():
         <li>Stand the post on its square and press it down.</li>
         <li>Fit a <strong>bracket</strong> in the corner between the post and the shelf, on the post face that points into the shelf
           so its flat leg points into the shelf, never toward an edge: <strong>back-right</strong> on the post's front face, <strong>back-left</strong> on its right-hand face (the leg runs along the back wall, not toward the diagonal), <strong>front-right</strong> on its back face. Use the same face at every level. (Some are hidden behind their post in the drawings.)</li>
-        <li>Pilot 2 mm (tape stop at about 12 mm) and drive the short screws: 2 into the shelf, 2 into the post.</li>
+        <li>Pilot 2 mm / 5/64" (tape stop at about 12 mm) and drive the short screws: 2 into the shelf, 2 into the post.</li>
         <li>Do the other two posts the same way.</li>
         <li>Turn it <strong>the right way up</strong>, standing on its posts on the floor.</li>
-        <li>Through each 4 mm hole, drill a <strong>2.5 mm pilot about 25 mm into the post</strong>, then drive a <strong>4 × 40</strong> screw.</li>
+        <li>Through each 5 mm hole, drill a <strong>2.5 mm (3/32") pilot about 25 mm into the post</strong> (tape 43 mm from the tip: it touches the shelf at the right depth), then drive a <strong>4 × 40</strong> screw, slowly at the end so the head seats flush.</li>
         <li>Wipe any glue that squeezes out with a damp cloth: oil will not take where glue has dried.</li>
       </ol>
     </div>
@@ -616,7 +629,7 @@ def page():
     <div>
       <ol>
         <li>On the top of the middle shelf, glue each middle post <strong>straight above a base post</strong>, covering its screw head (the square drawn in step 2 is now under it: use the screw head as the centre).</li>
-        <li>Fix each with a bracket on the same face as the bracket below, with short screws as before.</li>
+        <li>Fix each with a bracket on the same face as the bracket below, with short screws as before (2 mm / 5/64" pilots, tape at 12 mm).</li>
       </ol>
       <p class="note">These posts get only glue and a bracket at their bottom ends: a screw from below would hit the one coming down from above.</p>
     </div>
@@ -632,7 +645,7 @@ def page():
         <li>Turn the lower part upside down and set it on the top shelf, each post on its square.</li>
         <li>Fit the last 3 brackets. They are easy to reach this way up.</li>
         <li>Turn the whole shelf the right way up.</li>
-        <li>Drill the 2.5 mm pilots through the 4 mm holes into the post tops and drive the last three 4 × 40 screws.</li>
+        <li>Drill the 2.5 mm (3/32") pilots through the 5 mm holes (tape at 43 mm) into the post tops and drive the last three 4 × 40 screws.</li>
       </ol>
       <p class="note">Heights from the cabinet floor: middle shelf underside 300, top 318; top shelf underside 500, top 518.</p>
     </div>
