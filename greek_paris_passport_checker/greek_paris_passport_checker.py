@@ -174,6 +174,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--once", action="store_true", help="print current free slots and exit")
     ap.add_argument("--before", default="2026-12-24", help="email only for slots starting before this date")
+    ap.add_argument("--from", dest="from_", default="0000-00-00", help="email only for slots on or after this date")
     ap.add_argument("--interval", type=float, default=2.0, help="minutes between checks (default 2, +/-20%% jitter)")
     ap.add_argument("--to", action="append", default=[], help="extra/explicit recipient (repeatable)")
     ap.add_argument("--also-self", action="store_true", help="with --to, also email the creds' own account")
@@ -197,14 +198,14 @@ def main():
         send_email("[Greek passport Paris] test alert", f"Test from the slot checker.\n{BOOK_URL}\n", args.to)
         return
 
-    cutoff = args.before + " 00:00"
+    cutoff, start = args.before + " 00:00", args.from_ + " 00:00"
     try:
         seen = json.loads(STATE_FILE.read_text())
     except Exception:
         seen = {}
     first, fails = not seen, 0
     fail_since, fail_mailed = None, False
-    log.info("watching %s, alerting on new slots before %s, every ~%.1f min", PAGE, args.before, args.interval)
+    log.info("watching %s, alerting on new slots from %s to before %s, every ~%.1f min", PAGE, args.from_, args.before, args.interval)
     while True:
         try:
             cur = check()
@@ -216,7 +217,7 @@ def main():
                 if added or gone or first:
                     log.info("%s: %d free | +%s | -%s", name, len(slots), added, gone)
                 # on the first run, alert on what's already open too
-                hot = [s for s in (slots if first else added) if s < cutoff]
+                hot = [s for s in (slots if first else added) if start <= s < cutoff]
                 if hot:
                     new[name] = hot
             if new:
