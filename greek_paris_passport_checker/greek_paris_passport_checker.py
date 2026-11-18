@@ -21,7 +21,7 @@ Usage:
 
 Only slots that START before --before trigger an email; every change is logged.
 Alerts go to --to (repeatable), or by default to the Gmail account in the creds
-file (it emails itself). Standard library only.
+file (it emails itself); --also-self adds it to --to. Standard library only.
 """
 
 import argparse
@@ -53,6 +53,7 @@ GMAIL_CRED_PATH = Path.home() / "Desktop/creds/gmail_cred.txt"  # line 1 user, l
 ALERT_SOUND = "/usr/share/sounds/freedesktop/stereo/complete.oga"
 
 log = logging.getLogger("greek_paris")
+ALSO_SELF = False
 
 
 def http_get(url, opener, referer=None):
@@ -147,12 +148,14 @@ def send_email(subject, body, recipients):
         return
     try:
         uname, pword = gmail_creds()
-        recipients = recipients or [uname]
+        recipients = list(recipients) or [uname]
+        if ALSO_SELF and uname not in recipients:
+            recipients.append(uname)
         msg = MIMEText(body, "plain", "utf-8")
-        msg["Subject"], msg["From"], msg["To"] = subject, uname, uname
+        msg["Subject"], msg["From"], msg["To"] = subject, uname, ", ".join(recipients)
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
             s.login(uname, pword)
-            s.sendmail(uname, recipients, msg.as_string())  # extra recipients go as Bcc
+            s.sendmail(uname, recipients, msg.as_string())
         log.info("emailed %d recipient(s): %s", len(recipients), subject)
     except Exception as e:
         log.error("email failed: %s", e)
@@ -171,9 +174,12 @@ def main():
     ap.add_argument("--before", default="2026-12-24", help="email only for slots starting before this date")
     ap.add_argument("--interval", type=float, default=2.0, help="minutes between checks (default 2, +/-20%% jitter)")
     ap.add_argument("--to", action="append", default=[], help="extra/explicit recipient (repeatable)")
+    ap.add_argument("--also-self", action="store_true", help="with --to, also email the creds' own account")
     ap.add_argument("--no-sound", action="store_true")
     ap.add_argument("--test-email", action="store_true", help="send one test alert and exit")
     args = ap.parse_args()
+    global ALSO_SELF
+    ALSO_SELF = args.also_self
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)-7s %(message)s",
                         handlers=[logging.StreamHandler(sys.stdout)] +
