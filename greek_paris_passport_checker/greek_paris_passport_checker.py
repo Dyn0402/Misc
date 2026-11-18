@@ -34,6 +34,7 @@ import subprocess
 import sys
 import time
 import urllib.parse
+import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from email.mime.text import MIMEText
@@ -54,6 +55,7 @@ ALERT_SOUND = "/usr/share/sounds/freedesktop/stereo/complete.oga"
 
 log = logging.getLogger("greek_paris")
 ALSO_SELF = False
+BLOCKED_BACKOFF_MIN = 10  # wait after HTTP 403/429
 
 
 def http_get(url, opener, referer=None):
@@ -201,6 +203,7 @@ def main():
     except Exception:
         seen = {}
     first, fails = not seen, 0
+    fail_since, fail_mailed = None, False
     log.info("watching %s, alerting on new slots before %s, every ~%.1f min", PAGE, args.before, args.interval)
     while True:
         try:
@@ -227,12 +230,19 @@ def main():
                     play_sound()
             seen, first = cur, False
             STATE_FILE.write_text(json.dumps(seen, indent=1))
+            fail_since, fail_mailed = None, False
         except Exception as e:
             fails += 1
+            fail_since = fail_since or time.time()
             log.error("check failed (%d in a row): %s", fails, e)
-            if fails == 10:
+            # failures go to the creds' own account only, never to --to recipients
+            if not fail_mailed and time.time() - fail_since > 30 * 60:
                 send_email("[Greek passport Paris] checker failing",
-                           f"10 checks in a row failed. Last error:\n{e}\n", args.to)
+                           f"Checks failing for 30+ min ({fails} in a row). Last error:\n{e}\n", [])
+                fail_mailed = True
+            if isinstance(e, urllib.error.HTTPError) and e.code in (403, 429):
+                time.sleep(BLOCKED_BACKOFF_MIN * 60)  # rate-limited: hammering keeps the block alive
+                continue
         time.sleep(args.interval * 60 * random.uniform(0.8, 1.2))
 
 
