@@ -140,17 +140,18 @@ opens past it. Live as the "Folding table" tab: https://dylan-neff.web.cern.ch/m
 
 ## Greek passport Paris watcher — updated 2026-11-18 (dylan-MS-7C84)
 
-**Resume:** Pi watcher emails a friend + Dylan about Paris Greek-passport openings; alert window is Thu 19 Nov only — ask Dylan whether to widen or stop it.
+**Resume:** Pi watcher emails a friend + Dylan about Paris Greek-passport openings; alert window is Mon 23 Nov only (set 2026-11-18, session 2); otherwise it keeps checking/logging for testing.
 
 **Goal:** catch cancellations on the Greek Embassy in Paris passport calendar (SuperSaaS `PASSPORT_SERVICE_PARIS/APPOINTMENT`) for people who need an appointment fast.
 
 **Done:**
 - `greek_paris_passport_checker/greek_paris_passport_checker.py`: stdlib checker. Reads booked intervals from the public page (Bureau 1) and the page's ajax call (Bureau 2); free = opening slots minus booked. Matches the site's own "Disponibilités" list (verified in headless Chrome).
 - Runs on the Pi as systemd service `greek-passport-paris` (enabled, restarts on failure), every ~2 min. Recipients and the alert window are in `/etc/systemd/system/greek-passport-paris.service` (recipient address kept out of this public repo).
-- The friend got the Fri 20 Nov slot. Window now `--from 2026-11-19 --before 2026-11-20` (Thursday only), so after Thursday it sends nothing.
+- The friend got the Fri 20 Nov slot. Window now `--from 2026-11-23 --before 2026-11-24` (Monday 23 Nov only); outside it the watcher only logs.
 
 **Next steps:**
-1. Ask Dylan for a new window (or `ssh pi sudo systemctl disable --now greek-passport-paris`).
+1. After Monday 23 Nov: ask Dylan for a new window (or `ssh pi sudo systemctl disable --now greek-passport-paris`).
+1b. Scope research for a generic watcher repo is in `greek_consulate_research/NOTES.md` section 4 (SuperSaaS + Acuity easy; ANTS/cxmflow medium; visa outsourcers skip). Dylan to pick the repo name/scope.
 2. Research on other Greek consulate schedules lives in an untracked local folder on the desktop (`greek_consulate_research/`, excluded via `.git/info/exclude`, has NOTES.md); move it to the new private repo Dylan plans.
 
 **Gotchas / decisions:**
